@@ -670,7 +670,7 @@ inline void climate_update_chip(lv_obj_t *chip, const char *title, const std::st
   lv_obj_clear_flag(chip, LV_OBJ_FLAG_HIDDEN);
   lv_obj_t *label = lv_obj_get_child(chip, 0);
   if (!label) return;
-  std::string text = std::string(title) + "\n" + (value.empty() ? "None" : climate_option_label(value));
+  std::string text = std::string(title) + " " + (value.empty() ? "None" : climate_option_label(value));
   lv_label_set_text(label, text.c_str());
 }
 
@@ -729,16 +729,23 @@ inline lv_obj_t *climate_create_chip(lv_obj_t *parent, const char *title,
                                      uint32_t bg_color,
                                      int width_compensation_percent) {
   lv_obj_t *btn = lv_btn_create(parent);
-  lv_obj_set_size(btn, 96, 52);
+  lv_obj_set_size(btn, 96, 42);
+  lv_obj_set_flex_grow(btn, 1);
   apply_width_compensation(btn, width_compensation_percent);
-  lv_obj_set_style_radius(btn, 12, LV_PART_MAIN);
+  lv_obj_set_style_radius(btn, 6, LV_PART_MAIN);
   lv_obj_set_style_bg_color(btn, lv_color_hex(bg_color), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(btn, LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_set_style_border_color(btn, lv_color_hex(DARK_BORDER), LV_PART_MAIN);
   lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_left(btn, 12, LV_PART_MAIN);
+  lv_obj_set_style_pad_right(btn, 12, LV_PART_MAIN);
+  lv_obj_set_style_pad_top(btn, 6, LV_PART_MAIN);
+  lv_obj_set_style_pad_bottom(btn, 6, LV_PART_MAIN);
   lv_obj_t *label = lv_label_create(btn);
   lv_label_set_text(label, title);
+  lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
+  lv_obj_set_width(label, lv_pct(100));
   lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_SOFT), LV_PART_MAIN);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
@@ -1109,9 +1116,13 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
   if (ui.target_row) lv_obj_update_layout(ui.target_row);
   lv_coord_t title_h = ui.status_lbl ? lv_obj_get_height(ui.status_lbl) : 0;
   lv_coord_t value_h = ui.target_row ? lv_obj_get_height(ui.target_row) : 0;
-  lv_coord_t title_center_y = layout.value_center_y -
+  lv_coord_t value_center_y = layout.value_center_y -
+    control_modal_scaled_px(22, layout.short_side);
+  lv_coord_t controls_center_y = layout.controls_center_y -
+    control_modal_scaled_px(30, layout.short_side);
+  lv_coord_t title_center_y = value_center_y -
     (value_h / 2 + layout.title_gap + title_h / 2);
-  lv_coord_t chip_h = layout.short_side < 520 ? 48 : 56;
+  lv_coord_t chip_h = layout.short_side < 520 ? 42 : 48;
 
   control_modal_apply_panel_layout(ui.overlay, ui.panel, layout,
     control_modal_card_radius(ctx->btn));
@@ -1130,13 +1141,15 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
   if (ui.handle_dot) climate_layout_handle_dot(ctx, layout);
   climate_raise_arc_markers();
   lv_obj_align(ui.status_lbl, LV_ALIGN_CENTER, 0, title_center_y);
-  lv_obj_align(ui.target_row, LV_ALIGN_CENTER, 0, layout.value_center_y);
-  lv_obj_align(ui.hint_lbl, LV_ALIGN_CENTER, 0, layout.controls_center_y - layout.btn_size / 2 - 50);
+  lv_obj_align(ui.target_row, LV_ALIGN_CENTER, 0, value_center_y);
+  lv_obj_align(ui.hint_lbl, LV_ALIGN_CENTER, 0, controls_center_y - layout.btn_size / 2 - 50);
   lv_obj_set_style_translate_y(ui.unit_lbl,
     control_modal_scaled_px(MEDIA_VOLUME_UNIT_Y_REF_PX, layout.short_side), LV_PART_MAIN);
-  control_modal_apply_step_buttons_layout(ui.minus_btn, ui.plus_btn, layout);
-  lv_obj_align(ui.low_btn, LV_ALIGN_CENTER, -46, layout.controls_center_y - layout.btn_size / 2 - 24);
-  lv_obj_align(ui.high_btn, LV_ALIGN_CENTER, 46, layout.controls_center_y - layout.btn_size / 2 - 24);
+  ControlModalLayout controls_layout = layout;
+  controls_layout.controls_center_y = controls_center_y;
+  control_modal_apply_step_buttons_layout(ui.minus_btn, ui.plus_btn, controls_layout);
+  lv_obj_align(ui.low_btn, LV_ALIGN_CENTER, -46, controls_center_y - layout.btn_size / 2 - 24);
+  lv_obj_align(ui.high_btn, LV_ALIGN_CENTER, 46, controls_center_y - layout.btn_size / 2 - 24);
   lv_obj_set_height(ui.chips, chip_h);
   lv_obj_align(ui.chips, LV_ALIGN_BOTTOM_MID, 0, -layout.inset);
   if (ui.menu_view) {
@@ -1438,8 +1451,8 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
   lv_obj_set_style_flex_cross_place(ui.chips, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_clear_flag(ui.chips, LV_OBJ_FLAG_SCROLLABLE);
 
-  ui.fan_chip = climate_create_chip(ui.chips, "Fan\nNone", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
-  ui.swing_chip = climate_create_chip(ui.chips, "Swing\nNone", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
+  ui.fan_chip = climate_create_chip(ui.chips, "Fan None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
+  ui.swing_chip = climate_create_chip(ui.chips, "Swing None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
   lv_obj_add_event_cb(ui.fan_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "fan");
