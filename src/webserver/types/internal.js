@@ -64,6 +64,7 @@ function renderInternalRelayField(panel, b, helpers) {
 registerButtonType("internal", {
   label: "Internal Switches",
   allowInSubpage: true,
+  hideLabel: true,
   labelPlaceholder: "e.g. Porch Light",
   isAvailable: function () {
     return internalRelayOptions().length > 0;
@@ -94,6 +95,14 @@ registerButtonType("internal", {
     var switchBtn = modeControl.buttons.switch;
     var pushBtn = modeControl.buttons.push;
     panel.appendChild(helpers.fieldWithControl("Mode", helpers.idPrefix + "internal-mode", modeControl.segment));
+    panel.appendChild(helpers.textField(
+      "Label",
+      helpers.idPrefix + "label",
+      b.label,
+      "e.g. Porch Light",
+      "label",
+      true
+    ).field);
 
     function makeLabeledIconPicker(label, inputSuffix, pickerSuffix, value, onSelect) {
       var section = helpers.iconPickerField(
