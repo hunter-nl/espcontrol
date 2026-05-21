@@ -740,7 +740,7 @@ inline lv_obj_t *alarm_control_create_mode_button(
   lv_obj_set_style_text_align(icon, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (icon_font) lv_obj_set_style_text_font(icon, icon_font, LV_PART_MAIN);
   apply_width_compensation(icon, ctx ? ctx->width_compensation_percent : 100);
-  lv_obj_align(icon, LV_ALIGN_CENTER, 0, -height / 9);
+  lv_obj_align(icon, LV_ALIGN_CENTER, 0, -height / 7);
 
   lv_obj_t *label = lv_label_create(content);
   lv_label_set_text(label, alarm_control_button_label(mode ? std::string(mode) : ""));
@@ -748,7 +748,7 @@ inline lv_obj_t *alarm_control_create_mode_button(
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (label_font) lv_obj_set_style_text_font(label, label_font, LV_PART_MAIN);
   apply_width_compensation(label, ctx ? ctx->width_compensation_percent : 100);
-  lv_obj_align(label, LV_ALIGN_CENTER, 0, height / 7);
+  lv_obj_align(label, LV_ALIGN_CENTER, 0, height / 5);
 
   if (icon_out) *icon_out = icon;
   if (label_out) *label_out = label;
