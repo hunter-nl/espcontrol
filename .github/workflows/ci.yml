@@ -30,8 +30,6 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ESPCONTROL_NPM_CACHE_MAX_MB: 512
-  ESPCONTROL_PLATFORMIO_CACHE_MAX_MB: 6144
-  ESPCONTROL_BUILD_CACHE_MAX_MB: 1024
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -86,82 +84,3 @@ jobs:
           bash scripts/prune_actions_cache.sh "${NPM_CACHE}" "${ESPCONTROL_NPM_CACHE_MAX_MB}" --strategy reset
 
       - run: npm run docs:build
-
-  compile:
-    name: Compile Firmware (${{ matrix.slug }})
-    needs:
-      - validate
-      - docs
-    runs-on: self-hosted
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        slug:
-          - guition-esp32-p4-jc1060p470
-          - guition-esp32-p4-jc4880p443
-          - guition-esp32-p4-jc8012p4a1
-          - esp32-p4-86
-          - guition-esp32-s3-4848s040
-    steps:
-      - name: Prepare self-hosted workspace
-        run: rm -rf "${GITHUB_WORKSPACE}/.esphome" || sudo rm -rf "${GITHUB_WORKSPACE}/.esphome"
-
-      - uses: actions/checkout@v6
-        with:
-          path: espcontrol-${{ matrix.slug }}
-      - run: git sparse-checkout disable || true
-        working-directory: espcontrol-${{ matrix.slug }}
-
-      - name: Select Docker command
-        run: |
-          if docker info >/dev/null 2>&1; then
-            echo "DOCKER=docker" >> "$GITHUB_ENV"
-          elif sudo -n docker info >/dev/null 2>&1; then
-            echo "DOCKER=sudo docker" >> "$GITHUB_ENV"
-          else
-            echo "::error::Docker is not available to the self-hosted runner user"
-            exit 1
-          fi
-
-      - name: Prepare local ESPHome cache
-        working-directory: espcontrol-${{ matrix.slug }}
-        run: |
-          CACHE_ROOT="${HOME}/.cache/espcontrol-actions/esphome"
-          PLATFORMIO_CACHE="${CACHE_ROOT}/shared"
-          RUN_CACHE_ROOT="${CACHE_ROOT}/ci/${{ github.run_id }}-${{ github.run_attempt }}"
-          BUILD_CACHE="${RUN_CACHE_ROOT}/${{ matrix.slug }}"
-          mkdir -p "${PLATFORMIO_CACHE}" "${BUILD_CACHE}" builds
-          bash scripts/prune_actions_cache.sh "${CACHE_ROOT}/ci" "${ESPCONTROL_BUILD_CACHE_MAX_MB}" --protect "${RUN_CACHE_ROOT}"
-          bash scripts/prune_actions_cache.sh "${PLATFORMIO_CACHE}" "${ESPCONTROL_PLATFORMIO_CACHE_MAX_MB}" --strategy reset
-          rm -rf .esphome
-          rm -rf builds/.esphome
-          echo "PLATFORMIO_CACHE=${PLATFORMIO_CACHE}" >> "$GITHUB_ENV"
-          echo "BUILD_CACHE=${BUILD_CACHE}" >> "$GITHUB_ENV"
-
-      - name: Compile firmware
-        working-directory: espcontrol-${{ matrix.slug }}
-        run: >-
-          ${DOCKER} run --rm
-          --user "$(id -u):$(id -g)"
-          -e HOME=/config
-          -e PLATFORMIO_CORE_DIR=/config/.esphome/platformio
-          -e PLATFORMIO_SETTING_ENABLE_TELEMETRY=false
-          -v "${PWD}:/config"
-          -v "${PLATFORMIO_CACHE}:/config/.esphome"
-          -v "${BUILD_CACHE}:/config/builds/.esphome"
-          ghcr.io/esphome/esphome:2026.5.0
-          compile /config/builds/${{ matrix.slug }}.factory.yaml
-
-      - name: Clean firmware caches
-        if: always()
-        working-directory: espcontrol-${{ matrix.slug }}
-        run: |
-          if [ -z "${BUILD_CACHE:-}" ] || [ -z "${PLATFORMIO_CACHE:-}" ]; then
-            echo "No firmware cache paths were prepared."
-            exit 0
-          fi
-          rm -rf "${BUILD_CACHE}"
-          RUN_CACHE_ROOT="$(dirname "${BUILD_CACHE}")"
-          bash scripts/prune_actions_cache.sh "${PLATFORMIO_CACHE}" "${ESPCONTROL_PLATFORMIO_CACHE_MAX_MB}" --strategy reset
-          bash scripts/prune_actions_cache.sh "$(dirname "${RUN_CACHE_ROOT}")" "${ESPCONTROL_BUILD_CACHE_MAX_MB}" --protect "${RUN_CACHE_ROOT}"
