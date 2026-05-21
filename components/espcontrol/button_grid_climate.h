@@ -745,10 +745,11 @@ inline const char *climate_option_icon(const std::string &kind, const std::strin
 inline lv_obj_t *climate_create_chip(lv_obj_t *parent, const char *title,
                                      const lv_font_t *font,
                                      uint32_t bg_color,
-                                     int width_compensation_percent) {
+                                     int width_compensation_percent,
+                                     bool fit_text_width = false) {
   lv_obj_t *btn = lv_btn_create(parent);
-  lv_obj_set_size(btn, 96, 42);
-  lv_obj_set_flex_grow(btn, 1);
+  lv_obj_set_size(btn, fit_text_width ? LV_SIZE_CONTENT : 96, 42);
+  lv_obj_set_flex_grow(btn, fit_text_width ? 0 : 1);
   apply_width_compensation(btn, width_compensation_percent);
   lv_obj_set_style_radius(btn, 6, LV_PART_MAIN);
   lv_obj_set_style_bg_color(btn, lv_color_hex(bg_color), LV_PART_MAIN);
@@ -764,7 +765,7 @@ inline lv_obj_t *climate_create_chip(lv_obj_t *parent, const char *title,
   lv_obj_t *label = lv_label_create(btn);
   lv_label_set_text(label, title);
   lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
-  lv_obj_set_width(label, lv_pct(100));
+  lv_obj_set_width(label, fit_text_width ? LV_SIZE_CONTENT : lv_pct(100));
   lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_SOFT), LV_PART_MAIN);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
@@ -1473,10 +1474,10 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
   lv_obj_set_style_flex_cross_place(ui.chips, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_clear_flag(ui.chips, LV_OBJ_FLAG_SCROLLABLE);
 
-  ui.mode_chip = climate_create_chip(ui.chips, "Mode None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
-  ui.preset_chip = climate_create_chip(ui.chips, "Preset None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
-  ui.fan_chip = climate_create_chip(ui.chips, "Fan None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
-  ui.swing_chip = climate_create_chip(ui.chips, "Swing None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent);
+  ui.mode_chip = climate_create_chip(ui.chips, "Mode None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent, true);
+  ui.preset_chip = climate_create_chip(ui.chips, "Preset None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent, true);
+  ui.fan_chip = climate_create_chip(ui.chips, "Fan None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent, true);
+  ui.swing_chip = climate_create_chip(ui.chips, "Swing None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent, true);
   lv_obj_add_event_cb(ui.mode_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "hvac");
