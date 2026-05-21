@@ -475,7 +475,7 @@ inline void alarm_control_update_modal(AlarmCardCtx *ctx) {
     lv_obj_t *btn = ui.mode_btn[i];
     if (!btn) continue;
     bool selected = active_mode == modes[i];
-    uint32_t bg = selected ? alarm_control_active_color(ctx, modes[i]) : DARK_BACKGROUND_TERTIARY;
+    uint32_t bg = selected ? alarm_control_active_color(ctx, modes[i]) : DARK_TRACK_BACKGROUND;
     lv_obj_set_style_bg_color(btn, lv_color_hex(bg), LV_PART_MAIN);
     lv_obj_set_style_bg_color(btn, lv_color_hex(bg),
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_PRESSED));
@@ -719,7 +719,7 @@ inline lv_obj_t *alarm_control_create_mode_button(
   lv_obj_set_size(btn, width, height);
   apply_width_compensation(btn, ctx ? ctx->width_compensation_percent : 100);
   lv_obj_set_style_radius(btn, radius, LV_PART_MAIN);
-  lv_obj_set_style_bg_color(btn, lv_color_hex(DARK_BACKGROUND_TERTIARY), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(btn, lv_color_hex(DARK_TRACK_BACKGROUND), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN);
