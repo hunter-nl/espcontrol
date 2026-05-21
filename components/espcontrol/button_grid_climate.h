@@ -483,14 +483,22 @@ inline std::string climate_card_label(ClimateControlCtx *ctx) {
 inline void climate_update_card(ClimateControlCtx *ctx) {
   if (!ctx) return;
   std::string value = climate_card_value(ctx);
+  bool show_icon = ctx->number_display == "icon";
   if (ctx->icon_lbl) {
-    lv_obj_add_flag(ctx->icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    if (show_icon) {
+      lv_label_set_text(ctx->icon_lbl,
+        climate_temperature_controls_enabled(ctx) ? ctx->icon_on_glyph : ctx->icon_off_glyph);
+      lv_obj_clear_flag(ctx->icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(ctx->icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    }
   }
   if (ctx->sensor_container) {
-    lv_obj_clear_flag(ctx->sensor_container, LV_OBJ_FLAG_HIDDEN);
+    if (show_icon) lv_obj_add_flag(ctx->sensor_container, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_clear_flag(ctx->sensor_container, LV_OBJ_FLAG_HIDDEN);
   }
-  if (ctx->value_lbl) lv_label_set_text(ctx->value_lbl, value.c_str());
-  if (ctx->unit_lbl) lv_label_set_text(ctx->unit_lbl, (value.empty() || value == "--") ? "" : display_temperature_unit_symbol());
+  if (!show_icon && ctx->value_lbl) lv_label_set_text(ctx->value_lbl, value.c_str());
+  if (!show_icon && ctx->unit_lbl) lv_label_set_text(ctx->unit_lbl, (value.empty() || value == "--") ? "" : display_temperature_unit_symbol());
   if (ctx->label_lbl) lv_label_set_text(ctx->label_lbl, climate_card_label(ctx).c_str());
   if (ctx->btn) {
     if (climate_is_active(ctx)) lv_obj_add_state(ctx->btn, LV_STATE_CHECKED);
@@ -1522,9 +1530,15 @@ inline void setup_climate_control_button(lv_obj_t *btn, lv_obj_t *icon_lbl,
                                          lv_obj_t *unit_lbl,
                                          lv_obj_t *text_lbl,
                                          const ParsedCfg &p) {
-  if (icon_lbl) lv_obj_add_flag(icon_lbl, LV_OBJ_FLAG_HIDDEN);
+  bool show_icon = normalize_climate_number_display(cfg_option_value(p.options, "number_display")) == "icon";
+  if (icon_lbl) {
+    lv_label_set_text(icon_lbl, (p.icon.empty() || p.icon == "Auto") ? find_icon("Thermostat") : find_icon(p.icon.c_str()));
+    if (show_icon) lv_obj_clear_flag(icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(icon_lbl, LV_OBJ_FLAG_HIDDEN);
+  }
   if (sensor_container) {
-    lv_obj_clear_flag(sensor_container, LV_OBJ_FLAG_HIDDEN);
+    if (show_icon) lv_obj_add_flag(sensor_container, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_clear_flag(sensor_container, LV_OBJ_FLAG_HIDDEN);
     lv_obj_align(sensor_container, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_obj_move_foreground(sensor_container);
   }

@@ -159,6 +159,14 @@ const climateLabelPreview = hooks.buttonTypePreviewFor("climate", {
   temperatureUnit: "\u00b0F",
 });
 assert(climateLabelPreview.labelHtml.includes("21\u00b0F"), "climate actual label includes the configured unit");
+const climateIconPreview = hooks.buttonTypePreviewFor("climate", {
+  ...climatePreviewButton,
+  options: "number_display=icon",
+}, {
+  temperatureUnit: "\u00b0C",
+});
+assert(climateIconPreview.iconHtml.includes("mdi-thermostat"), "climate icon mode preview uses the selected icon");
+assert(!climateIconPreview.iconHtml.includes("\u00b0C"), "climate icon mode preview does not show a large temperature");
 assert.strictEqual(hooks.normalizeScreensaverAction("Screen Dimmed"), "dim");
 assert.strictEqual(hooks.previewHtmlValue({ labelHtml: "" }, "labelHtml", "fallback"), "");
 assert.strictEqual(hooks.previewHtmlValue({}, "labelHtml", "fallback"), "fallback");

@@ -60,7 +60,7 @@ function normalizeButtonConfig(b) {
     b.sensor = "";
     b.unit = "";
     if (!b.icon) b.icon = "Thermostat";
-    b.icon_on = "Auto";
+    if (!b.icon_on) b.icon_on = "Auto";
     b.precision = normalizeClimatePrecisionConfig(b.precision);
     b.options = normalizeClimateOptions(b.options);
   }
@@ -407,6 +407,7 @@ function normalizeClimateLabelDisplayMode(value) {
 
 function normalizeClimateNumberDisplayMode(value) {
   value = String(value || "").trim();
+  if (value === "icon") return "icon";
   return value === "actual" ? "actual" : "target";
 }
 
@@ -674,7 +675,7 @@ function buttonConfigFields(b) {
   if (type === "alarm" && (!icon || icon === "Auto")) icon = "Security";
   if (type === "alarm_action" && (!icon || icon === "Auto")) icon = (alarmActionInfo(sensor) || ALARM_ACTIONS[0]).icon;
   if (isFanCardType(type) && (!icon || icon === "Auto")) icon = fanCardDefaultIcon(type);
-  var iconOn = (isActionOptionSelect || type === "climate" || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b && b.icon_on || "Auto");
+  var iconOn = (isActionOptionSelect || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b && b.icon_on || "Auto");
   if (type === "fan_switch" && (!iconOn || iconOn === "Auto")) iconOn = "Fan";
   var precision = (isActionOptionSelect || type === "light_switch" || type === "alarm" || type === "alarm_action" || isFanCardType(type)) ? "" : (b && b.precision || "");
   if (type === "climate") precision = normalizeClimatePrecisionConfig(precision);
@@ -1015,7 +1016,7 @@ function legacySubpageConfigSafe(sp) {
     if (type === "alarm" && (!icon || icon === "Auto")) icon = "Security";
     if (type === "alarm_action" && (!icon || icon === "Auto")) icon = (alarmActionInfo(b.sensor) || ALARM_ACTIONS[0]).icon;
     if (isFanCardType(type) && (!icon || icon === "Auto")) icon = fanCardDefaultIcon(type);
-    var iconOn = (isActionOptionSelect || type === "climate" || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b.icon_on || "Auto");
+    var iconOn = (isActionOptionSelect || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b.icon_on || "Auto");
     if (type === "fan_switch" && (!iconOn || iconOn === "Auto")) iconOn = "Fan";
     var precision = (isActionOptionSelect || type === "light_switch" || type === "alarm" || type === "alarm_action" || isFanCardType(type)) ? "" : (b.precision || "");
     if (type === "climate") precision = normalizeClimatePrecisionConfig(precision);
@@ -1072,7 +1073,7 @@ function serializeLegacySubpageConfig(sp) {
     if (type === "alarm" && (!icon || icon === "Auto")) icon = "Security";
     if (type === "alarm_action" && (!icon || icon === "Auto")) icon = (alarmActionInfo(b.sensor) || ALARM_ACTIONS[0]).icon;
     if (isFanCardType(type) && (!icon || icon === "Auto")) icon = fanCardDefaultIcon(type);
-    var iconOn = (isActionOptionSelect || type === "climate" || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b.icon_on || "Auto");
+    var iconOn = (isActionOptionSelect || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b.icon_on || "Auto");
     if (type === "fan_switch" && (!iconOn || iconOn === "Auto")) iconOn = "Fan";
     var precision = (isActionOptionSelect || type === "light_switch" || type === "alarm" || type === "alarm_action" || isFanCardType(type)) ? "" : (b.precision || "");
     if (type === "climate") precision = normalizeClimatePrecisionConfig(precision);
@@ -1127,7 +1128,7 @@ function serializeCompactSubpageConfig(sp) {
     if (type === "alarm" && (!icon || icon === "Auto")) icon = "Security";
     if (type === "alarm_action" && (!icon || icon === "Auto")) icon = (alarmActionInfo(b.sensor) || ALARM_ACTIONS[0]).icon;
     if (isFanCardType(type) && (!icon || icon === "Auto")) icon = fanCardDefaultIcon(type);
-    var iconOn = (isActionOptionSelect || type === "climate" || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b.icon_on || "Auto");
+    var iconOn = (isActionOptionSelect || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b.icon_on || "Auto");
     if (type === "fan_switch" && (!iconOn || iconOn === "Auto")) iconOn = "Fan";
     var precision = (isActionOptionSelect || type === "light_switch" || type === "alarm" || type === "alarm_action" || isFanCardType(type)) ? "" : (b.precision || "");
     if (type === "climate") precision = normalizeClimatePrecisionConfig(precision);

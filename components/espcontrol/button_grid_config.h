@@ -226,6 +226,7 @@ inline std::string normalize_climate_label_display(const std::string &value) {
 }
 
 inline std::string normalize_climate_number_display(const std::string &value) {
+  if (value == "icon") return "icon";
   return value == "actual" ? "actual" : "target";
 }
 
@@ -372,7 +373,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (p.type == "climate") {
     p.sensor.clear();
     p.unit.clear();
-    p.icon_on.clear();
+    if (p.icon.empty()) p.icon = "Thermostat";
     p.options = climate_card_options_normalized(p.options);
   }
   if (p.type == "garage") {

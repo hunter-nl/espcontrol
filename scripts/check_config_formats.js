@@ -932,11 +932,23 @@ assertButtonRoundTrip(hooks, "climate card display options", {
   options: "label_display=status,number_display=actual",
 }, false);
 
+assertButtonRoundTrip(hooks, "climate card icon display", {
+  entity: "climate.hallway",
+  label: "Hallway",
+  icon: "Thermostat",
+  icon_on: "Radiator",
+  sensor: "",
+  unit: "",
+  type: "climate",
+  precision: "1",
+  options: "number_display=icon",
+}, false);
+
 assertButtonMigration(hooks, "climate clears ignored fields", "climate.living_room;Living;Thermostat;Radiator;sensor.temp;deg C;climate;bad", {
   entity: "climate.living_room",
   label: "Living",
   icon: "Thermostat",
-  icon_on: "Auto",
+  icon_on: "Radiator",
   sensor: "",
   unit: "",
   type: "climate",
@@ -1553,6 +1565,13 @@ assertSubpageRoundTrip(hooks, "climate subpage display options", {
   order: ["1", "B"],
   buttons: [
     buttonShape({ entity: "climate.hallway", label: "Hallway", type: "climate", precision: "1", options: "label_display=target,number_display=actual" }),
+  ],
+}, true);
+
+assertSubpageRoundTrip(hooks, "climate subpage icon display", {
+  order: ["1", "B"],
+  buttons: [
+    buttonShape({ entity: "climate.hallway", label: "Hallway", icon: "Thermostat", icon_on: "Radiator", type: "climate", precision: "1", options: "number_display=icon" }),
   ],
 }, true);
 
