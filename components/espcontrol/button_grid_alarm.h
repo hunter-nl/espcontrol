@@ -17,6 +17,7 @@ struct AlarmCardCtx {
   lv_obj_t *page = nullptr;
   TransientStatusLabel *status_label = nullptr;
   const lv_font_t *label_font = nullptr;
+  const lv_font_t *icon_font = nullptr;
   uint32_t on_color = DEFAULT_SLIDER_COLOR;
   uint32_t off_color = DEFAULT_OFF_COLOR;
   uint32_t tertiary_color = DEFAULT_TERTIARY_COLOR;
@@ -404,7 +405,9 @@ inline void alarm_pin_open_modal(AlarmActionCtx *action) {
   const lv_font_t *label_font = action->card->btn
     ? lv_obj_get_style_text_font(action->card->btn, LV_PART_MAIN)
     : nullptr;
-  const lv_font_t *icon_font = action->card->icon_lbl
+  const lv_font_t *icon_font = action->card->icon_font
+    ? action->card->icon_font
+    : action->card->icon_lbl
     ? lv_obj_get_style_text_font(action->card->icon_lbl, LV_PART_MAIN)
     : label_font;
 
@@ -544,6 +547,7 @@ inline AlarmCardCtx *create_alarm_card_context(
   ctx->btn = slot.btn;
   ctx->icon_lbl = slot.icon_lbl;
   ctx->label_font = label_font;
+  ctx->icon_font = icon_font;
   ctx->on_color = on_color;
   ctx->off_color = off_color;
   ctx->tertiary_color = tertiary_color;
