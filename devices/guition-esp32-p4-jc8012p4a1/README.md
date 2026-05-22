@@ -1,6 +1,6 @@
 # Guition ESP32-P4 JC8012P4A1 (10.1")
 
-10.1-inch 1280x800 landscape touchscreen panel that runs EspControl firmware for Home Assistant. A fixed 5x4 grid of 20 configurable buttons lets you control lights, switches, fans, and other smart home devices with a single tap. The display also shows a live clock, indoor/outdoor temperature, and includes a screensaver with adjustable brightness.
+10.1-inch 1280x800 landscape touchscreen panel that runs EspControl firmware for Home Assistant. A fixed 5x3 grid of 15 configurable buttons lets you control lights, switches, fans, and other smart home devices with a single tap. The display also shows a live clock, indoor/outdoor temperature, and includes a screensaver with adjustable brightness.
 
 After the initial install, everything is configured through the built-in web page, so no coding or file editing is required.
 
@@ -12,7 +12,7 @@ After the initial install, everything is configured through the built-in web pag
 
 ## Features
 
-- **20 buttons** (5x4 grid) - control any Home Assistant device
+- **15 buttons** (5x3 grid) - control any Home Assistant device
 - **Drag-and-drop ordering** - rearrange buttons from your browser
 - **Automatic icons** - or choose from hundreds of icons manually
 - **Custom labels** - name buttons however you like

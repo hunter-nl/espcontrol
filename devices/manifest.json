@@ -178,12 +178,12 @@
       }
     },
     "guition-esp32-p4-jc8012p4a1": {
-      "slots": 20,
+      "slots": 15,
       "layout": {
         "cols": 5,
-        "rows": 4,
-        "firmwareGrid": "5x4",
-        "portraitCols": 4
+        "rows": 3,
+        "firmwareGrid": "5x3",
+        "portraitCols": 3
       },
       "rotation": {
         "enabled": true,
@@ -202,7 +202,7 @@
           "aspect": "1280/800"
         },
         "portrait": {
-          "cols": 4,
+          "cols": 3,
           "rows": 5,
           "screen": {
             "width": "63%",

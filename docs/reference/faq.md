@@ -71,7 +71,7 @@ The setup page currently includes Switch, Lights, Action, Trigger, Sensor, Doors
 
 The home screen has a grid of card slots sized to fill the screen:
 
-- **10.1-inch JC8012P4A1** — 20 cards (4 rows, 5 columns)
+- **10.1-inch JC8012P4A1** — 15 cards (3 rows, 5 columns)
 - **7-inch JC1060P470** — 15 cards (3 rows, 5 columns)
 - **4.3-inch JC4880P443** — 6 cards (3 rows, 2 columns)
 - **4-inch ESP32-P4 86 Panel** — 9 cards (3 rows, 3 columns)
