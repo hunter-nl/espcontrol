@@ -81,6 +81,7 @@ esphome:
   on_boot:
     - priority: -100
       then:
+        - lambda: 'id(screen_rotation_ready) = true;'
         - script.execute: apply_screen_rotation
 
 # ---------------------------------------------------------------------------
@@ -247,5 +248,9 @@ select:
       - "270"
     on_value:
       then:
-        - script.execute: apply_screen_rotation
-        - script.execute: refresh_button_grid
+        - if:
+            condition:
+              lambda: 'return id(screen_rotation_ready);'
+            then:
+              - script.execute: apply_screen_rotation
+              - script.execute: refresh_button_grid

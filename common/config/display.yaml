@@ -5,6 +5,12 @@
 # All values persist across reboots and are editable via the webserver v3 UI.
 # =============================================================================
 
+globals:
+  - id: screen_rotation_ready
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
 esphome:
   on_boot:
     # Apply restored clock-bar layout before subpages copy main-page padding.

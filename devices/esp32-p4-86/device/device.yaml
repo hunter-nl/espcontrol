@@ -103,6 +103,7 @@ esphome:
               [=]() -> bool { return id(relay_2).state; });
     - priority: -100
       then:
+        - lambda: 'id(screen_rotation_ready) = true;'
         - script.execute: apply_screen_rotation
 
 # ---------------------------------------------------------------------------
@@ -320,4 +321,8 @@ select:
       - "270"
     on_value:
       then:
-        - script.execute: apply_screen_rotation
+        - if:
+            condition:
+              lambda: 'return id(screen_rotation_ready);'
+            then:
+              - script.execute: apply_screen_rotation

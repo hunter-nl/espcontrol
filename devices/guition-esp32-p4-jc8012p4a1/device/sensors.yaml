@@ -45,6 +45,7 @@ script:
             BTN_SLOT(20),
           };
           #undef BTN_SLOT
+          if (!id(screen_rotation_ready)) return;
           GridConfig cfg = {};
           cfg.num_slots = 20;
           bool portrait = id(screen_rotation_select).current_option() == "90" || id(screen_rotation_select).current_option() == "270";

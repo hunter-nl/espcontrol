@@ -217,6 +217,7 @@ def refresh_block(device: dict) -> str:
         [
             "          };",
             "          #undef BTN_SLOT",
+            "          if (!id(screen_rotation_ready)) return;",
             *["          " + line[12:] if line.startswith("            ") else line for line in cfg_lines(device)],
             "          // END GENERATED REFRESH GRID WIRING",
         ]
