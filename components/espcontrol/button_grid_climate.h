@@ -1252,8 +1252,8 @@ inline void climate_control_set_modal_value(ClimateControlCtx *ctx) {
      !ctx->fan_modes.empty() || !ctx->swing_modes.empty());
   climate_update_option_chip(ui.mode_chip, "Mode", ctx->hvac_mode, ctx->available && !ctx->hvac_modes.empty());
   climate_update_option_chip(ui.preset_chip, "Preset", ctx->preset_mode, ctx->available && !ctx->preset_modes.empty());
-  climate_update_chip(ui.fan_chip, "Fan", ctx->fan_mode, ctx->available && !ctx->fan_modes.empty());
-  climate_update_chip(ui.swing_chip, "Swing", ctx->swing_mode, ctx->available && !ctx->swing_modes.empty());
+  climate_update_option_chip(ui.fan_chip, "Fan", ctx->fan_mode, ctx->available && !ctx->fan_modes.empty());
+  climate_update_option_chip(ui.swing_chip, "Swing", ctx->swing_mode, ctx->available && !ctx->swing_modes.empty());
   climate_set_obj_visible(ui.chips, show_chips);
   climate_update_menu_tile(ui.menu_mode_btn, "Mode", ctx->hvac_mode, !ctx->hvac_modes.empty());
   climate_update_menu_tile(ui.menu_preset_btn, "Preset", ctx->preset_mode, !ctx->preset_modes.empty());
@@ -1333,25 +1333,33 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
     tune_4848 ? CLIMATE_MODAL_4848_OPTION_CHIP_W_REF_PX :
       layout.short_side < 520 ? (roomy_landscape ? 224 : (medium_landscape ? 240 : 180)) : 240,
     ctx->width_compensation_percent);
-  if (ui.mode_chip) {
-    lv_obj_set_size(ui.mode_chip, option_chip_w, chip_h);
-    lv_obj_set_style_radius(ui.mode_chip, chip_h / 2, LV_PART_MAIN);
-    if (tune_jc4880p443) climate_apply_jc4880p443_bottom_chip_padding(ui.mode_chip, true);
-    if (tune_4848) climate_apply_4848_bottom_chip_padding(ui.mode_chip, true);
-  }
-  if (ui.preset_chip) {
-    lv_obj_set_size(ui.preset_chip, option_chip_w, chip_h);
-    lv_obj_set_style_radius(ui.preset_chip, chip_h / 2, LV_PART_MAIN);
-    if (tune_jc4880p443) climate_apply_jc4880p443_bottom_chip_padding(ui.preset_chip, true);
-    if (tune_4848) climate_apply_4848_bottom_chip_padding(ui.preset_chip, true);
-  }
-  if (tune_jc4880p443) {
-    climate_apply_jc4880p443_bottom_chip_padding(ui.fan_chip, false);
-    climate_apply_jc4880p443_bottom_chip_padding(ui.swing_chip, false);
-  }
-  if (tune_4848) {
-    climate_apply_4848_bottom_chip_padding(ui.fan_chip, false);
-    climate_apply_4848_bottom_chip_padding(ui.swing_chip, false);
+  auto layout_option_chip = [&](lv_obj_t *chip) {
+    if (!chip) return;
+    lv_obj_set_size(chip, option_chip_w, chip_h);
+    lv_obj_set_style_radius(chip, chip_h / 2, LV_PART_MAIN);
+    if (tune_jc4880p443) climate_apply_jc4880p443_bottom_chip_padding(chip, true);
+    if (tune_4848) climate_apply_4848_bottom_chip_padding(chip, true);
+  };
+  layout_option_chip(ui.mode_chip);
+  layout_option_chip(ui.preset_chip);
+  layout_option_chip(ui.fan_chip);
+  layout_option_chip(ui.swing_chip);
+  uint8_t visible_chip_count = 0;
+  if (ctx->available && !ctx->hvac_modes.empty()) visible_chip_count++;
+  if (ctx->available && !ctx->preset_modes.empty()) visible_chip_count++;
+  if (ctx->available && !ctx->fan_modes.empty()) visible_chip_count++;
+  if (ctx->available && !ctx->swing_modes.empty()) visible_chip_count++;
+  lv_coord_t chip_row_w = layout.panel_w * CLIMATE_OPTION_ROW_WIDTH_PERCENT / 100;
+  lv_coord_t chip_content_w = visible_chip_count == 0 ? 0 :
+    visible_chip_count * option_chip_w + (visible_chip_count - 1) * chip_gap;
+  if (chip_content_w > chip_row_w) {
+    lv_obj_add_flag(ui.chips, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scroll_dir(ui.chips, LV_DIR_HOR);
+    lv_obj_set_scrollbar_mode(ui.chips, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_set_style_flex_main_place(ui.chips, LV_FLEX_ALIGN_START, LV_PART_MAIN);
+  } else {
+    lv_obj_clear_flag(ui.chips, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_flex_main_place(ui.chips, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   }
   lv_obj_align(ui.chips, LV_ALIGN_BOTTOM_MID, 0, -layout.inset);
   if (ui.menu_view) {
@@ -1650,7 +1658,9 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
   lv_obj_set_style_flex_flow(ui.chips, LV_FLEX_FLOW_ROW, LV_PART_MAIN);
   lv_obj_set_style_flex_main_place(ui.chips, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_style_flex_cross_place(ui.chips, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
-  lv_obj_clear_flag(ui.chips, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_add_flag(ui.chips, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_scroll_dir(ui.chips, LV_DIR_HOR);
+  lv_obj_set_scrollbar_mode(ui.chips, LV_SCROLLBAR_MODE_OFF);
 
   ui.mode_chip = climate_create_option_chip(ui.chips, find_icon("Fire"), "Mode",
     ctx->card_icon_font ? ctx->card_icon_font : ctx->icon_font,
@@ -1660,8 +1670,14 @@ inline void climate_control_open_modal(ClimateControlCtx *ctx) {
     ctx->card_icon_font ? ctx->card_icon_font : ctx->icon_font,
     ctx->option_title_font, ctx->option_value_font,
     ctx->width_compensation_percent);
-  ui.fan_chip = climate_create_chip(ui.chips, "Fan None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent, true);
-  ui.swing_chip = climate_create_chip(ui.chips, "Swing None", ctx->label_font, DARK_TRACK_BACKGROUND, ctx->width_compensation_percent, true);
+  ui.fan_chip = climate_create_option_chip(ui.chips, find_icon("Fan"), "Fan",
+    ctx->card_icon_font ? ctx->card_icon_font : ctx->icon_font,
+    ctx->option_title_font, ctx->option_value_font,
+    ctx->width_compensation_percent);
+  ui.swing_chip = climate_create_option_chip(ui.chips, find_icon("Swap Horizontal"), "Swing",
+    ctx->card_icon_font ? ctx->card_icon_font : ctx->icon_font,
+    ctx->option_title_font, ctx->option_value_font,
+    ctx->width_compensation_percent);
   lv_obj_add_event_cb(ui.mode_chip, [](lv_event_t *) {
     ClimateControlModalUi &ui = climate_control_modal_ui();
     if (ui.active) climate_open_option_menu(ui.active, "hvac");
