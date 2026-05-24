@@ -30,6 +30,7 @@ constexpr lv_coord_t CLIMATE_MODAL_4848_OPTION_CHIP_GAP_REF_PX = 12;
 constexpr lv_coord_t CLIMATE_MODAL_STEP_BUTTON_GAP_REF_PX = 16;
 constexpr uint16_t CLIMATE_MODAL_STEP_ICON_ZOOM = 214;
 constexpr int CLIMATE_OPTION_ROW_WIDTH_PERCENT = 88;
+constexpr int CLIMATE_OPTION_MAX_OPTIONS = 32;
 
 struct ClimateControlCtx {
   std::string entity_id;
@@ -89,6 +90,12 @@ struct ClimateControlCtx {
   const lv_font_t *icon_font = nullptr;
 };
 
+struct ClimateOptionClick {
+  ClimateControlCtx *ctx = nullptr;
+  std::string kind;
+  std::string value;
+};
+
 struct ClimateControlModalUi {
   lv_obj_t *overlay = nullptr;
   lv_obj_t *panel = nullptr;
@@ -117,7 +124,9 @@ struct ClimateControlModalUi {
   lv_obj_t *fan_chip = nullptr;
   lv_obj_t *swing_chip = nullptr;
   lv_obj_t *menu_overlay = nullptr;
+  ClimateOptionClick option_clicks[CLIMATE_OPTION_MAX_OPTIONS];
   ClimateControlCtx *active = nullptr;
+  int option_click_count = 0;
   bool updating_arc = false;
   bool dragging_arc = false;
   bool has_drag_preview = false;
@@ -125,15 +134,21 @@ struct ClimateControlModalUi {
   bool action_menu_open = false;
 };
 
-struct ClimateOptionClick {
-  ClimateControlCtx *ctx = nullptr;
-  std::string kind;
-  std::string value;
-};
-
 inline ClimateControlModalUi &climate_control_modal_ui() {
   static ClimateControlModalUi ui;
   return ui;
+}
+
+inline ClimateOptionClick *climate_next_option_click(ClimateControlModalUi &ui,
+                                                     ClimateControlCtx *ctx,
+                                                     const std::string &kind,
+                                                     const std::string &value) {
+  if (ui.option_click_count >= CLIMATE_OPTION_MAX_OPTIONS) return nullptr;
+  ClimateOptionClick *click = &ui.option_clicks[ui.option_click_count++];
+  click->ctx = ctx;
+  click->kind = kind;
+  click->value = value;
+  return click;
 }
 
 inline ClimateControlCtx **climate_control_refs() {
@@ -1041,6 +1056,7 @@ inline void climate_open_inline_option_list(ClimateControlCtx *ctx, const std::s
   }
 
   climate_hide_inline_option_list();
+  ui.option_click_count = 0;
   climate_set_obj_visible(ui.menu_mode_btn, false);
   climate_set_obj_visible(ui.menu_preset_btn, false);
 
@@ -1075,6 +1091,8 @@ inline void climate_open_inline_option_list(ClimateControlCtx *ctx, const std::s
     }
 
     for (const auto &option : section_options) {
+      ClimateOptionClick *click = climate_next_option_click(ui, ctx, section_kind, option);
+      if (!click) break;
       bool selected = climate_option_selected(ctx, section_kind, option);
       lv_obj_t *btn = lv_btn_create(parent);
       lv_obj_set_width(btn, lv_pct(100));
@@ -1100,10 +1118,6 @@ inline void climate_open_inline_option_list(ClimateControlCtx *ctx, const std::s
       lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
       if (ctx->option_menu_font) lv_obj_set_style_text_font(label, ctx->option_menu_font, LV_PART_MAIN);
 
-      ClimateOptionClick *click = new ClimateOptionClick();
-      click->ctx = ctx;
-      click->kind = section_kind;
-      click->value = option;
       lv_obj_add_event_cb(btn, [](lv_event_t *e) {
         ClimateOptionClick *click = (ClimateOptionClick *)lv_event_get_user_data(e);
         if (click) climate_send_option(click->ctx, click->kind, click->value);
@@ -1138,6 +1152,7 @@ inline void climate_open_option_menu(ClimateControlCtx *ctx, const std::string &
   else if (kind == "preset") options = &ctx->preset_modes;
   if (!options || options->empty()) return;
 
+  ui.option_click_count = 0;
   ui.menu_overlay = lv_obj_create(lv_layer_top());
   lv_obj_set_size(ui.menu_overlay, lv_pct(100), lv_pct(100));
   lv_obj_set_style_bg_color(ui.menu_overlay, lv_color_hex(DARK_OVERLAY), LV_PART_MAIN);
@@ -1167,6 +1182,8 @@ inline void climate_open_option_menu(ClimateControlCtx *ctx, const std::string &
   if (option_h < 68) option_h = 68;
 
   for (const auto &option : *options) {
+    ClimateOptionClick *click = climate_next_option_click(ui, ctx, kind, option);
+    if (!click) break;
     lv_obj_t *btn = lv_btn_create(box);
     lv_obj_set_width(btn, lv_pct(100));
     lv_obj_set_height(btn, option_h);
@@ -1185,10 +1202,6 @@ inline void climate_open_option_menu(ClimateControlCtx *ctx, const std::string &
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     if (ctx->option_menu_font) lv_obj_set_style_text_font(label, ctx->option_menu_font, LV_PART_MAIN);
     lv_obj_center(label);
-    ClimateOptionClick *click = new ClimateOptionClick();
-    click->ctx = ctx;
-    click->kind = kind;
-    click->value = option;
     lv_obj_add_event_cb(btn, [](lv_event_t *e) {
       ClimateOptionClick *click = (ClimateOptionClick *)lv_event_get_user_data(e);
       if (click) climate_send_option(click->ctx, click->kind, click->value);
