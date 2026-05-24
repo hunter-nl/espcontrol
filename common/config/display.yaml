@@ -61,7 +61,7 @@ script:
 
 switch:
   - platform: template
-    name: "Screen: Clock Bar"
+    name: "${entity_screen_clock_bar}"
     internal: true
     id: clock_bar_enabled
     optimistic: true
@@ -76,7 +76,7 @@ switch:
       - script.execute: clock_bar_apply
 
   - platform: template
-    name: "Screen: Network Status Icon"
+    name: "${entity_screen_network_status_icon}"
     internal: true
     id: network_status_enabled
     optimistic: true
@@ -91,7 +91,7 @@ switch:
       - script.execute: clock_bar_apply
 
   - platform: template
-    name: "Indoor Temp Enable"
+    name: "${entity_indoor_temp_enable}"
     internal: true
     id: indoor_temp_enable
     optimistic: true
@@ -116,7 +116,7 @@ switch:
                                     id(indoor_temp), id(outdoor_temp));
 
   - platform: template
-    name: "Outdoor Temp Enable"
+    name: "${entity_outdoor_temp_enable}"
     internal: true
     id: outdoor_temp_enable
     optimistic: true
@@ -141,7 +141,7 @@ switch:
                                     id(indoor_temp), id(outdoor_temp));
 
   - platform: template
-    name: "Screen: Temperature Degree Symbol"
+    name: "${entity_screen_temperature_degree_symbol}"
     internal: true
     id: temperature_degree_symbol_enabled
     optimistic: true
@@ -168,7 +168,7 @@ switch:
                                     id(indoor_temp), id(outdoor_temp));
 
   - platform: template
-    name: "Screen Saver: Clock"
+    name: "${entity_screen_saver_clock}"
     internal: true
     id: clock_screensaver_enabled
     optimistic: true
@@ -205,7 +205,7 @@ switch:
             - script.execute: screensaver_idle_check
 
   - platform: template
-    name: "Screen Saver: Media Player Sleep Prevention"
+    name: "${entity_screen_saver_media_player_sleep_prevention}"
     internal: true
     id: media_player_sleep_prevention_enabled
     optimistic: true
@@ -229,7 +229,7 @@ switch:
 
 select:
   - platform: template
-    name: "Screen Saver: Action"
+    name: "${entity_screen_saver_action}"
     internal: true
     id: screensaver_action
     entity_category: config
@@ -266,7 +266,7 @@ select:
               - script.execute: screensaver_idle_check
 
   - platform: template
-    name: "Screen: Temperature Unit"
+    name: "${entity_screen_temperature_unit}"
     internal: true
     disabled_by_default: true
     id: temperature_unit_select
@@ -295,7 +295,7 @@ select:
 
 text:
   - platform: template
-    name: "Indoor Temp Entity"
+    name: "${entity_indoor_temp_entity}"
     internal: true
     id: indoor_temp_entity
     optimistic: true
@@ -311,7 +311,7 @@ text:
       sorting_group_id: sg_display
 
   - platform: template
-    name: "Outdoor Temp Entity"
+    name: "${entity_outdoor_temp_entity}"
     internal: true
     id: outdoor_temp_entity
     optimistic: true
@@ -351,7 +351,7 @@ text:
 
   # Optional presence sensor for screensaver (e.g. mmWave)
   - platform: template
-    name: "Presence Sensor Entity"
+    name: "${entity_presence_sensor_entity}"
     internal: true
     id: presence_sensor_entity
     optimistic: true
@@ -368,7 +368,7 @@ text:
 
   # Optional media player that keeps the screensaver awake while playing.
   - platform: template
-    name: "Media Player Sleep Prevention Entity"
+    name: "${entity_media_player_sleep_prevention_entity}"
     internal: true
     id: media_player_sleep_prevention_entity
     optimistic: true
@@ -392,7 +392,7 @@ text:
 
 number:
   - platform: template
-    name: "Screen Saver: Daytime Clock Brightness"
+    name: "${entity_screen_saver_daytime_clock_brightness}"
     internal: true
     id: clock_brightness_day
     min_value: 1
@@ -416,7 +416,7 @@ number:
               - script.execute: clock_screensaver_refresh_brightness
 
   - platform: template
-    name: "Screen Saver: Nighttime Clock Brightness"
+    name: "${entity_screen_saver_nighttime_clock_brightness}"
     internal: true
     id: clock_brightness_night
     min_value: 1
@@ -440,7 +440,7 @@ number:
               - script.execute: clock_screensaver_refresh_brightness
 
   - platform: template
-    name: "Screen Saver: Dimmed Brightness"
+    name: "${entity_screen_saver_dimmed_brightness}"
     internal: true
     id: screensaver_dimmed_brightness
     min_value: 1
@@ -466,7 +466,7 @@ number:
   # clock brightness into the new day/night settings, and so older cached web
   # UIs still change the live screensaver brightness after startup.
   - platform: template
-    name: "Screen Saver: Clock Brightness"
+    name: "${entity_screen_saver_clock_brightness}"
     internal: true
     id: clock_brightness
     min_value: 1
@@ -505,7 +505,7 @@ number:
 
   # Screensaver idle timeout
   - platform: template
-    name: "Screensaver Timeout"
+    name: "${entity_screensaver_timeout}"
     internal: true
     id: screensaver_timeout
     min_value: 10
@@ -529,7 +529,7 @@ number:
 
   # Home screen return timeout (0 = disabled)
   - platform: template
-    name: "Home Screen Timeout"
+    name: "${entity_home_screen_timeout}"
     internal: true
     id: home_screen_timeout
     min_value: 0

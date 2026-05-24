@@ -32,7 +32,7 @@ globals:
 update:
   - platform: http_request
     id: firmware_update
-    name: "Firmware: Update"
+    name: "${entity_firmware_update}"
     internal: true
     source: https://jtenniswood.github.io/espcontrol/firmware/${firmware_manifest_slug}/manifest.json
     update_interval: never
@@ -46,7 +46,7 @@ update:
 
 switch:
   - platform: template
-    name: "Firmware: Auto Update"
+    name: "${entity_firmware_auto_update}"
     id: auto_update_switch
     entity_category: config
     icon: "mdi:update"
@@ -57,7 +57,7 @@ switch:
 
 select:
   - platform: template
-    name: "Firmware: Update Frequency"
+    name: "${entity_firmware_update_frequency}"
     id: update_frequency_select
     entity_category: config
     icon: "mdi:timer-outline"
@@ -83,7 +83,7 @@ interval:
 
 text_sensor:
   - platform: template
-    name: "Firmware: Version"
+    name: "${entity_firmware_version}"
     id: firmware_version_sensor
     entity_category: diagnostic
     icon: "mdi:tag"
@@ -94,7 +94,7 @@ text_sensor:
 
 button:
   - platform: template
-    name: "Firmware: Check for Update"
+    name: "${entity_firmware_check_for_update}"
     entity_category: config
     icon: "mdi:update"
     web_server:
@@ -106,7 +106,7 @@ button:
       - lambda: 'id(manual_check_only) = false;'
 
   - platform: template
-    name: "Firmware: Install Update"
+    name: "${entity_firmware_install_update}"
     entity_category: config
     icon: "mdi:download"
     web_server:

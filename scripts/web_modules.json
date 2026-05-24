@@ -2,6 +2,7 @@
   "styles",
   "state",
   "grid",
+  "entity_catalog",
   "api",
   "config_codec",
   "controls",

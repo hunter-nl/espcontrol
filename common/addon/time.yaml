@@ -33,7 +33,7 @@ api:
 # ---------------------------------------------------------------------------
 select:
   - platform: template
-    name: "Screen: Timezone"
+    name: "${entity_screen_timezone}"
     internal: true
     disabled_by_default: true
     id: timezone_select
@@ -194,7 +194,7 @@ select:
         - script.execute: screen_schedule_check
 
   - platform: template
-    name: "Screen: Clock Format"
+    name: "${entity_screen_clock_format}"
     internal: true
     disabled_by_default: true
     id: clock_format_select
@@ -218,7 +218,7 @@ select:
 # ---------------------------------------------------------------------------
 text:
   - platform: template
-    name: "Screen: NTP Server 1"
+    name: "${entity_screen_ntp_server_1}"
     internal: true
     id: ntp_server_1
     optimistic: true
@@ -237,7 +237,7 @@ text:
         - script.execute: ntp_servers_apply
 
   - platform: template
-    name: "Screen: NTP Server 2"
+    name: "${entity_screen_ntp_server_2}"
     internal: true
     id: ntp_server_2
     optimistic: true
@@ -256,7 +256,7 @@ text:
         - script.execute: ntp_servers_apply
 
   - platform: template
-    name: "Screen: NTP Server 3"
+    name: "${entity_screen_ntp_server_3}"
     internal: true
     id: ntp_server_3
     optimistic: true
@@ -275,7 +275,7 @@ text:
         - script.execute: ntp_servers_apply
 
   - platform: template
-    name: "Screen: Month Names"
+    name: "${entity_screen_month_names}"
     internal: true
     id: calendar_month_names
     optimistic: true

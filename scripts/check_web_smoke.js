@@ -331,16 +331,17 @@ assert.strictEqual(
 );
 assert.strictEqual(hooks.firmwareVersionLabelFor("", true), "Checking version...");
 assert.strictEqual(hooks.firmwareVersionLabelFor("", false), "Version unknown");
-assert.deepStrictEqual(hooks.entityDetailPaths("text_sensor", [
-  "Firmware: Version",
-  "firmware__version",
-  "firmware_version",
-  "firmware_version_sensor",
-]), [
+assert.deepStrictEqual(plain(hooks.entityDetailPaths("text_sensor", hooks.entityLookupNames("firmware_version"))), [
   "/text_sensor/Firmware%3A%20Version?detail=all",
   "/text_sensor/firmware__version?detail=all",
   "/text_sensor/firmware_version?detail=all",
   "/text_sensor/firmware_version_sensor?detail=all",
+]);
+assert.deepStrictEqual(plain(hooks.entityLookupNames("firmware_version")), [
+  "Firmware: Version",
+  "firmware__version",
+  "firmware_version",
+  "firmware_version_sensor",
 ]);
 assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("wifi", true), true);
 assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("wifi", false), false);

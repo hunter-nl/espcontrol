@@ -84,7 +84,7 @@ button:
 
 switch:
   - platform: template
-    name: "Developer: Experimental Features"
+    name: "${entity_developer_experimental_features}"
     internal: true
     id: developer_experimental_features
     optimistic: true

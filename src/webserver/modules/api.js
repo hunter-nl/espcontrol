@@ -6,6 +6,48 @@ function uniquePush(list, value) {
   if (value && list.indexOf(value) === -1) list.push(value);
 }
 
+function entityDef(key) {
+  return ENTITY_CATALOG.entities[key] || {};
+}
+
+function entityName(key) {
+  return entityDef(key).name || "";
+}
+
+function entityNameForSlot(key, slot) {
+  return String(entityDef(key).template || "").replace("{slot}", String(slot));
+}
+
+function entityObjectIds(key) {
+  return (entityDef(key).objectIds || []).slice();
+}
+
+function entityLookupNames(key) {
+  var names = [];
+  uniquePush(names, entityName(key));
+  entityObjectIds(key).forEach(function (objectId) { uniquePush(names, objectId); });
+  return names;
+}
+
+function entityStateItem(key) {
+  var def = entityDef(key);
+  return [def.domain, def.name];
+}
+
+function entityStateItems(keys) {
+  return keys.map(entityStateItem);
+}
+
+function entityStateItemsForSlots(keys) {
+  var items = [];
+  for (var i = 1; i <= NUM_SLOTS; i++) {
+    keys.forEach(function (key) {
+      items.push([entityDef(key).domain, entityNameForSlot(key, i)]);
+    });
+  }
+  return items;
+}
+
 function esphomeObjectId(value) {
   return String(value || "").replace(/./g, function (ch) {
     if (ch === " ") return "_";
@@ -260,7 +302,7 @@ function postText(name, value) {
 
 function saveButtonConfig(slot) {
   var b = state.buttons[slot - 1];
-  postText("Button " + slot + " Config", serializeButtonConfig(b));
+  postText(entityNameForSlot("button_config", slot), serializeButtonConfig(b));
 }
 
 function saveSubpageEntity(slot) {
@@ -284,10 +326,10 @@ function saveSubpageEntity(slot) {
     return;
   }
   state.subpageSavePending[slot] = full;
-  postText("Subpage " + slot + " Config", chunks[0]);
-  postText("Subpage " + slot + " Config Ext", chunks[1]);
-  postText("Subpage " + slot + " Config Ext 2", chunks[2]);
-  postText("Subpage " + slot + " Config Ext 3", chunks[3]);
+  postText(entityNameForSlot("subpage_config", slot), chunks[0]);
+  postText(entityNameForSlot("subpage_config_ext", slot), chunks[1]);
+  postText(entityNameForSlot("subpage_config_ext_2", slot), chunks[2]);
+  postText(entityNameForSlot("subpage_config_ext_3", slot), chunks[3]);
 }
 
 function scheduleSliderSubpageMigration(slot) {
@@ -312,34 +354,28 @@ function postButtonPress(name) {
 
 function postFirmwareUpdateInstall() {
   var urls = [];
-  rememberedPostUrls("button", "Firmware: Install Update", [
-    "firmware__install_update",
-    "firmware_install_update",
-  ], "press").forEach(function (url) { uniquePush(urls, url); });
-  uniquePush(urls, "/button/" + encodeURIComponent("Firmware: Install Update") + "/press");
-  uniquePush(urls, "/button/" + encodeURIComponent("firmware__install_update") + "/press");
-  uniquePush(urls, "/button/" + encodeURIComponent("firmware_install_update") + "/press");
+  rememberedPostUrls("button", entityName("firmware_install_update"), entityObjectIds("firmware_install_update"), "press")
+    .forEach(function (url) { uniquePush(urls, url); });
+  entityLookupNames("firmware_install_update").forEach(function (name) {
+    uniquePush(urls, "/button/" + encodeURIComponent(name) + "/press");
+  });
 
-  rememberedPostUrls("update", "Firmware: Update", [
-    "firmware__update",
-    "firmware_update",
-  ], "install").forEach(function (url) { uniquePush(urls, url); });
-  uniquePush(urls, "/update/" + encodeURIComponent("Firmware: Update") + "/install");
-  uniquePush(urls, "/update/" + encodeURIComponent("firmware__update") + "/install");
-  uniquePush(urls, "/update/" + encodeURIComponent("firmware_update") + "/install");
+  rememberedPostUrls("update", entityName("firmware_update"), entityObjectIds("firmware_update"), "install")
+    .forEach(function (url) { uniquePush(urls, url); });
+  entityLookupNames("firmware_update").forEach(function (name) {
+    uniquePush(urls, "/update/" + encodeURIComponent(name) + "/install");
+  });
 
   post(urls, null, "Could not start firmware update.");
 }
 
 function postFirmwareUpdateCheck() {
   var urls = [];
-  rememberedPostUrls("button", "Firmware: Check for Update", [
-    "firmware__check_for_update",
-    "firmware_check_for_update",
-  ], "press").forEach(function (url) { uniquePush(urls, url); });
-  uniquePush(urls, "/button/" + encodeURIComponent("Firmware: Check for Update") + "/press");
-  uniquePush(urls, "/button/" + encodeURIComponent("firmware__check_for_update") + "/press");
-  uniquePush(urls, "/button/" + encodeURIComponent("firmware_check_for_update") + "/press");
+  rememberedPostUrls("button", entityName("firmware_check_for_update"), entityObjectIds("firmware_check_for_update"), "press")
+    .forEach(function (url) { uniquePush(urls, url); });
+  entityLookupNames("firmware_check_for_update").forEach(function (name) {
+    uniquePush(urls, "/button/" + encodeURIComponent(name) + "/press");
+  });
 
   post(urls, null, "Could not check for firmware update.");
 }
@@ -420,10 +456,7 @@ function postSwitch(name, on) {
 }
 
 function postDeveloperExperimentalFeatures(on) {
-  postSwitchWithObjectIds("Developer: Experimental Features", [
-    "developer__experimental_features",
-    "developer_experimental_features",
-  ], on);
+  postSwitchWithObjectIds(entityName("developer_experimental_features"), entityObjectIds("developer_experimental_features"), on);
 }
 
 function postNumber(name, value) {
@@ -465,40 +498,44 @@ function postScreensaverTimeout(value) {
     syncScreensaverTimeoutUi();
     return;
   }
-  postNumberWithObjectIds("Screensaver Timeout", ["screensaver_timeout"], value);
+  postNumberWithObjectIds(entityName("screensaver_timeout"), entityObjectIds("screensaver_timeout"), value);
 }
 
 var SCREENSAVER_ACTION_UNAVAILABLE =
   "Screen dimmed screensaver is not available on this firmware. Update the device firmware, then reload this page.";
 
 function postScreensaverAction(value) {
-  postSelectWithObjectIds("Screen Saver: Action", [
-    "screen_saver__action",
-    "screen_saver_action",
-    "screensaver_action",
-  ], screensaverActionOption(value), SCREENSAVER_ACTION_UNAVAILABLE);
+  postSelectWithObjectIds(
+    entityName("screen_saver_action"),
+    entityObjectIds("screen_saver_action"),
+    screensaverActionOption(value),
+    SCREENSAVER_ACTION_UNAVAILABLE
+  );
 }
 
 function postScreensaverDimmedBrightness(value) {
-  postNumberWithObjectIds("Screen Saver: Dimmed Brightness", [
-    "screen_saver__dimmed_brightness",
-    "screen_saver_dimmed_brightness",
-    "screensaver_dimmed_brightness",
-  ], value, SCREENSAVER_ACTION_UNAVAILABLE);
+  postNumberWithObjectIds(
+    entityName("screen_saver_dimmed_brightness"),
+    entityObjectIds("screen_saver_dimmed_brightness"),
+    value,
+    SCREENSAVER_ACTION_UNAVAILABLE
+  );
 }
 
 function postClockBrightnessDay(value) {
-  postNumberWithObjectIds("Screen Saver: Daytime Clock Brightness", [
-    "screen_saver__daytime_clock_brightness",
-    "screen_saver__clock_brightness",
-  ], value);
+  postNumberWithObjectIds(
+    entityName("screen_saver_daytime_clock_brightness"),
+    entityObjectIds("screen_saver_daytime_clock_brightness"),
+    value
+  );
 }
 
 function postClockBrightnessNight(value) {
-  postNumberWithObjectIds("Screen Saver: Nighttime Clock Brightness", [
-    "screen_saver__nighttime_clock_brightness",
-    "screen_saver__clock_brightness",
-  ], value);
+  postNumberWithObjectIds(
+    entityName("screen_saver_nighttime_clock_brightness"),
+    entityObjectIds("screen_saver_nighttime_clock_brightness"),
+    value
+  );
 }
 
 function postSwitchWithObjectId(name, objectId, on, errorMessage) {
@@ -513,33 +550,31 @@ var CLOCK_BAR_UNAVAILABLE =
   "Clock bar setting is not available on this firmware. Update the device firmware, then reload this page.";
 
 function postClockBar(on) {
-  postSwitchWithObjectIds("Screen: Clock Bar", [
-    "screen__clock_bar",
-    "screen_clock_bar",
-    "clock_bar_enabled",
-  ], on, CLOCK_BAR_UNAVAILABLE);
+  postSwitchWithObjectIds(entityName("screen_clock_bar"), entityObjectIds("screen_clock_bar"), on, CLOCK_BAR_UNAVAILABLE);
 }
 
 var NETWORK_STATUS_ICON_UNAVAILABLE =
   "Network status icon setting is not available on this firmware. Update the device firmware, then reload this page.";
 
 function postNetworkStatusIcon(on) {
-  postSwitchWithObjectIds("Screen: Network Status Icon", [
-    "screen__network_status_icon",
-    "screen_network_status_icon",
-    "network_status_enabled",
-  ], on, NETWORK_STATUS_ICON_UNAVAILABLE);
+  postSwitchWithObjectIds(
+    entityName("screen_network_status_icon"),
+    entityObjectIds("screen_network_status_icon"),
+    on,
+    NETWORK_STATUS_ICON_UNAVAILABLE
+  );
 }
 
 var TEMPERATURE_DEGREE_SYMBOL_UNAVAILABLE =
   "Temperature degree symbol setting is not available on this firmware. Update the device firmware, then reload this page.";
 
 function postTemperatureDegreeSymbol(on) {
-  postSwitchWithObjectIds("Screen: Temperature Degree Symbol", [
-    "screen__temperature_degree_symbol",
-    "screen_temperature_degree_symbol",
-    "temperature_degree_symbol_enabled",
-  ], on, TEMPERATURE_DEGREE_SYMBOL_UNAVAILABLE);
+  postSwitchWithObjectIds(
+    entityName("screen_temperature_degree_symbol"),
+    entityObjectIds("screen_temperature_degree_symbol"),
+    on,
+    TEMPERATURE_DEGREE_SYMBOL_UNAVAILABLE
+  );
 }
 
 var SCREEN_SCHEDULE_UNAVAILABLE =
@@ -558,60 +593,84 @@ var AUTOMATIC_BRIGHTNESS_UNAVAILABLE =
   "Automatic brightness control is not available on this firmware. Update the device firmware, then reload this page.";
 
 function postAutomaticBrightnessEnabled(on) {
-  postSwitchWithObjectId("Screen: Automatic Brightness", "screen__automatic_brightness", on, AUTOMATIC_BRIGHTNESS_UNAVAILABLE);
+  postSwitchWithObjectIds(
+    entityName("screen_automatic_brightness"),
+    entityObjectIds("screen_automatic_brightness"),
+    on,
+    AUTOMATIC_BRIGHTNESS_UNAVAILABLE
+  );
 }
 
 function postScreenScheduleEnabled(on) {
-  postSwitchWithObjectId("Screen: Schedule Enabled", "screen__schedule_enabled", on, SCREEN_SCHEDULE_UNAVAILABLE);
+  postSwitchWithObjectIds(
+    entityName("screen_schedule_enabled"),
+    entityObjectIds("screen_schedule_enabled"),
+    on,
+    SCREEN_SCHEDULE_UNAVAILABLE
+  );
 }
 
 function postScreenScheduleOnHour(value) {
-  postNumberWithObjectId("Screen: Schedule On Hour", "screen__schedule_on_hour", value, SCREEN_SCHEDULE_UNAVAILABLE);
+  postNumberWithObjectIds(
+    entityName("screen_schedule_on_hour"),
+    entityObjectIds("screen_schedule_on_hour"),
+    value,
+    SCREEN_SCHEDULE_UNAVAILABLE
+  );
 }
 
 function postScreenScheduleOffHour(value) {
-  postNumberWithObjectId("Screen: Schedule Off Hour", "screen__schedule_off_hour", value, SCREEN_SCHEDULE_UNAVAILABLE);
+  postNumberWithObjectIds(
+    entityName("screen_schedule_off_hour"),
+    entityObjectIds("screen_schedule_off_hour"),
+    value,
+    SCREEN_SCHEDULE_UNAVAILABLE
+  );
 }
 
 function postScreenScheduleMode(value) {
-  postSelectWithObjectId(
-    "Screen: Schedule Mode",
-    "screen__schedule_mode",
+  postSelectWithObjectIds(
+    entityName("screen_schedule_mode"),
+    entityObjectIds("screen_schedule_mode"),
     scheduleModeOption(value),
     SCREEN_SCHEDULE_MODE_UNAVAILABLE
   );
 }
 
 function postScreenScheduleWakeTimeout(value) {
-  postNumberWithObjectIds("Screen: Schedule Wake Timeout", [
-    "screen__schedule_wake_timeout",
-    "screen_schedule_wake_timeout",
-    "schedule_wake_timeout",
-  ], value, SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE);
+  postNumberWithObjectIds(
+    entityName("screen_schedule_wake_timeout"),
+    entityObjectIds("screen_schedule_wake_timeout"),
+    value,
+    SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE
+  );
 }
 
 function postScreenScheduleWakeBrightness(value) {
-  postNumberWithObjectIds("Screen: Schedule Wake Brightness", [
-    "screen__schedule_wake_brightness",
-    "screen_schedule_wake_brightness",
-    "schedule_wake_brightness",
-  ], value, SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE);
+  postNumberWithObjectIds(
+    entityName("screen_schedule_wake_brightness"),
+    entityObjectIds("screen_schedule_wake_brightness"),
+    value,
+    SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE
+  );
 }
 
 function postScreenScheduleDimmedBrightness(value) {
-  postNumberWithObjectIds("Screen: Schedule Dimmed Brightness", [
-    "screen__schedule_dimmed_brightness",
-    "screen_schedule_dimmed_brightness",
-    "schedule_dimmed_brightness",
-  ], value, SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE);
+  postNumberWithObjectIds(
+    entityName("screen_schedule_dimmed_brightness"),
+    entityObjectIds("screen_schedule_dimmed_brightness"),
+    value,
+    SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE
+  );
 }
 
 function postScreenScheduleClockBrightness(value) {
-  postNumberWithObjectIds("Screen: Schedule Clock Brightness", [
-    "screen__schedule_clock_brightness",
-    "screen_schedule_clock_brightness",
-    "schedule_clock_brightness",
-  ], value, SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE);
+  postNumberWithObjectIds(
+    entityName("screen_schedule_clock_brightness"),
+    entityObjectIds("screen_schedule_clock_brightness"),
+    value,
+    SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE
+  );
 }
 
 function getJsonQuietly(path, callback) {
@@ -656,89 +715,22 @@ function eventStreamEnabled() {
 }
 
 function cardStateEntities() {
-  var items = [
-    ["text", "Button Order"],
-    ["text", "Button On Color"],
-    ["text", "Button Off Color"],
-    ["text", "Sensor Card Color"],
-  ];
-
-  for (var i = 1; i <= NUM_SLOTS; i++) {
-    items.push(["text", "Button " + i + " Config"]);
-  }
-
-  return items;
+  return entityStateItems(ENTITY_CATALOG.groups.card)
+    .concat(entityStateItemsForSlots(ENTITY_CATALOG.groups.card_slot));
 }
 
 function settingsStateEntities() {
-  var items = [
-    ["switch", "Indoor Temp Enable"],
-    ["switch", "Outdoor Temp Enable"],
-    ["switch", "Screen: Clock Bar"],
-    ["switch", "Screen: Network Status Icon"],
-    ["switch", "Screen: Temperature Degree Symbol"],
-    ["select", "Screen: Temperature Unit"],
-    ["text", "Indoor Temp Entity"],
-    ["text", "Outdoor Temp Entity"],
-    ["text", "Screensaver Mode"],
-    ["select", "Screen Saver: Action"],
-    ["text", "Presence Sensor Entity"],
-    ["switch", "Screen Saver: Media Player Sleep Prevention"],
-    ["text", "Media Player Sleep Prevention Entity"],
-    ["number", "Screen Saver: Daytime Clock Brightness"],
-    ["number", "Screen Saver: Nighttime Clock Brightness"],
-    ["number", "Screen Saver: Clock Brightness"],
-    ["number", "Screen Saver: Dimmed Brightness"],
-    ["number", "Screensaver Timeout"],
-    ["number", "Home Screen Timeout"],
-    ["switch", "Screen Saver: Clock"],
-    ["select", "Screen: Timezone"],
-    ["select", "Screen: Clock Format"],
-    ["text", "Screen: NTP Server 1"],
-    ["text", "Screen: NTP Server 2"],
-    ["text", "Screen: NTP Server 3"],
-    ["text", "Screen: Month Names"],
-    ["text_sensor", "Screen: Sunrise"],
-    ["text_sensor", "Screen: Sunset"],
-    ["text_sensor", "Network Transport"],
-    ["sensor", "Wifi Strength"],
-    ["switch", "Screen: Automatic Brightness"],
-    ["switch", "Screen: Schedule Enabled"],
-    ["select", "Screen: Schedule Mode"],
-    ["number", "Screen: Schedule On Hour"],
-    ["number", "Screen: Schedule Off Hour"],
-    ["number", "Screen: Schedule Wake Timeout"],
-    ["number", "Screen: Schedule Wake Brightness"],
-    ["number", "Screen: Schedule Dimmed Brightness"],
-    ["number", "Screen: Schedule Clock Brightness"],
-    ["number", "Screen: Daytime Brightness"],
-    ["number", "Screen: Nighttime Brightness"],
-    ["text_sensor", "Firmware: Version"],
-    ["update", "Firmware: Update"],
-    ["button", "Firmware: Check for Update"],
-    ["button", "Firmware: Install Update"],
-    ["switch", "Firmware: Auto Update"],
-    ["select", "Firmware: Update Frequency"],
-    ["switch", "Developer: Experimental Features"],
-  ];
+  var items = entityStateItems(ENTITY_CATALOG.groups.settings);
 
   if (CFG.features && CFG.features.screenRotation) {
-    items.push(["select", "Screen: Rotation"]);
+    items = items.concat(entityStateItems(ENTITY_CATALOG.groups.settings_optional));
   }
 
   return items;
 }
 
 function subpageStateEntities() {
-  var items = [];
-  for (var i = 1; i <= NUM_SLOTS; i++) {
-    items.push(["text", "Subpage " + i + " Config"]);
-    items.push(["text", "Subpage " + i + " Config Ext"]);
-    items.push(["text", "Subpage " + i + " Config Ext 2"]);
-    items.push(["text", "Subpage " + i + " Config Ext 3"]);
-  }
-
-  return items;
+  return entityStateItemsForSlots(ENTITY_CATALOG.groups.subpage_slot);
 }
 
 function loadStateItems(items, handleState, concurrency) {
@@ -814,19 +806,10 @@ function refreshFirmwareVersion() {
   getJsonQuietly(publicFirmwareManifestUrl(), function (d) {
     setPublicFirmwareInfo(firmwareInfoFromPublicManifest(d));
   }).then(finishFirmwareVersionRefresh, finishFirmwareVersionRefresh);
-  getJsonFirst(entityDetailPaths("text_sensor", [
-    "Firmware: Version",
-    "firmware__version",
-    "firmware_version",
-    "firmware_version_sensor",
-  ]), function (d) {
+  getJsonFirst(entityDetailPaths("text_sensor", entityLookupNames("firmware_version")), function (d) {
     setFirmwareVersion(d.state || d.value);
   }).then(finishFirmwareVersionRefresh, finishFirmwareVersionRefresh);
-  getJsonFirst(entityDetailPaths("update", [
-    "Firmware: Update",
-    "firmware__update",
-    "firmware_update",
-  ]), function (d) {
+  getJsonFirst(entityDetailPaths("update", entityLookupNames("firmware_update")), function (d) {
     rememberEntityPostPath(d);
     setFirmwareUpdateInfo(d);
   }).then(function (data) {
@@ -836,22 +819,14 @@ function refreshFirmwareVersion() {
     }
     finishFirmwareVersionRefresh();
   }, finishFirmwareVersionRefresh);
-  getJsonFirst(entityDetailPaths("button", [
-    "Firmware: Install Update",
-    "firmware__install_update",
-    "firmware_install_update",
-  ]), function (d) {
+  getJsonFirst(entityDetailPaths("button", entityLookupNames("firmware_install_update")), function (d) {
     rememberEntityPostPath(d);
     state.firmwareUpdateControlsSupported = true;
     state.firmwareInstallControlsSupported = true;
     renderFirmwareUpdateStatus();
     syncFirmwareUpdateUi();
   }).then(finishFirmwareVersionRefresh, finishFirmwareVersionRefresh);
-  getJsonFirst(entityDetailPaths("button", [
-    "Firmware: Check for Update",
-    "firmware__check_for_update",
-    "firmware_check_for_update",
-  ]), function (d) {
+  getJsonFirst(entityDetailPaths("button", entityLookupNames("firmware_check_for_update")), function (d) {
     rememberEntityPostPath(d);
     state.firmwareUpdateControlsSupported = true;
     renderFirmwareUpdateStatus();
@@ -860,10 +835,10 @@ function refreshFirmwareVersion() {
 }
 
 function refreshScreensaverTimeout() {
-  getJsonQuietly("/number/" + encodeURIComponent("Screensaver Timeout") + "?detail=all", applyScreensaverTimeoutState)
+  getJsonQuietly("/number/" + encodeURIComponent(entityName("screensaver_timeout")) + "?detail=all", applyScreensaverTimeoutState)
     .then(function (data) {
       if (!data) {
-        getJsonQuietly("/number/" + encodeURIComponent("screensaver_timeout") + "?detail=all", applyScreensaverTimeoutState);
+        getJsonQuietly("/number/" + encodeURIComponent(entityObjectIds("screensaver_timeout")[0]) + "?detail=all", applyScreensaverTimeoutState);
       }
     });
 }

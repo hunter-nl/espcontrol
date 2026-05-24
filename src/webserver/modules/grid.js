@@ -20,7 +20,7 @@ function ctx() {
     setSelected: function (s) { state.selectedSlots = s; },
     setLastClicked: function (s) { state.lastClickedSlot = s; },
     getLastClicked: function () { return state.lastClickedSlot; },
-    save: function () { postText("Button Order", serializeGrid(state.grid)); },
+    save: function () { postText(entityName("button_order"), serializeGrid(state.grid)); },
   };
 }
 

@@ -93,6 +93,7 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
       return label;
     },
     entityDetailPaths: entityDetailPaths,
+    entityLookupNames: entityLookupNames,
     firmwareUpdateControlsVisibleFor: function (transport, supported) {
       var oldTransport = state.networkTransport;
       var oldSupported = state.firmwareUpdateControlsSupported;

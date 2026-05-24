@@ -106,7 +106,7 @@ function scheduleMigration() {
     if (pos > 0) {
       renderPreview();
       renderButtonSettings();
-      postText("Button Order", serializeGrid(state.grid));
+      postText(entityName("button_order"), serializeGrid(state.grid));
     }
   }, 2000);
 }

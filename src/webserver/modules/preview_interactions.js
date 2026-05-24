@@ -483,7 +483,7 @@ function addSlot(pos) {
     var slot = firstFreeSlot();
     if (slot < 0) return;
     state.grid[pos] = slot;
-    postText("Button Order", serializeGrid(state.grid));
+    postText(entityName("button_order"), serializeGrid(state.grid));
     state.selectedSlots = [slot];
     state.lastClickedSlot = slot;
     renderPreview();
@@ -501,7 +501,7 @@ function addSubpageSlot(pos) {
   state.grid[pos] = slot;
   state.subpages[slot] = { order: [], buttons: [], grid: [], sizes: {} };
   buildSubpageGrid(state.subpages[slot]);
-  postText("Button Order", serializeGrid(state.grid));
+  postText(entityName("button_order"), serializeGrid(state.grid));
   saveButtonConfig(slot);
   saveSubpageEntity(slot);
   selectButton(slot);
@@ -534,7 +534,7 @@ function duplicateButton(srcSlot) {
     buildSubpageGrid(spCopy);
     state.subpages[newSlot] = spCopy;
   }
-  postText("Button Order", serializeGrid(state.grid));
+  postText(entityName("button_order"), serializeGrid(state.grid));
   saveButtonConfig(newSlot);
   saveSubpageEntity(newSlot);
   state.selectedSlots = [newSlot];
@@ -600,7 +600,7 @@ function deleteSlot(slot) {
     state.subpageLastClicked = -1;
     saveSubpageConfig(state.editingSubpage);
   } else {
-    postText("Button Order", serializeGrid(state.grid));
+    postText(entityName("button_order"), serializeGrid(state.grid));
     state.buttons[slot - 1] = emptyButtonConfig();
     delete state.subpages[slot];
     saveButtonConfig(slot);
@@ -642,7 +642,7 @@ function deleteButtons(slots) {
       saveButtonConfig(slot);
       saveSubpageEntity(slot);
     });
-    postText("Button Order", serializeGrid(state.grid));
+    postText(entityName("button_order"), serializeGrid(state.grid));
   }
   renderPreview();
   renderButtonSettings();
@@ -751,7 +751,7 @@ function resizeSlot(slot, targetSz) {
     sp.order = serializeSubpageGrid(sp);
     saveSubpageConfig(state.editingSubpage);
   } else {
-    postText("Button Order", serializeGrid(state.grid));
+    postText(entityName("button_order"), serializeGrid(state.grid));
   }
   renderPreview();
   renderButtonSettings();
@@ -985,7 +985,7 @@ function pasteButton(pos) {
     saveSubpageEntity(newSlot);
     lastSlot = newSlot;
   }
-  postText("Button Order", serializeGrid(state.grid));
+  postText(entityName("button_order"), serializeGrid(state.grid));
   state.clipboard = null;
   state.selectedSlots = [];
   renderPreview();

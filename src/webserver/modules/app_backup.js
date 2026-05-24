@@ -116,9 +116,9 @@ function importConfig() {
         showBanner(backupPlan.warnings[warningIdx], "warning");
       }
 
-      postText("Button On Color", backupPlan.config.button_on_color);
-      postText("Button Off Color", backupPlan.config.button_off_color);
-      postText("Sensor Card Color", backupPlan.config.sensor_card_color);
+      postText(entityName("button_on_color"), backupPlan.config.button_on_color);
+      postText(entityName("button_off_color"), backupPlan.config.button_off_color);
+      postText(entityName("sensor_card_color"), backupPlan.config.sensor_card_color);
 
       for (var i = 0; i < NUM_SLOTS; i++) {
         var b = backupPlan.buttons[i];
@@ -134,7 +134,7 @@ function importConfig() {
         saveSubpageEntity(subpageKey);
       }
 
-      postText("Button Order", backupPlan.button_order);
+      postText(entityName("button_order"), backupPlan.button_order);
       applyImportedButtonOrder(backupPlan.button_order, backupPlan.importedSizes);
       state.onColor = backupPlan.config.button_on_color;
       state.offColor = backupPlan.config.button_off_color;
@@ -147,10 +147,10 @@ function importConfig() {
       if (backupPlan.settings) {
         var s = backupPlan.settings;
 
-        postSwitch("Indoor Temp Enable", !!s.indoor_temp_enable);
-        postSwitch("Outdoor Temp Enable", !!s.outdoor_temp_enable);
-        postText("Indoor Temp Entity", s.indoor_temp_entity || "");
-        postText("Outdoor Temp Entity", s.outdoor_temp_entity || "");
+        postSwitch(entityName("indoor_temp_enable"), !!s.indoor_temp_enable);
+        postSwitch(entityName("outdoor_temp_enable"), !!s.outdoor_temp_enable);
+        postText(entityName("indoor_temp_entity"), s.indoor_temp_entity || "");
+        postText(entityName("outdoor_temp_entity"), s.outdoor_temp_entity || "");
         postClockBar(s.clock_bar != null ? !!s.clock_bar : false);
         postNetworkStatusIcon(s.network_status_icon != null ? !!s.network_status_icon : true);
         postTemperatureDegreeSymbol(s.temperature_degree_symbol != null ? !!s.temperature_degree_symbol : true);
@@ -181,20 +181,20 @@ function importConfig() {
         var importedMonthNames = hasMonthNames
           ? normalizeMonthNames(s.month_names)
           : state.monthNames;
-        if (s.timezone) postSelect("Screen: Timezone", importedTimezone);
-        postSelect("Screen: Temperature Unit", importedTemperatureUnit);
-        if (s.clock_format) postSelect("Screen: Clock Format", importedClockFormat);
+        if (s.timezone) postSelect(entityName("screen_timezone"), importedTimezone);
+        postSelect(entityName("screen_temperature_unit"), importedTemperatureUnit);
+        if (s.clock_format) postSelect(entityName("screen_clock_format"), importedClockFormat);
         if (hasNtpServer1) {
-          postText("Screen: NTP Server 1", importedNtpServer1);
+          postText(entityName("screen_ntp_server_1"), importedNtpServer1);
         }
         if (hasNtpServer2) {
-          postText("Screen: NTP Server 2", importedNtpServer2);
+          postText(entityName("screen_ntp_server_2"), importedNtpServer2);
         }
         if (hasNtpServer3) {
-          postText("Screen: NTP Server 3", importedNtpServer3);
+          postText(entityName("screen_ntp_server_3"), importedNtpServer3);
         }
         if (hasMonthNames) {
-          postText("Screen: Month Names", serializeMonthNames(importedMonthNames));
+          postText(entityName("screen_month_names"), serializeMonthNames(importedMonthNames));
         }
         var importedScreensaverMode = s.screensaver_mode || "disabled";
         if (importedScreensaverMode !== "sensor" &&
@@ -202,10 +202,10 @@ function importConfig() {
             importedScreensaverMode !== "disabled") {
           importedScreensaverMode = "disabled";
         }
-        postText("Screensaver Mode", importedScreensaverMode);
-        postText("Presence Sensor Entity", s.presence_sensor_entity || "");
-        postSwitch("Screen Saver: Media Player Sleep Prevention", !!s.media_player_sleep_prevention);
-        postText("Media Player Sleep Prevention Entity", s.media_player_sleep_prevention_entity || "");
+        postText(entityName("screensaver_mode"), importedScreensaverMode);
+        postText(entityName("presence_sensor_entity"), s.presence_sensor_entity || "");
+        postSwitch(entityName("screen_saver_media_player_sleep_prevention"), !!s.media_player_sleep_prevention);
+        postText(entityName("media_player_sleep_prevention_entity"), s.media_player_sleep_prevention_entity || "");
         var importedScreensaverAction = normalizeScreensaverAction(
           s.screensaver_action != null
             ? s.screensaver_action
@@ -219,14 +219,14 @@ function importConfig() {
           s.clock_brightness_night != null ? s.clock_brightness_night : s.clock_brightness,
           importedClockBrightnessDay);
         postScreensaverAction(importedScreensaverAction);
-        postSwitch("Screen Saver: Clock", importedScreensaverAction === "clock");
+        postSwitch(entityName("screen_saver_clock"), importedScreensaverAction === "clock");
         postClockBrightnessDay(importedClockBrightnessDay);
         postClockBrightnessNight(importedClockBrightnessNight);
         postScreensaverDimmedBrightness(importedScreensaverDimmedBrightness);
         postScreensaverTimeout(s.screensaver_timeout || 300);
-        postNumber("Home Screen Timeout", s.home_screen_timeout != null ? s.home_screen_timeout : 60);
+        postNumber(entityName("home_screen_timeout"), s.home_screen_timeout != null ? s.home_screen_timeout : 60);
         var importedScreenRotation = normalizeScreenRotation(s.screen_rotation);
-        if (CFG.features && CFG.features.screenRotation) postSelect("Screen: Rotation", importedScreenRotation);
+        if (CFG.features && CFG.features.screenRotation) postSelect(entityName("screen_rotation"), importedScreenRotation);
         if (hasDeveloperExperimentalFeatures) {
           postDeveloperExperimentalFeatures(importedDeveloperExperimentalFeatures);
         }
@@ -319,8 +319,8 @@ function importConfig() {
             : state.scheduleClockBrightness
         );
 
-        postNumber("Screen: Daytime Brightness", state.brightnessDayVal);
-        postNumber("Screen: Nighttime Brightness", state.brightnessNightVal);
+        postNumber(entityName("screen_daytime_brightness"), state.brightnessDayVal);
+        postNumber(entityName("screen_nighttime_brightness"), state.brightnessNightVal);
         postAutomaticBrightnessEnabled(state.automaticBrightnessEnabled);
         postScreenScheduleOnHour(state.scheduleOnHour);
         postScreenScheduleOffHour(state.scheduleOffHour);

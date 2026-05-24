@@ -10,7 +10,7 @@
 
 text:
   - platform: template
-    name: "Button ${num} Config"
+    name: "${entity_button_config_prefix}${num}${entity_button_config_suffix}"
     internal: true
     id: button_${num}_config
     optimistic: true
@@ -26,7 +26,7 @@ text:
       sorting_group_id: sg_button
 
   - platform: template
-    name: "Subpage ${num} Config"
+    name: "${entity_subpage_config_prefix}${num}${entity_subpage_config_suffix}"
     internal: true
     id: subpage_${num}_config
     optimistic: true
@@ -42,7 +42,7 @@ text:
       sorting_group_id: sg_button
 
   - platform: template
-    name: "Subpage ${num} Config Ext"
+    name: "${entity_subpage_config_ext_prefix}${num}${entity_subpage_config_ext_suffix}"
     internal: true
     id: subpage_${num}_config_ext
     optimistic: true
@@ -58,7 +58,7 @@ text:
       sorting_group_id: sg_button
 
   - platform: template
-    name: "Subpage ${num} Config Ext 2"
+    name: "${entity_subpage_config_ext_2_prefix}${num}${entity_subpage_config_ext_2_suffix}"
     internal: true
     id: subpage_${num}_config_ext_2
     optimistic: true
@@ -74,7 +74,7 @@ text:
       sorting_group_id: sg_button
 
   - platform: template
-    name: "Subpage ${num} Config Ext 3"
+    name: "${entity_subpage_config_ext_3_prefix}${num}${entity_subpage_config_ext_3_suffix}"
     internal: true
     id: subpage_${num}_config_ext_3
     optimistic: true

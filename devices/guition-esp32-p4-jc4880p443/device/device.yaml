@@ -252,7 +252,7 @@ script:
 
 select:
   - platform: template
-    name: "Screen: Rotation"
+    name: "${entity_screen_rotation}"
     internal: true
     disabled_by_default: true
     id: screen_rotation_select

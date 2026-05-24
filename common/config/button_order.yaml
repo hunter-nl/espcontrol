@@ -10,7 +10,7 @@
 
 text:
   - platform: template
-    name: "Button Order"
+    name: "${entity_button_order}"
     internal: true
     id: button_order
     optimistic: true

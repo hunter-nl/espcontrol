@@ -7,7 +7,7 @@
 
 text:
   - platform: template
-    name: "Button On Color"
+    name: "${entity_button_on_color}"
     internal: true
     id: button_on_color
     optimistic: true
@@ -23,7 +23,7 @@ text:
       sorting_group_id: sg_display
 
   - platform: template
-    name: "Button Off Color"
+    name: "${entity_button_off_color}"
     internal: true
     id: button_off_color
     optimistic: true
@@ -39,7 +39,7 @@ text:
       sorting_group_id: sg_display
 
   - platform: template
-    name: "Sensor Card Color"
+    name: "${entity_sensor_card_color}"
     internal: true
     id: sensor_card_color
     optimistic: true

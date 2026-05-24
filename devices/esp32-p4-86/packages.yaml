@@ -42,6 +42,7 @@ packages:
   # ---------------------------------------------------------------------------
   # Device, assets, and LVGL base
   # ---------------------------------------------------------------------------
+  entity_names:    !include ../../common/config/entity_names.yaml
   device:          !include device/device.yaml
   network_coprocessor: !include device/network_coprocessor${network_package_suffix}.yaml
   fonts:           !include ../../common/assets/fonts.yaml

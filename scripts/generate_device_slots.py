@@ -143,6 +143,7 @@ def package_file_text(device: dict) -> str:
         "  # ---------------------------------------------------------------------------",
         "  # Device, assets, and LVGL base",
         "  # ---------------------------------------------------------------------------",
+        include_line("entity_names", "!include ../../common/config/entity_names.yaml"),
         include_line("device", "!include device/device.yaml"),
     ]
     if package.get("networkCoprocessor"):

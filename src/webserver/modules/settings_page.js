@@ -12,21 +12,21 @@ function buildSettingsPage(parent) {
 
   appearBody.appendChild(fieldLabel("Primary"));
   var onColor = colorField("sp-set-on-color", "FF8C00", function (hex) {
-    postText("Button On Color", hex);
+    postText(entityName("button_on_color"), hex);
   });
   appearBody.appendChild(onColor);
   els.setOnColor = onColor;
 
   appearBody.appendChild(fieldLabel("Secondary"));
   var offColor = colorField("sp-set-off-color", "313131", function (hex) {
-    postText("Button Off Color", hex);
+    postText(entityName("button_off_color"), hex);
   });
   appearBody.appendChild(offColor);
   els.setOffColor = offColor;
 
   appearBody.appendChild(fieldLabel("Tertiary"));
   var sensorColor = colorField("sp-set-sensor-color", "212121", function (hex) {
-    postText("Sensor Card Color", hex);
+    postText(entityName("sensor_card_color"), hex);
   });
   appearBody.appendChild(sensorColor);
   els.setSensorColor = sensorColor;
@@ -35,12 +35,12 @@ function buildSettingsPage(parent) {
 
   var blBody = document.createElement("div");
 
-  var daySlider = createRangeSlider("Daytime Brightness", state.brightnessDayVal, "Screen: Daytime Brightness");
+  var daySlider = createRangeSlider("Daytime Brightness", state.brightnessDayVal, entityName("screen_daytime_brightness"));
   blBody.appendChild(daySlider.wrap);
   els.setDayBrightness = daySlider.range;
   els.setDayBrightnessVal = daySlider.val;
 
-  var nightSlider = createRangeSlider("Nighttime Brightness", state.brightnessNightVal, "Screen: Nighttime Brightness");
+  var nightSlider = createRangeSlider("Nighttime Brightness", state.brightnessNightVal, entityName("screen_nighttime_brightness"));
   blBody.appendChild(nightSlider.wrap);
   els.setNightBrightness = nightSlider.range;
   els.setNightBrightnessVal = nightSlider.val;
@@ -230,7 +230,7 @@ function buildSettingsPage(parent) {
   tzSelect.value = state.timezone;
   tzSelect.addEventListener("change", function () {
     state.timezone = this.value;
-    postSelect("Screen: Timezone", this.value);
+    postSelect(entityName("screen_timezone"), this.value);
     if (normalizeTemperatureUnit(state.temperatureUnit) === "Auto") {
       updateTempPreview();
       renderPreview();
@@ -255,7 +255,7 @@ function buildSettingsPage(parent) {
   });
   cfSelect.value = state.clockFormat;
   cfSelect.addEventListener("change", function () {
-    postSelect("Screen: Clock Format", this.value);
+    postSelect(entityName("screen_clock_format"), this.value);
   });
   cfField.appendChild(cfSelect);
   clockBody.appendChild(cfField);
@@ -272,9 +272,9 @@ function buildSettingsPage(parent) {
     state.customNtpServers = this.checked;
     if (!state.customNtpServers) {
       resetNtpServersToDefaults();
-      postText("Screen: NTP Server 1", state.ntpServer1);
-      postText("Screen: NTP Server 2", state.ntpServer2);
-      postText("Screen: NTP Server 3", state.ntpServer3);
+      postText(entityName("screen_ntp_server_1"), state.ntpServer1);
+      postText(entityName("screen_ntp_server_2"), state.ntpServer2);
+      postText(entityName("screen_ntp_server_3"), state.ntpServer3);
     }
     syncNtpServerUi();
   });
@@ -303,13 +303,13 @@ function buildSettingsPage(parent) {
 
   els.setNtpServer1 = addNtpServerInput(
     "sp-set-ntp-server-1", "ntpServer1",
-    "Screen: NTP Server 1", NTP_SERVER_DEFAULTS[0], "NTP Server 1");
+    entityName("screen_ntp_server_1"), NTP_SERVER_DEFAULTS[0], "NTP Server 1");
   els.setNtpServer2 = addNtpServerInput(
     "sp-set-ntp-server-2", "ntpServer2",
-    "Screen: NTP Server 2", NTP_SERVER_DEFAULTS[1], "NTP Server 2");
+    entityName("screen_ntp_server_2"), NTP_SERVER_DEFAULTS[1], "NTP Server 2");
   els.setNtpServer3 = addNtpServerInput(
     "sp-set-ntp-server-3", "ntpServer3",
-    "Screen: NTP Server 3", NTP_SERVER_DEFAULTS[2], "NTP Server 3");
+    entityName("screen_ntp_server_3"), NTP_SERVER_DEFAULTS[2], "NTP Server 3");
 
   ntpField.appendChild(ntpList);
   syncNtpServerUi();
@@ -327,7 +327,7 @@ function buildSettingsPage(parent) {
     state.customMonthNames = this.checked;
     if (!state.customMonthNames) {
       resetMonthNamesToDefaults();
-      postText("Screen: Month Names", serializeMonthNames(state.monthNames));
+      postText(entityName("screen_month_names"), serializeMonthNames(state.monthNames));
       renderPreview();
     }
     syncMonthNameUi();
@@ -352,7 +352,7 @@ function buildSettingsPage(parent) {
       this.value = names[index];
       state.customMonthNames = hasCustomMonthNames();
       syncMonthNameUi();
-      postText("Screen: Month Names", serializeMonthNames(state.monthNames));
+      postText(entityName("screen_month_names"), serializeMonthNames(state.monthNames));
       renderPreview();
     });
     input.addEventListener("keydown", function (e) {
@@ -392,7 +392,7 @@ function buildSettingsPage(parent) {
   });
 
   var outdoor = createEntityToggleSection("Outdoor Temperature", "sp-set-outdoor-toggle", state._outdoorOn,
-    "Outdoor Temp Enable", "Outdoor Temp Entity", "Outdoor Temp Entity", "sensor.outdoor_temperature");
+    entityName("outdoor_temp_enable"), entityName("outdoor_temp_entity"), "Outdoor Temp Entity", "sensor.outdoor_temperature");
   clockBarBody.appendChild(outdoor.toggle.row);
   clockBarBody.appendChild(outdoor.field);
   els.setOutdoorToggle = outdoor.toggle.input;
@@ -405,7 +405,7 @@ function buildSettingsPage(parent) {
   });
 
   var indoor = createEntityToggleSection("Indoor Temperature", "sp-set-indoor-toggle", state._indoorOn,
-    "Indoor Temp Enable", "Indoor Temp Entity", "Indoor Temp Entity", "sensor.indoor_temperature");
+    entityName("indoor_temp_enable"), entityName("indoor_temp_entity"), "Indoor Temp Entity", "sensor.indoor_temperature");
   clockBarBody.appendChild(indoor.toggle.row);
   clockBarBody.appendChild(indoor.field);
   els.setIndoorToggle = indoor.toggle.input;
@@ -450,7 +450,7 @@ function buildSettingsPage(parent) {
       state.screenRotation = normalizeScreenRotation(this.value);
       syncPreviewOrientation();
       renderPreview();
-      postSelect("Screen: Rotation", this.value);
+      postSelect(entityName("screen_rotation"), this.value);
     });
     rotField.appendChild(rotSelect);
     rotationBody.appendChild(rotField);
@@ -479,7 +479,7 @@ function buildSettingsPage(parent) {
   unitSelect.value = normalizeTemperatureUnit(state.temperatureUnit);
   unitSelect.addEventListener("change", function () {
     state.temperatureUnit = normalizeTemperatureUnit(this.value);
-    postSelect("Screen: Temperature Unit", state.temperatureUnit);
+    postSelect(entityName("screen_temperature_unit"), state.temperatureUnit);
     updateTempPreview();
     renderPreview();
   });
@@ -549,7 +549,7 @@ function buildSettingsPage(parent) {
   mediaPlayerToggle.input.addEventListener("change", function () {
     state.mediaPlayerSleepPreventionOn = this.checked;
     syncMediaPlayerSleepPreventionUi();
-    postSwitch("Screen Saver: Media Player Sleep Prevention", state.mediaPlayerSleepPreventionOn);
+    postSwitch(entityName("screen_saver_media_player_sleep_prevention"), state.mediaPlayerSleepPreventionOn);
   });
   els.setMediaPlayerSleepPreventionToggle = mediaPlayerToggle.input;
 
@@ -562,7 +562,7 @@ function buildSettingsPage(parent) {
     "e.g. media_player.living_room");
   mediaPlayerField.appendChild(mediaPlayerInp);
   timerPanel.appendChild(mediaPlayerField);
-  bindTextPost(mediaPlayerInp, "Media Player Sleep Prevention Entity", {
+  bindTextPost(mediaPlayerInp, entityName("media_player_sleep_prevention_entity"), {
     onBlur: function (value) { state.mediaPlayerSleepPreventionEntity = value; },
   });
   els.setMediaPlayerSleepPrevention = mediaPlayerInp;
@@ -579,7 +579,7 @@ function buildSettingsPage(parent) {
   var presInp = entityInput("sp-set-presence", "", "Presence sensor entity", ["binary_sensor", "sensor"]);
   presenceField.appendChild(presInp);
   sensorPanel.appendChild(presenceField);
-  bindTextPost(presInp, "Presence Sensor Entity", {});
+  bindTextPost(presInp, entityName("presence_sensor_entity"), {});
   var sensorClockControls = createScreensaverThenControls("sp-set-sensor-clock-mode");
   sensorPanel.appendChild(sensorClockControls.clockField);
   sensorPanel.appendChild(sensorClockControls.dimBrightnessField);
@@ -618,17 +618,17 @@ function buildSettingsPage(parent) {
   disabledBtn.addEventListener("click", function () {
     setSsMode("disabled");
     state.screensaverMode = "disabled";
-    postText("Screensaver Mode", "disabled");
+    postText(entityName("screensaver_mode"), "disabled");
   });
   timerBtn.addEventListener("click", function () {
     setSsMode("timer");
     state.screensaverMode = "timer";
-    postText("Screensaver Mode", "timer");
+    postText(entityName("screensaver_mode"), "timer");
   });
   sensorBtn.addEventListener("click", function () {
     setSsMode("sensor");
     state.screensaverMode = "sensor";
-    postText("Screensaver Mode", "sensor");
+    postText(entityName("screensaver_mode"), "sensor");
   });
   els.setSsMode = setSsMode;
   setSsMode(ssMode);
@@ -659,7 +659,7 @@ function buildSettingsPage(parent) {
   hsSelect.addEventListener("change", function () {
     state.homeScreenTimeout = parseFloat(this.value) || 0;
     syncIdleUi();
-    postNumber("Home Screen Timeout", this.value);
+    postNumber(entityName("home_screen_timeout"), this.value);
   });
   idleBody.appendChild(hsSelect);
   els.setHSTimeout = hsSelect;
@@ -765,7 +765,7 @@ function buildSettingsPage(parent) {
       syncFirmwareUpdateUi();
       return;
     }
-    postSwitch("Firmware: Auto Update", this.checked);
+    postSwitch(entityName("firmware_auto_update"), this.checked);
     syncFirmwareUpdateUi();
   });
   els.setAutoUpdateRow = autoUpdateToggle.row;
@@ -785,7 +785,7 @@ function buildSettingsPage(parent) {
   freqSelect.value = state.updateFrequency;
   freqSelect.addEventListener("change", function () {
     if (!firmwareUpdateControlsVisible()) return;
-    postSelect("Firmware: Update Frequency", this.value);
+    postSelect(entityName("firmware_update_frequency"), this.value);
   });
   freqWrap.appendChild(freqSelect);
   fwBody.appendChild(freqWrap);
@@ -900,7 +900,7 @@ function createScreensaverThenControls(selectId) {
     state.clockScreensaverOn = state.screensaverAction === "clock";
     syncClockScreensaverControls();
     postScreensaverAction(state.screensaverAction);
-    postSwitch("Screen Saver: Clock", state.clockScreensaverOn);
+    postSwitch(entityName("screen_saver_clock"), state.clockScreensaverOn);
   });
   clockField.appendChild(clockSelect);
 
