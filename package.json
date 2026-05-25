@@ -9,7 +9,7 @@
     "check:device-matrix": "python3 scripts/check_device_matrix.py",
     "check:fast": "python3 scripts/check_device_manifest.py && npm run check:local-artifacts && npm run check:config && npm run check:backup-contract && npm run check:web-smoke && npm run check:firmware-parser && npm run check:firmware-modals && npm run check:firmware-release && npm run check:device-matrix && npm run check:release-changelog && npm run check:generated && python3 scripts/generate_device_slots.py --check && python3 scripts/check_icon_groups.py && npm run check:timezones && npm run check:public-firmware-script",
     "check:firmware-parser": "python3 scripts/check_firmware_parser.py",
-    "check:firmware-modals": "python3 scripts/check_firmware_modals.py",
+    "check:firmware-modals": "python3 scripts/check_firmware_modals.py && python3 scripts/check_firmware_modals.py --self-test",
     "check:firmware-release": "python3 scripts/check_firmware_release.py",
     "check:generated": "python3 scripts/build.py --check",
     "check:local-artifacts": "python3 scripts/check_local_artifacts.py",

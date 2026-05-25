@@ -136,13 +136,40 @@ struct ControlModalNestedShell {
   lv_obj_t *panel = nullptr;
 };
 
+struct ControlModalNestedActive {
+  lv_obj_t *overlay = nullptr;
+  ControlModalCloseCallback close_callback = nullptr;
+  bool closing = false;
+};
+
 struct ControlModalToastShell {
   lv_obj_t *box = nullptr;
 };
 
-inline ControlModalCloseCallback &control_modal_nested_close_callback() {
-  static ControlModalCloseCallback callback = nullptr;
-  return callback;
+inline ControlModalNestedActive &control_modal_nested_active() {
+  static ControlModalNestedActive active;
+  return active;
+}
+
+inline void control_modal_reset_nested_menu() {
+  control_modal_nested_active() = ControlModalNestedActive();
+}
+
+inline void control_modal_clear_nested_menu(lv_obj_t *overlay) {
+  ControlModalNestedActive &active = control_modal_nested_active();
+  if (active.overlay == overlay) control_modal_reset_nested_menu();
+}
+
+inline void control_modal_close_nested_menu() {
+  ControlModalNestedActive &active = control_modal_nested_active();
+  if (!active.overlay || active.closing) return;
+
+  lv_obj_t *closing_overlay = active.overlay;
+  ControlModalCloseCallback close_callback = active.close_callback;
+  active.closing = true;
+  if (close_callback) close_callback();
+  else if (closing_overlay) lv_obj_del(closing_overlay);
+  if (control_modal_nested_active().overlay == closing_overlay) control_modal_reset_nested_menu();
 }
 
 inline lv_coord_t control_modal_scaled_px(lv_coord_t px, lv_coord_t short_side) {
@@ -399,20 +426,24 @@ inline void control_modal_style_nested_panel(lv_obj_t *panel, lv_coord_t radius)
 inline ControlModalNestedShell control_modal_open_nested_menu(lv_coord_t width,
                                                               lv_coord_t radius,
                                                               ControlModalCloseCallback close_callback) {
+  control_modal_close_nested_menu();
+
   ControlModalNestedShell shell;
-  control_modal_nested_close_callback() = close_callback;
   shell.overlay = lv_obj_create(lv_layer_top());
   control_modal_style_nested_overlay(shell.overlay);
   if (close_callback) {
     lv_obj_add_event_cb(shell.overlay, [](lv_event_t *) {
-      ControlModalCloseCallback callback = control_modal_nested_close_callback();
-      if (callback) callback();
+      control_modal_close_nested_menu();
     }, LV_EVENT_CLICKED, nullptr);
   }
 
   shell.panel = lv_obj_create(shell.overlay);
   lv_obj_set_width(shell.panel, width);
   control_modal_style_nested_panel(shell.panel, radius);
+  ControlModalNestedActive &active = control_modal_nested_active();
+  active.overlay = shell.overlay;
+  active.close_callback = close_callback;
+  active.closing = false;
   return shell;
 }
 
