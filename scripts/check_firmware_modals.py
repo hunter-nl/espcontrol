@@ -21,7 +21,6 @@ LAYER_TOP_ALLOWLIST = {
 }
 MANUAL_OVERLAY_DELETE_ALLOWLIST = {
     "button_grid_modal.h",
-    "button_grid_climate.h",
 }
 
 

@@ -776,10 +776,7 @@ inline void climate_set_obj_visible(lv_obj_t *obj, bool visible);
 
 inline void climate_hide_option_menu() {
   ClimateControlModalUi &ui = climate_control_modal_ui();
-  lv_obj_t *overlay = ui.menu_overlay;
-  if (overlay) lv_obj_del(overlay);
-  ui.menu_overlay = nullptr;
-  control_modal_clear_nested_menu(overlay);
+  control_modal_delete_nested_overlay(ui.menu_overlay);
 }
 
 inline void climate_hide_inline_option_list() {
@@ -1487,9 +1484,8 @@ inline void climate_hide_action_menu() {
 inline void climate_control_hide_modal() {
   climate_hide_option_menu();
   ClimateControlModalUi &ui = climate_control_modal_ui();
-  if (ui.overlay) lv_obj_del(ui.overlay);
+  control_modal_delete_overlay(ControlModalKind::CLIMATE, ui.overlay);
   ui = ClimateControlModalUi();
-  control_modal_clear_active(ControlModalKind::CLIMATE);
 }
 
 inline void climate_control_open_modal(ClimateControlCtx *ctx) {
