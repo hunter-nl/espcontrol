@@ -152,7 +152,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   }
   if (weather_card_shows_forecast(p)) {
     setup_weather_forecast_card(s, p, palette.has_sensor_color, palette.sensor_val,
-      cfg.width_compensation_percent);
+      display_main_width_percent(display));
     if (row_span == 2 && col_span == 2 &&
         card_large_numbers_enabled(p) && display_large_sensor_font(display)) {
       apply_large_sensor_number_style(
@@ -219,7 +219,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       palette.has_sensor_color ? palette.sensor_val : DEFAULT_TERTIARY_COLOR,
       display_sensor_font(display),
       display_media_title_font(display),
-      cfg.width_compensation_percent,
+      display_main_width_percent(display),
       row_span, col_span);
     return;
   }
@@ -327,8 +327,8 @@ inline void refresh_media_card_layout(BtnSlot &s, const ParsedCfg &p,
   if (mode == "now_playing") {
     MediaNowPlayingCtx *ctx = (MediaNowPlayingCtx *)lv_obj_get_user_data(s.sensor_container);
     if (!ctx) return;
-    if (ctx->title_lbl) apply_width_compensation(ctx->title_lbl, cfg.width_compensation_percent);
-    if (ctx->artist_lbl) apply_width_compensation(ctx->artist_lbl, cfg.width_compensation_percent);
+    if (ctx->title_lbl) display_apply_main_width(ctx->title_lbl, display);
+    if (ctx->artist_lbl) display_apply_main_width(ctx->artist_lbl, display);
     setup_media_now_playing_layout(
       s.btn, s.icon_lbl, ctx->title_lbl, ctx->artist_lbl,
       display_media_title_font(display), pad,
@@ -345,7 +345,7 @@ inline void refresh_media_card_layout(BtnSlot &s, const ParsedCfg &p,
       ? ctx->content_pad
       : lv_obj_get_style_pad_top(s.btn, LV_PART_MAIN);
     if (ctx && ctx->media_value_lbl) {
-      apply_width_compensation(ctx->media_value_lbl, cfg.width_compensation_percent);
+      display_apply_main_width(ctx->media_value_lbl, display);
       lv_obj_align(ctx->media_value_lbl, LV_ALIGN_TOP_LEFT, position_pad, position_pad);
       lv_obj_move_foreground(ctx->media_value_lbl);
     }
@@ -381,12 +381,13 @@ inline void refresh_slider_card_layout(BtnSlot &s) {
 inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
                                 const GridConfig &cfg,
                                 int row_span = 1) {
+  const DisplayProfile display = display_profile_from_grid_config(cfg);
   if (cfg.wrap_tall_labels && row_span > 1) {
     lv_label_set_long_mode(s.text_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
-  apply_width_compensation(s.icon_lbl, cfg.width_compensation_percent);
-  apply_slot_text_width_compensation(s, cfg.width_compensation_percent);
+  display_apply_main_width(s.icon_lbl, display);
+  display_apply_slot_text_width(s, display);
 
   if (p.type == "media") {
     refresh_media_card_layout(s, p, cfg, row_span);
@@ -402,7 +403,8 @@ inline void grid_refresh_layout(
     lv_obj_t *main_page_obj = nullptr) {
   ESP_LOGI("sensors", "Grid refresh: layout start (%lu ms)", esphome::millis());
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
-  set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
+  const DisplayProfile display = display_profile_from_grid_config(cfg);
+  display_set_width_axis(display);
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   // When the grid shape changes, LVGL can otherwise lay out children that
@@ -460,7 +462,8 @@ inline void grid_phase1(
     lv_obj_t *main_page_obj = nullptr) {
   ESP_LOGI("sensors", "Phase 1: visual setup start (%lu ms)", esphome::millis());
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
-  set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
+  const DisplayProfile display = display_profile_from_grid_config(cfg);
+  display_set_width_axis(display);
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   for (int i = 0; i < NS; i++)
@@ -491,15 +494,9 @@ inline void grid_phase1(
   uint32_t on_val = parse_hex_color(on_hex, has_on);
   uint32_t off_val = parse_hex_color(off_hex, has_off);
   uint32_t sensor_val = parse_hex_color(sensor_hex, has_sensor_color);
-  if (has_on) on_val = correct_display_color(
-    on_val, cfg.color_correction_red_percent, cfg.color_correction_green_percent,
-    cfg.color_correction_blue_percent);
-  if (has_off) off_val = correct_display_color(
-    off_val, cfg.color_correction_red_percent, cfg.color_correction_green_percent,
-    cfg.color_correction_blue_percent);
-  if (has_sensor_color) sensor_val = correct_display_color(
-    sensor_val, cfg.color_correction_red_percent, cfg.color_correction_green_percent,
-    cfg.color_correction_blue_percent);
+  if (has_on) on_val = display_correct_color(on_val, display);
+  if (has_off) off_val = display_correct_color(off_val, display);
+  if (has_sensor_color) sensor_val = display_correct_color(sensor_val, display);
 
   CardPalette palette;
   palette.has_on = has_on;
@@ -533,8 +530,8 @@ inline void grid_phase1(
     }
 
     ParsedCfg p = parse_cfg(scfg);
-    apply_width_compensation(s.icon_lbl, cfg.width_compensation_percent);
-    apply_slot_text_width_compensation(s, cfg.width_compensation_percent);
+    display_apply_main_width(s.icon_lbl, display);
+    display_apply_slot_text_width(s, display);
     setup_card_visual(s, p, cfg, palette, row_span, col_span);
   }
   ESP_LOGI("sensors", "Phase 1: done (%lu ms)", esphome::millis());
@@ -559,7 +556,7 @@ inline void grid_phase2(
   ESP_LOGI("sensors", "Phase 2: subscriptions + subpages start (%lu ms)", esphome::millis());
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
-  set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
+  display_set_width_axis(display);
   set_switch_confirmation_message_font(display_switch_confirmation_message_font(display));
   set_switch_confirmation_icon_font(display_icon_font(display));
   int NS = bounded_grid_slots(cfg.num_slots);
@@ -592,15 +589,9 @@ inline void grid_phase2(
   uint32_t on_val = parse_hex_color(on_hex, has_on);
   uint32_t off_val = parse_hex_color(off_hex, has_off);
   uint32_t sensor_val = parse_hex_color(sensor_hex, has_sensor_color);
-  if (has_on) on_val = correct_display_color(
-    on_val, cfg.color_correction_red_percent, cfg.color_correction_green_percent,
-    cfg.color_correction_blue_percent);
-  if (has_off) off_val = correct_display_color(
-    off_val, cfg.color_correction_red_percent, cfg.color_correction_green_percent,
-    cfg.color_correction_blue_percent);
-  if (has_sensor_color) sensor_val = correct_display_color(
-    sensor_val, cfg.color_correction_red_percent, cfg.color_correction_green_percent,
-    cfg.color_correction_blue_percent);
+  if (has_on) on_val = display_correct_color(on_val, display);
+  if (has_off) off_val = display_correct_color(off_val, display);
+  if (has_sensor_color) sensor_val = display_correct_color(sensor_val, display);
 
   CardPalette palette;
   palette.has_on = has_on;
@@ -695,7 +686,7 @@ inline void grid_phase2(
           display_optional_media_title_font(display),
           lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
           lv_obj_get_style_text_color(s.text_lbl, LV_PART_MAIN),
-          cfg.width_compensation_percent,
+          display_main_width_percent(display),
           false);
         lv_obj_set_user_data(s.btn, ctx);
         subscribe_alarm_state(ctx);
@@ -723,7 +714,7 @@ inline void grid_phase2(
         alarm_action_card->on_color = has_on ? on_val : DEFAULT_SLIDER_COLOR;
         alarm_action_card->off_color = has_off ? off_val : DEFAULT_OFF_COLOR;
         alarm_action_card->tertiary_color = has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR;
-        alarm_action_card->width_compensation_percent = cfg.width_compensation_percent;
+        alarm_action_card->width_compensation_percent = display_main_width_percent(display);
         alarm_action_card->grid_cols = COLS;
         alarm_set_card_state_colors(alarm_action_card, alarm_action_card->on_color);
 
@@ -746,7 +737,7 @@ inline void grid_phase2(
           has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR,
           lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
           display_icon_font(display),
-          cfg.width_compensation_percent);
+          display_main_width_percent(display));
         subscribe_fan_card_state(ctx);
       }
       continue;
@@ -787,7 +778,7 @@ inline void grid_phase2(
             has_on ? on_val : DEFAULT_SLIDER_COLOR,
             has_off ? off_val : DEFAULT_OFF_COLOR,
             has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR,
-            cfg.width_compensation_percent);
+            display_main_width_percent(display));
           subscribe_option_select_state(ctx);
           subscribe_option_select_friendly_name(ctx);
         }
@@ -810,7 +801,7 @@ inline void grid_phase2(
           has_on ? on_val : DEFAULT_SLIDER_COLOR,
           has_off ? off_val : DEFAULT_OFF_COLOR,
           has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR,
-          cfg.width_compensation_percent);
+          display_main_width_percent(display));
         subscribe_option_select_state(ctx);
         subscribe_option_select_friendly_name(ctx);
       }
@@ -838,7 +829,7 @@ inline void grid_phase2(
               ? display_volume_label_font(display)
               : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
             display_icon_font(display),
-            cfg.volume_width_compensation_percent,
+            display_volume_width_percent(display),
             s.sensor_lbl, s.unit_lbl,
             cfg.pause_home_idle, cfg.resume_home_idle);
           subscribe_media_volume_state(ctx);
@@ -878,7 +869,7 @@ inline void grid_phase2(
           display_media_title_font_or(display, lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN)),
           display_climate_card_icon_font(display),
           display_icon_font(display),
-          cfg.volume_width_compensation_percent,
+          display_volume_width_percent(display),
           s.sensor_container, s.sensor_lbl, s.unit_lbl);
         subscribe_climate_control_state(ctx);
       }
@@ -1036,8 +1027,8 @@ inline void grid_phase2(
       LV_GRID_ALIGN_STRETCH, sp_ord.back_pos / COLS, sp_ord.back_row_span);
     BtnSlot back_slot = create_dynamic_card_slot(
       back_btn, sp_icon_fnt, display_sensor_font(display), sp_btn_fnt, sp_txt_color);
-    apply_width_compensation(back_slot.icon_lbl, cfg.width_compensation_percent);
-    apply_slot_text_width_compensation(back_slot, cfg.width_compensation_percent);
+    display_apply_main_width(back_slot.icon_lbl, display);
+    display_apply_slot_text_width(back_slot, display);
     lv_label_set_text(back_slot.icon_lbl, "\U000F0141");
     lv_label_set_text(back_slot.text_lbl, sp_back_label.c_str());
 
@@ -1101,8 +1092,8 @@ inline void grid_phase2(
       lv_obj_set_grid_cell(sb_btn, LV_GRID_ALIGN_STRETCH, col, cs, LV_GRID_ALIGN_STRETCH, row, rs);
       BtnSlot sub_slot = create_dynamic_card_slot(
         sb_btn, sp_icon_fnt, display_sensor_font(display), sp_btn_fnt, sp_txt_color);
-      apply_width_compensation(sub_slot.icon_lbl, cfg.width_compensation_percent);
-      apply_slot_text_width_compensation(sub_slot, cfg.width_compensation_percent);
+      display_apply_main_width(sub_slot.icon_lbl, display);
+      display_apply_slot_text_width(sub_slot, display);
       setup_card_visual(sub_slot, sb_cfg, cfg, palette, rs, cs);
 
       if (bind_basic_sensor_card(sub_slot, sb_cfg, palette)) continue;
@@ -1191,7 +1182,7 @@ inline void grid_phase2(
             display_optional_media_title_font(display),
             lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
             lv_obj_get_style_text_color(sub_slot.text_lbl, LV_PART_MAIN),
-            cfg.width_compensation_percent,
+            display_main_width_percent(display),
             false);
           ctx->grid_page = sub_scr;
           lv_obj_set_user_data(sb_btn, ctx);
@@ -1226,7 +1217,7 @@ inline void grid_phase2(
           alarm_action_card->on_color = has_on ? on_val : DEFAULT_SLIDER_COLOR;
           alarm_action_card->off_color = has_off ? off_val : DEFAULT_OFF_COLOR;
           alarm_action_card->tertiary_color = has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR;
-          alarm_action_card->width_compensation_percent = cfg.width_compensation_percent;
+          alarm_action_card->width_compensation_percent = display_main_width_percent(display);
           alarm_action_card->grid_cols = COLS;
           AlarmActionCtx *action_ctx = new AlarmActionCtx();
           action_ctx->card = alarm_action_card;
@@ -1251,7 +1242,7 @@ inline void grid_phase2(
             has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR,
             lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
             display_icon_font(display),
-            cfg.width_compensation_percent);
+            display_main_width_percent(display));
           subscribe_fan_card_state(ctx);
           add_parent_indicator(sb_cfg.entity);
           lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
@@ -1281,7 +1272,7 @@ inline void grid_phase2(
               has_on ? on_val : DEFAULT_SLIDER_COLOR,
               has_off ? off_val : DEFAULT_OFF_COLOR,
               has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR,
-              cfg.width_compensation_percent);
+              display_main_width_percent(display));
             subscribe_option_select_state(ctx);
             subscribe_option_select_friendly_name(ctx);
             lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
@@ -1313,7 +1304,7 @@ inline void grid_phase2(
             has_on ? on_val : DEFAULT_SLIDER_COLOR,
             has_off ? off_val : DEFAULT_OFF_COLOR,
             has_sensor_color ? sensor_val : DEFAULT_TERTIARY_COLOR,
-            cfg.width_compensation_percent);
+            display_main_width_percent(display));
           subscribe_option_select_state(ctx);
           subscribe_option_select_friendly_name(ctx);
           lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
@@ -1354,7 +1345,7 @@ inline void grid_phase2(
                 ? display_volume_label_font(display)
                 : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
               display_icon_font(display),
-              cfg.volume_width_compensation_percent,
+              display_volume_width_percent(display),
               sub_slot.sensor_lbl, sub_slot.unit_lbl,
               cfg.pause_home_idle, cfg.resume_home_idle);
             subscribe_media_volume_state(ctx);
@@ -1406,7 +1397,7 @@ inline void grid_phase2(
             display_media_title_font_or(display, lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN)),
             display_climate_card_icon_font(display),
             display_icon_font(display),
-            cfg.volume_width_compensation_percent,
+            display_volume_width_percent(display),
             sub_slot.sensor_container, sub_slot.sensor_lbl, sub_slot.unit_lbl);
           subscribe_climate_control_state(ctx);
           lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
