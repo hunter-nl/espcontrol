@@ -20,7 +20,7 @@ var WEATHER_CARD_METADATA = {
     label: "Weather Entity",
     idSuffix: "entity",
     placeholder: "e.g. weather.forecast_home",
-    domains: ["weather"],
+    domains: function () { return cardContractDomains("weather"); },
     bindName: "entity",
     rerender: true,
     requiredMessage: "Add an entity before saving.",
@@ -52,9 +52,13 @@ function weatherCardIsForecastMode(b) {
 }
 
 registerButtonType("weather", {
-  label: "Weather",
-  allowInSubpage: true,
+  label: function () { return cardContractCardLabel("weather"); },
+  allowInSubpage: function () { return cardContractAllowInSubpage("weather"); },
+  pickerKey: function () { return cardContractPickerKey("weather"); },
+  experimental: function () { return cardContractExperimental("weather"); },
+  hidden: function () { return cardContractHidden("weather"); },
   hideLabel: true,
+  defaultConfig: function () { return cardContractDefaultConfig("weather"); },
   cardMetadata: WEATHER_CARD_METADATA,
   onSelect: function (b) {
     b.label = "";

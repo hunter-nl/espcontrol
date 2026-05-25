@@ -92,7 +92,9 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
         pickerKey: buttonTypeRegistryValue(typeDef, "pickerKey", "") || "",
         experimental: buttonTypeRegistryValue(typeDef, "experimental", "") || "",
         hidden: !!buttonTypeRegistryValue(typeDef, "hidden", false),
-        domains: entity && entity.domains ? cardMetadataValue(entity.domains, {}, {}) || [] : [],
+        domains: entity && entity.domains
+          ? cardMetadataValue(entity.domains, {}, {}) || []
+          : cardContractDomains(typeDef.key),
       } : null;
     },
     parseSubpageConfig: parseSubpageConfig,

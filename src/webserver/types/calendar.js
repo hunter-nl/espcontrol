@@ -70,9 +70,13 @@ function setDateTimeCardMode(b, mode, helpers) {
 }
 
 registerButtonType("calendar", {
-  label: "Date & Time",
-  allowInSubpage: true,
+  label: function () { return cardContractCardLabel("calendar"); },
+  allowInSubpage: function () { return cardContractAllowInSubpage("calendar"); },
+  pickerKey: function () { return cardContractPickerKey("calendar"); },
+  experimental: function () { return cardContractExperimental("calendar"); },
+  hidden: function () { return cardContractHidden("calendar"); },
   hideLabel: true,
+  defaultConfig: function () { return cardContractDefaultConfig("calendar"); },
   cardMetadata: DATE_TIME_CARD_METADATA,
   onSelect: function (b) {
     b.entity = "sensor.date";
