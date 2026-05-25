@@ -3,8 +3,14 @@ function lockCommandMode(mode) {
   return mode === "lock" || mode === "unlock";
 }
 
+function lockModeOptionValues() {
+  var spec = cardContractOptionSpec("lock", "lock_mode");
+  return spec && spec.values ? spec.values.slice() : ["", "lock", "unlock"];
+}
+
 function normalizeLockMode(mode) {
-  return lockCommandMode(mode) ? mode : "";
+  mode = String(mode || "");
+  return lockModeOptionValues().indexOf(mode) >= 0 ? mode : "";
 }
 
 function lockModeDefaultIcon(mode) {

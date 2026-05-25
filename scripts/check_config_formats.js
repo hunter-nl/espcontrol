@@ -291,6 +291,22 @@ assert.strictEqual(
   false,
   "weather large-number option blocks current conditions"
 );
+assert.deepStrictEqual(
+  Array.from(hooks.garageModeOptionValues()),
+  ["", "open", "close"],
+  "garage mode options are spec-backed"
+);
+assert.strictEqual(hooks.normalizeGarageMode("open"), "open", "garage open mode is allowed by spec");
+assert.strictEqual(hooks.normalizeGarageMode("bad"), "", "garage invalid mode falls back to toggle");
+assert.strictEqual(hooks.normalizeGarageLabelDisplayMode("status"), "status", "garage status display is allowed by spec");
+assert.strictEqual(hooks.normalizeGarageLabelDisplayMode("bad"), "label", "garage invalid display falls back to label");
+assert.deepStrictEqual(
+  Array.from(hooks.lockModeOptionValues()),
+  ["", "lock", "unlock"],
+  "lock mode options are spec-backed"
+);
+assert.strictEqual(hooks.normalizeLockMode("unlock"), "unlock", "lock unlock mode is allowed by spec");
+assert.strictEqual(hooks.normalizeLockMode("bad"), "", "lock invalid mode falls back to toggle");
 const coverOptionSpecs = hooks.cardContractOptions("cover");
 const coverOptionByName = Object.fromEntries(coverOptionSpecs.map((option) => [option.name, option]));
 assert.deepStrictEqual(

@@ -352,6 +352,29 @@ var CARD_CONTRACT_CARDS = {
     "domains": [
       "cover"
     ],
+    "options": [
+      {
+        "name": "garage_mode",
+        "label": "Interaction",
+        "kind": "choice",
+        "values": [
+          "",
+          "open",
+          "close"
+        ],
+        "defaultValue": ""
+      },
+      {
+        "name": "label_display",
+        "label": "Display",
+        "kind": "choice",
+        "values": [
+          "label",
+          "status"
+        ],
+        "defaultValue": "label"
+      }
+    ],
     "default": {
       "entity": "",
       "label": "",
@@ -453,6 +476,19 @@ var CARD_CONTRACT_CARDS = {
     "allowInSubpage": true,
     "domains": [
       "lock"
+    ],
+    "options": [
+      {
+        "name": "lock_mode",
+        "label": "Type",
+        "kind": "choice",
+        "values": [
+          "",
+          "lock",
+          "unlock"
+        ],
+        "defaultValue": ""
+      }
     ],
     "default": {
       "entity": "",

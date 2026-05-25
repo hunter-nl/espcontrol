@@ -3,8 +3,14 @@ function garageCommandMode(mode) {
   return mode === "open" || mode === "close";
 }
 
+function garageModeOptionValues() {
+  var spec = cardContractOptionSpec("garage", "garage_mode");
+  return spec && spec.values ? spec.values.slice() : ["", "open", "close"];
+}
+
 function normalizeGarageMode(mode) {
-  return garageCommandMode(mode) ? mode : "";
+  mode = String(mode || "");
+  return garageModeOptionValues().indexOf(mode) >= 0 ? mode : "";
 }
 
 function garageModeDefaultIcon(mode) {

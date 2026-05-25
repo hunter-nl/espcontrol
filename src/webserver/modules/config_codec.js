@@ -436,7 +436,9 @@ function setSwitchConfirmationOptions(b, mode, message, yesText, noText) {
 
 function normalizeGarageLabelDisplayMode(value) {
   value = String(value || "").trim();
-  return value === "status" ? "status" : "label";
+  var spec = cardContractOptionSpec("garage", GARAGE_LABEL_DISPLAY_OPTION);
+  var values = spec && spec.values ? spec.values : ["label", "status"];
+  return values.indexOf(value) >= 0 ? value : "label";
 }
 
 function normalizeGarageOptions(options, mode) {
