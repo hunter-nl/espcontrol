@@ -26,6 +26,134 @@ inline bool card_contract_is_option_select_action(const std::string &action) {
     sizeof(CARD_CONTRACT_OPTION_SELECT_ACTIONS) / sizeof(CARD_CONTRACT_OPTION_SELECT_ACTIONS[0]));
 }
 
+inline const char *card_contract_card_label(const std::string &type) {
+  if (type == "") return "Switch";
+  if (type == "action") return "Action";
+  if (type == "alarm") return "Alarm";
+  if (type == "alarm_action") return "Alarm";
+  if (type == "calendar") return "Date & Time";
+  if (type == "climate") return "Climate";
+  if (type == "cover") return "Cover";
+  if (type == "door_window") return "Doors & Windows";
+  if (type == "fan_direction") return "Fans";
+  if (type == "fan_oscillate") return "Fans";
+  if (type == "fan_preset") return "Fans";
+  if (type == "fan_speed") return "Fans";
+  if (type == "fan_switch") return "Fans";
+  if (type == "garage") return "Garage Door";
+  if (type == "internal") return "Internal Switches";
+  if (type == "light_brightness") return "Lights";
+  if (type == "light_switch") return "Lights";
+  if (type == "light_temperature") return "Lights";
+  if (type == "lock") return "Lock";
+  if (type == "media") return "Media";
+  if (type == "option_select") return "Option Select";
+  if (type == "push") return "Trigger";
+  if (type == "sensor") return "Sensor";
+  if (type == "slider") return "Slider";
+  if (type == "subpage") return "Subpage";
+  if (type == "timezone") return "Date & Time";
+  if (type == "weather") return "Weather";
+  if (type == "weather_forecast") return "Weather Forecast";
+  return type.empty() ? "Switch" : type.c_str();
+}
+
+inline bool card_contract_allow_in_subpage(const std::string &type) {
+  if (type == "") return true;
+  if (type == "action") return true;
+  if (type == "alarm") return true;
+  if (type == "alarm_action") return true;
+  if (type == "calendar") return true;
+  if (type == "climate") return true;
+  if (type == "cover") return true;
+  if (type == "door_window") return true;
+  if (type == "fan_direction") return true;
+  if (type == "fan_oscillate") return true;
+  if (type == "fan_preset") return true;
+  if (type == "fan_speed") return true;
+  if (type == "fan_switch") return true;
+  if (type == "garage") return true;
+  if (type == "internal") return true;
+  if (type == "light_brightness") return true;
+  if (type == "light_switch") return true;
+  if (type == "light_temperature") return true;
+  if (type == "lock") return true;
+  if (type == "media") return true;
+  if (type == "option_select") return true;
+  if (type == "push") return true;
+  if (type == "sensor") return true;
+  if (type == "slider") return true;
+  if (type == "subpage") return false;
+  if (type == "timezone") return true;
+  if (type == "weather") return true;
+  if (type == "weather_forecast") return true;
+  return false;
+}
+
+inline const char *card_contract_default_icon_name(const std::string &type) {
+  if (type == "") return "Auto";
+  if (type == "action") return "Flash";
+  if (type == "alarm") return "Security";
+  if (type == "alarm_action") return "Shield Lock";
+  if (type == "calendar") return "Auto";
+  if (type == "climate") return "Thermostat";
+  if (type == "cover") return "Blinds";
+  if (type == "door_window") return "Door";
+  if (type == "fan_direction") return "Swap Horizontal";
+  if (type == "fan_oscillate") return "Fan";
+  if (type == "fan_preset") return "Fan Auto";
+  if (type == "fan_speed") return "Fan Speed 2";
+  if (type == "fan_switch") return "Fan Off";
+  if (type == "garage") return "Garage";
+  if (type == "internal") return "Power";
+  if (type == "light_brightness") return "Lightbulb Outline";
+  if (type == "light_switch") return "Lightbulb Outline";
+  if (type == "light_temperature") return "Lightbulb";
+  if (type == "lock") return "Lock";
+  if (type == "media") return "Auto";
+  if (type == "option_select") return "Flash";
+  if (type == "push") return "Gesture Tap";
+  if (type == "sensor") return "Auto";
+  if (type == "slider") return "Auto";
+  if (type == "subpage") return "Auto";
+  if (type == "timezone") return "Auto";
+  if (type == "weather") return "Auto";
+  if (type == "weather_forecast") return "Auto";
+  return "Auto";
+}
+
+inline const char *card_contract_default_icon_on_name(const std::string &type) {
+  if (type == "") return "Auto";
+  if (type == "action") return "Auto";
+  if (type == "alarm") return "Auto";
+  if (type == "alarm_action") return "Auto";
+  if (type == "calendar") return "Auto";
+  if (type == "climate") return "Auto";
+  if (type == "cover") return "Blinds Open";
+  if (type == "door_window") return "Door Open";
+  if (type == "fan_direction") return "Auto";
+  if (type == "fan_oscillate") return "Auto";
+  if (type == "fan_preset") return "Auto";
+  if (type == "fan_speed") return "Auto";
+  if (type == "fan_switch") return "Fan";
+  if (type == "garage") return "Garage Open";
+  if (type == "internal") return "Flash";
+  if (type == "light_brightness") return "Lightbulb";
+  if (type == "light_switch") return "Lightbulb";
+  if (type == "light_temperature") return "Auto";
+  if (type == "lock") return "Lock Open";
+  if (type == "media") return "Auto";
+  if (type == "option_select") return "Auto";
+  if (type == "push") return "Auto";
+  if (type == "sensor") return "Auto";
+  if (type == "slider") return "Auto";
+  if (type == "subpage") return "Auto";
+  if (type == "timezone") return "Auto";
+  if (type == "weather") return "Auto";
+  if (type == "weather_forecast") return "Auto";
+  return "Auto";
+}
+
 inline bool card_contract_is_fan_card_type(const std::string &type) {
   return type == "fan_switch" ||
          type == "fan_speed" ||

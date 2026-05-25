@@ -2,12 +2,14 @@
 "use strict";
 
 const assert = require("assert");
+const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 const { loadBundledWebSource } = require("./web_source");
 
 const ROOT = path.resolve(__dirname, "..");
 const SOURCE = path.join(ROOT, "src", "webserver", "www.js");
+const GOLDEN_CONFIG = path.join(ROOT, "scripts", "fixtures", "config_golden.json");
 
 function loadHooks(search) {
   const sandbox = {
@@ -194,6 +196,7 @@ function assertSubpageMigration(hooks, name, encoded, expected) {
 }
 
 const hooks = loadHooks();
+const golden = JSON.parse(fs.readFileSync(GOLDEN_CONFIG, "utf8"));
 assert(hooks, "web config helpers were not exported");
 assert.deepStrictEqual(Array.from(hooks.CARD_CONFIG_FIELDS), [
   "entity",
@@ -210,6 +213,25 @@ assert.strictEqual(hooks.cardContractSubpageTypeCode("climate"), "H", "generated
 assert.strictEqual(hooks.cardContractSubpageTypeFromCode("H"), "climate", "generated contract exposes compact type decode");
 assert.strictEqual(hooks.cardContractLargeNumbersSupported("sensor", "text"), false, "generated contract blocks text sensor large numbers");
 assert.strictEqual(hooks.cardContractLargeNumbersSupported("weather", "tomorrow"), true, "generated contract allows weather forecast large numbers");
+assert(hooks.cardContractCardKeys().includes("climate"), "generated contract exposes card identities");
+assert.strictEqual(hooks.cardContractCardLabel("media"), "Media", "generated contract exposes card labels");
+assert.strictEqual(hooks.cardContractAllowInSubpage("subpage"), false, "generated contract exposes subpage placement rules");
+assert.deepStrictEqual(Array.from(hooks.cardContractDomains("climate")), ["climate"], "generated contract exposes card domains");
+assert.deepStrictEqual(buttonShape(hooks.cardContractDefaultConfig("climate")), buttonShape({
+  entity: "",
+  label: "Climate",
+  icon: "Thermostat",
+  icon_on: "Auto",
+  sensor: "",
+  unit: "",
+  type: "climate",
+  precision: "",
+  options: "",
+}), "generated contract exposes card defaults");
+assert.deepStrictEqual(Object.assign({}, hooks.cardContractMigrationAlias("weather_forecast")), {
+  type: "weather",
+  precision: "tomorrow",
+}, "generated contract exposes migration aliases");
 assert.strictEqual(hooks.previewHtmlValue({ labelHtml: "" }, "labelHtml", "fallback"), "", "empty preview label suppresses fallback");
 assert.strictEqual(hooks.previewHtmlValue({}, "labelHtml", "fallback"), "fallback", "missing preview label uses fallback");
 assert.strictEqual(hooks.normalizeTemperatureUnit("fahrenheit"), "°F", "fahrenheit unit normalization");
@@ -261,6 +283,32 @@ assert.strictEqual(duplicateExtraWideFallback.size, 1, "extra wide duplicate pla
 assert.strictEqual(hooks.screensaverTimeoutSupportedFor(10, false, 60, 3600), true, "short timeout allowed before limits load");
 assert.strictEqual(hooks.screensaverTimeoutSupportedFor(10, true, 60, 3600), false, "short timeout blocked after old limits load");
 assert.strictEqual(hooks.screensaverTimeoutSupportedFor(10, true, 10, 3600), true, "short timeout allowed after new limits load");
+
+Object.entries(golden.buttons).forEach(([name, button]) => {
+  assertButtonRoundTrip(hooks, `golden ${name}`, button, false);
+});
+assertSubpageRoundTrip(hooks, "golden subpage", golden.subpage, true);
+const goldenLayout = hooks.importedButtonOrderFor(golden.layoutImport.order, {});
+assert.deepStrictEqual(
+  Array.from(goldenLayout.grid.slice(0, golden.layoutImport.expectedGridPrefix.length)),
+  golden.layoutImport.expectedGridPrefix,
+  "golden cross-device layout import grid"
+);
+assert.deepStrictEqual(
+  Object.assign({}, goldenLayout.sizes),
+  golden.layoutImport.expectedSizes,
+  "golden cross-device layout import sizes"
+);
+const goldenBackupPlan = hooks.planBackupImport(golden.backup, { device: "small-panel", slots: 2 });
+assert(goldenBackupPlan.warnings.some((msg) => msg.includes("different panel")), "golden backup warns on device mismatch");
+assert.deepStrictEqual(buttonShape(goldenBackupPlan.buttons[0]), buttonShape({
+  entity: "weather.home",
+  label: "",
+  icon: "Auto",
+  icon_on: "Auto",
+  type: "weather",
+  precision: "tomorrow",
+}), "golden backup migrates weather forecast card");
 
 assertButtonRoundTrip(hooks, "normal button", {
   entity: "light.kitchen",
