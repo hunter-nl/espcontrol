@@ -250,6 +250,44 @@ function assertButtonTypeSpecBacked(type, description) {
 }
 assertButtonTypeSpecBacked("", "switch card");
 assertButtonTypeSpecBacked("sensor", "sensor card");
+const switchOptionSpecs = hooks.cardContractOptions("");
+const switchOptionByName = Object.fromEntries(switchOptionSpecs.map((option) => [option.name, option]));
+assert.deepStrictEqual(
+  Array.from(switchOptionSpecs, (option) => option.name),
+  ["confirmation_mode", "confirm_message", "confirm_yes", "confirm_no"],
+  "switch option specs preserve current option order"
+);
+assert.deepStrictEqual(
+  Array.from(switchOptionByName.confirmation_mode.values),
+  ["", "off", "on", "both"],
+  "switch confirmation mode spec exposes disabled/off/on/both modes"
+);
+assert.deepStrictEqual(
+  Array.from(switchOptionByName.confirmation_mode.storage),
+  ["confirm_off", "confirm_on"],
+  "switch confirmation mode spec exposes saved option flags"
+);
+assert.strictEqual(
+  switchOptionByName.confirm_message.defaultValueByMode.on,
+  "Turn on this device?",
+  "switch confirmation message spec exposes mode-specific defaults"
+);
+assert.strictEqual(switchOptionByName.confirm_yes.defaultValue, "Yes", "switch confirm text spec exposes current default");
+assert.strictEqual(switchOptionByName.confirm_no.defaultValue, "No", "switch cancel text spec exposes current default");
+const sensorOptionSpecs = hooks.cardContractOptions("sensor");
+const sensorOptionByName = Object.fromEntries(sensorOptionSpecs.map((option) => [option.name, option]));
+assert.deepStrictEqual(
+  Array.from(sensorOptionSpecs, (option) => option.name),
+  ["large_numbers", "active_color"],
+  "sensor option specs preserve current option order"
+);
+assert.deepStrictEqual(
+  Array.from(sensorOptionByName.large_numbers.supportedWhen.precisionNot),
+  ["text"],
+  "sensor large-number option spec excludes text sensor mode"
+);
+assert.strictEqual(sensorOptionByName.active_color.hidden, true, "sensor active-colour option spec remains hidden");
+assert.strictEqual(sensorOptionByName.active_color.migration, "drop", "sensor active-colour option spec documents cleanup");
 assert.deepStrictEqual(Object.assign({}, hooks.cardContractMigrationAlias("weather_forecast")), {
   type: "weather",
   precision: "tomorrow",

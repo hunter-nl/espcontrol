@@ -14,8 +14,19 @@ export type CardConfig = Record<SavedConfigField, string>;
 export interface CardOptionSpec {
   name: string;
   label: string;
+  kind?: "choice" | "flag" | "text";
   values?: readonly string[];
   defaultValue?: string;
+  defaultValueByMode?: Readonly<Record<string, string>>;
+  storage?: readonly string[];
+  hidden?: boolean;
+  migration?: "drop";
+  supportedWhen?: {
+    precision?: readonly string[];
+    precisionNot?: readonly string[];
+    entityDomains?: readonly string[];
+    never?: boolean;
+  };
 }
 
 export interface CardTypeSpec {

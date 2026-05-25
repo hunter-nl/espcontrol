@@ -12,6 +12,7 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
     cardContractPickerKey: cardContractPickerKey,
     cardContractExperimental: cardContractExperimental,
     cardContractHidden: cardContractHidden,
+    cardContractOptions: cardContractOptions,
     cardContractDefaultConfig: cardContractDefaultConfig,
     cardContractDomains: cardContractDomains,
     cardContractMigrationAlias: cardContractMigrationAlias,

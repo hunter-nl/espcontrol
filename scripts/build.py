@@ -257,6 +257,47 @@ def validate_card_contract(data):
                 errors.append(f"cards.{card_type or '<switch>'}.experimental must be a string")
             if "hidden" in card and not isinstance(card.get("hidden"), bool):
                 errors.append(f"cards.{card_type or '<switch>'}.hidden must be a boolean")
+            options = card.get("options", [])
+            if "options" in card:
+                if not isinstance(options, list):
+                    errors.append(f"cards.{card_type or '<switch>'}.options must be a list")
+                else:
+                    for idx, option in enumerate(options):
+                        option_path = f"cards.{card_type or '<switch>'}.options[{idx}]"
+                        if not isinstance(option, dict):
+                            errors.append(f"{option_path} must be an object")
+                            continue
+                        if not isinstance(option.get("name"), str) or not option.get("name"):
+                            errors.append(f"{option_path}.name must be a non-empty string")
+                        if not isinstance(option.get("label"), str) or not option.get("label"):
+                            errors.append(f"{option_path}.label must be a non-empty string")
+                        if "kind" in option and option.get("kind") not in {"choice", "flag", "text"}:
+                            errors.append(f"{option_path}.kind must be choice, flag, or text")
+                        for key in ("values", "storage"):
+                            value = option.get(key)
+                            if value is not None and (not isinstance(value, list) or not all(isinstance(item, str) for item in value)):
+                                errors.append(f"{option_path}.{key} must be a list of strings")
+                        if "defaultValue" in option and not isinstance(option.get("defaultValue"), str):
+                            errors.append(f"{option_path}.defaultValue must be a string")
+                        if "defaultValueByMode" in option:
+                            value = option.get("defaultValueByMode")
+                            if not isinstance(value, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in value.items()):
+                                errors.append(f"{option_path}.defaultValueByMode must be an object of strings")
+                        if "hidden" in option and not isinstance(option.get("hidden"), bool):
+                            errors.append(f"{option_path}.hidden must be a boolean")
+                        if "migration" in option and option.get("migration") != "drop":
+                            errors.append(f"{option_path}.migration must be drop")
+                        if "supportedWhen" in option:
+                            value = option.get("supportedWhen")
+                            if not isinstance(value, dict):
+                                errors.append(f"{option_path}.supportedWhen must be an object")
+                            else:
+                                for key in ("precision", "precisionNot", "entityDomains"):
+                                    entries = value.get(key)
+                                    if entries is not None and (not isinstance(entries, list) or not all(isinstance(item, str) for item in entries)):
+                                        errors.append(f"{option_path}.supportedWhen.{key} must be a list of strings")
+                                if "never" in value and not isinstance(value.get("never"), bool):
+                                    errors.append(f"{option_path}.supportedWhen.never must be a boolean")
             default = card.get("default")
             if not isinstance(default, dict):
                 errors.append(f"cards.{card_type or '<switch>'}.default must be an object")
@@ -401,6 +442,11 @@ def gen_card_contract_js(data):
         "function cardContractHidden(type) {\n"
         "  var card = cardContractCard(type);\n"
         "  return !!(card && card.hidden);\n"
+        "}\n"
+        "\n"
+        "function cardContractOptions(type) {\n"
+        "  var card = cardContractCard(type);\n"
+        "  return card && card.options ? JSON.parse(JSON.stringify(card.options)) : [];\n"
         "}\n"
         "\n"
         "function cardContractDefaultConfig(type) {\n"

@@ -13,6 +13,47 @@ var CARD_CONTRACT_CARDS = {
       "input_boolean",
       "fan"
     ],
+    "options": [
+      {
+        "name": "confirmation_mode",
+        "label": "Confirmation Required",
+        "kind": "choice",
+        "values": [
+          "",
+          "off",
+          "on",
+          "both"
+        ],
+        "defaultValue": "",
+        "storage": [
+          "confirm_off",
+          "confirm_on"
+        ]
+      },
+      {
+        "name": "confirm_message",
+        "label": "Message",
+        "kind": "text",
+        "defaultValue": "Turn off this device?",
+        "defaultValueByMode": {
+          "off": "Turn off this device?",
+          "on": "Turn on this device?",
+          "both": "Toggle this device?"
+        }
+      },
+      {
+        "name": "confirm_yes",
+        "label": "Confirm Button",
+        "kind": "text",
+        "defaultValue": "Yes"
+      },
+      {
+        "name": "confirm_no",
+        "label": "Cancel Button",
+        "kind": "text",
+        "defaultValue": "No"
+      }
+    ],
     "default": {
       "entity": "",
       "label": "",
@@ -431,6 +472,28 @@ var CARD_CONTRACT_CARDS = {
       "binary_sensor",
       "text_sensor"
     ],
+    "options": [
+      {
+        "name": "large_numbers",
+        "label": "Large Sensor Numbers",
+        "kind": "flag",
+        "supportedWhen": {
+          "precisionNot": [
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "active_color",
+        "label": "Active Color",
+        "kind": "flag",
+        "hidden": true,
+        "migration": "drop",
+        "supportedWhen": {
+          "never": true
+        }
+      }
+    ],
     "default": {
       "entity": "",
       "label": "",
@@ -668,6 +731,11 @@ function cardContractExperimental(type) {
 function cardContractHidden(type) {
   var card = cardContractCard(type);
   return !!(card && card.hidden);
+}
+
+function cardContractOptions(type) {
+  var card = cardContractCard(type);
+  return card && card.options ? JSON.parse(JSON.stringify(card.options)) : [];
 }
 
 function cardContractDefaultConfig(type) {
