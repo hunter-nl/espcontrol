@@ -460,7 +460,7 @@ function firstFreeCell(afterPos) {
 }
 
 function emptyButtonConfig(type) {
-  return { entity: "", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "", type: type || "", precision: "", options: "" };
+  return EspControlModel.emptyCardConfig(type);
 }
 
 function addSlot(pos) {

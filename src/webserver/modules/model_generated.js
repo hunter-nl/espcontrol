@@ -25,9 +25,13 @@ var EspControlModel = (() => {
   // src/webserver/model/index.ts
   var index_exports = {};
   __export(index_exports, {
+    CARD_CONFIG_FIELDS: () => CARD_CONFIG_FIELDS,
     applySpans: () => applySpans,
     clearSpans: () => clearSpans,
+    cloneCardConfig: () => cloneCardConfig,
+    copyCardConfig: () => copyCardConfig,
     coveredCells: () => coveredCells,
+    emptyCardConfig: () => emptyCardConfig,
     markSpannedCells: () => markSpannedCells,
     parseGridOrder: () => parseGridOrder,
     serializeGridOrder: () => serializeGridOrder,
@@ -37,6 +41,61 @@ var EspControlModel = (() => {
     sizeRowSpan: () => sizeRowSpan,
     sizeToken: () => sizeToken
   });
+
+  // src/webserver/model/card.ts
+  var CARD_CONFIG_FIELDS = [
+    "entity",
+    "label",
+    "icon",
+    "icon_on",
+    "sensor",
+    "unit",
+    "type",
+    "precision",
+    "options"
+  ];
+  function emptyCardConfig(type) {
+    return {
+      entity: "",
+      label: "",
+      icon: "Auto",
+      icon_on: "Auto",
+      sensor: "",
+      unit: "",
+      type: type || "",
+      precision: "",
+      options: ""
+    };
+  }
+  function cloneCardConfig(src) {
+    const button = {
+      entity: src?.entity || "",
+      label: src?.label || "",
+      icon: src?.icon || "Auto",
+      icon_on: src?.icon_on || "Auto",
+      sensor: src?.sensor || "",
+      unit: src?.unit || "",
+      type: src?.type || "",
+      precision: src?.precision || "",
+      options: src?.options || ""
+    };
+    if (src && Object.prototype.hasOwnProperty.call(src, "_whenOnActive")) {
+      button._whenOnActive = src._whenOnActive;
+    }
+    if (src && Object.prototype.hasOwnProperty.call(src, "_whenOnMode")) {
+      button._whenOnMode = src._whenOnMode;
+    }
+    return button;
+  }
+  function copyCardConfig(target, src) {
+    const button = cloneCardConfig(src);
+    for (const field of CARD_CONFIG_FIELDS) {
+      target[field] = button[field];
+    }
+    target._whenOnActive = button._whenOnActive;
+    target._whenOnMode = button._whenOnMode;
+    return target;
+  }
 
   // src/webserver/model/grid.ts
   function copySizes(sizes) {

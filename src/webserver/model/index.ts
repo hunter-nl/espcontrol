@@ -1,4 +1,11 @@
 export {
+  CARD_CONFIG_FIELDS,
+  cloneCardConfig,
+  copyCardConfig,
+  emptyCardConfig,
+} from "./card";
+
+export {
   applySpans,
   clearSpans,
   coveredCells,
@@ -11,6 +18,10 @@ export {
   sizeRowSpan,
   sizeToken,
 } from "./grid";
+
+export type {
+  DraftCardConfig,
+} from "./card";
 
 export type {
   ParsedGridOrder,

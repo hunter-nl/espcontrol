@@ -201,33 +201,11 @@ function renderButtonSettings(forceOpen) {
   var draftKey = (c.isSub ? "sub:" + state.editingSubpage : "main") + ":" + slot;
 
   function cloneButtonConfig(src) {
-    return {
-      entity: src.entity || "",
-      label: src.label || "",
-      icon: src.icon || "Auto",
-      icon_on: src.icon_on || "Auto",
-      sensor: src.sensor || "",
-      unit: src.unit || "",
-      type: src.type || "",
-      precision: src.precision || "",
-      options: src.options || "",
-      _whenOnActive: src._whenOnActive,
-      _whenOnMode: src._whenOnMode,
-    };
+    return EspControlModel.cloneCardConfig(src);
   }
 
   function copyButtonConfig(target, src) {
-    target.entity = src.entity || "";
-    target.label = src.label || "";
-    target.icon = src.icon || "Auto";
-    target.icon_on = src.icon_on || "Auto";
-    target.sensor = src.sensor || "";
-    target.unit = src.unit || "";
-    target.type = src.type || "";
-    target.precision = src.precision || "";
-    target.options = src.options || "";
-    target._whenOnActive = src._whenOnActive;
-    target._whenOnMode = src._whenOnMode;
+    EspControlModel.copyCardConfig(target, src);
     normalizeButtonConfig(target);
   }
 

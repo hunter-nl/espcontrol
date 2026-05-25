@@ -10,32 +10,11 @@ function backupConfigError(message) {
 }
 
 function backupEmptyButtonConfig() {
-  return {
-    entity: "",
-    label: "",
-    icon: "Auto",
-    icon_on: "Auto",
-    sensor: "",
-    unit: "",
-    type: "",
-    precision: "",
-    options: "",
-  };
+  return EspControlModel.emptyCardConfig();
 }
 
 function backupNormalizeButtonConfig(button) {
-  button = button || {};
-  return normalizeButtonConfig({
-    entity: button.entity || "",
-    label: button.label || "",
-    icon: button.icon || "Auto",
-    icon_on: button.icon_on || "Auto",
-    sensor: button.sensor || "",
-    unit: button.unit || "",
-    type: button.type || "",
-    precision: button.precision || "",
-    options: button.options || "",
-  });
+  return normalizeButtonConfig(EspControlModel.cloneCardConfig(button || {}));
 }
 
 function backupSerializeGrid(grid, sizes) {
