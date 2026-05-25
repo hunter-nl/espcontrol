@@ -1193,6 +1193,20 @@ assertButtonRoundTrip(hooks, "light switch card", {
   precision: "",
   options: "",
 }, false);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerForExperimental("light_brightness", false, false), true, "lights picker visible on parent page");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerForExperimental("light_brightness", false, true), true, "lights picker visible in subpages");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerForExperimental("light_switch", false, false), false, "light switch subtype hidden from top-level picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerForExperimental("light_switch", false, true), false, "light switch subtype hidden from subpage picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerForExperimental("light_temperature", false, false), false, "light temperature subtype hidden from top-level picker");
+assert.strictEqual(hooks.buttonTypeVisibleInPickerForExperimental("light_temperature", false, true), false, "light temperature subtype hidden from subpage picker");
+assert.strictEqual(
+  hooks.buttonTypePickerKeysForExperimental(false, false, "light_brightness").indexOf("light_brightness") >= 0,
+  true,
+  "saved light subtypes remain represented by the lights picker");
+assert.strictEqual(
+  hooks.buttonTypePickerKeysForExperimental(false, true, "light_brightness").indexOf("light_brightness") >= 0,
+  true,
+  "saved light subtypes remain represented in subpages");
 
 assertButtonMigration(hooks, "light switch clears ignored fields", "light.living_room;Living Room;Auto;Auto;sensor.living_room_power;W;light_switch;1;confirm_off", {
   entity: "light.living_room",
