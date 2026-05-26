@@ -95,7 +95,7 @@ jobs:
           -v "${PWD}:/config"
           -v "${PLATFORMIO_CACHE}:/config/.esphome"
           -v "${BUILD_CACHE}:/config/builds/.esphome"
-          ghcr.io/esphome/esphome:2026.5.0
+          ghcr.io/esphome/esphome:2026.5.1
           compile /config/builds/${{ matrix.slug }}.factory.yaml
 
       - name: Clean firmware caches
