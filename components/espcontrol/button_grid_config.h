@@ -649,6 +649,19 @@ inline bool ha_state_unavailable_ref(esphome::StringRef state) {
   return value.empty() || value == "unavailable" || value == "unknown";
 }
 
+inline bool ha_entity_accepts_unknown_state(const std::string &entity_id) {
+  return (entity_id.size() > 7 && entity_id.compare(0, 7, "button.") == 0) ||
+         (entity_id.size() > 13 && entity_id.compare(0, 13, "input_button.") == 0);
+}
+
+inline bool ha_entity_state_unavailable_ref(const std::string &entity_id,
+                                            esphome::StringRef state) {
+  std::string value = normalized_state_text(state);
+  if (value.empty() || value == "unavailable") return true;
+  if (value == "unknown") return !ha_entity_accepts_unknown_state(entity_id);
+  return false;
+}
+
 inline void apply_control_availability(lv_obj_t *visual_obj, lv_obj_t *input_obj,
                                        bool available, bool disable_interaction = true) {
   if (visual_obj) {

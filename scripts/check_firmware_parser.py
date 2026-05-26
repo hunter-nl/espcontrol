@@ -45,13 +45,22 @@ constexpr int LV_PART_MAIN = 0;
 constexpr int LV_STATE_CHECKED = 1;
 constexpr int LV_STATE_PRESSED = 2;
 constexpr int LV_STATE_DEFAULT = 0;
+constexpr int LV_STATE_DISABLED = 4;
 constexpr int LV_LABEL_LONG_WRAP = 0;
 constexpr int LV_ALIGN_BOTTOM_LEFT = 0;
+constexpr int LV_OPA_COVER = 255;
+constexpr int LV_OPA_50 = 128;
+constexpr int LV_OBJ_FLAG_CLICKABLE = 1;
 inline int lv_color_hex(uint32_t value) { return static_cast<int>(value); }
 inline int lv_pct(int value) { return value; }
 inline void lv_obj_set_style_transform_scale_x(lv_obj_t *, int, int) {}
 inline void lv_obj_set_style_transform_scale_y(lv_obj_t *, int, int) {}
 inline void lv_obj_set_style_bg_color(lv_obj_t *, int, lv_style_selector_t) {}
+inline void lv_obj_set_style_opa(lv_obj_t *, int, int) {}
+inline void lv_obj_add_state(lv_obj_t *, int) {}
+inline void lv_obj_clear_state(lv_obj_t *, int) {}
+inline void lv_obj_add_flag(lv_obj_t *, int) {}
+inline void lv_obj_clear_flag(lv_obj_t *, int) {}
 inline void lv_label_set_long_mode(lv_obj_t *, int) {}
 inline void lv_obj_set_width(lv_obj_t *, int) {}
 inline void lv_label_set_text(lv_obj_t *, const char *) {}
@@ -93,6 +102,12 @@ int main() {
   bool valid = false;
   assert(parse_hex_color("FF8C00", valid) == 0xFF8C00 && valid);
   assert(parse_hex_color("BAD", valid) == 0 && !valid);
+  assert(!ha_entity_state_unavailable_ref("button.test", "unknown"));
+  assert(!ha_entity_state_unavailable_ref("input_button.test", "unknown"));
+  assert(ha_entity_state_unavailable_ref("button.test", "unavailable"));
+  assert(ha_entity_state_unavailable_ref("button.test", ""));
+  assert(ha_entity_state_unavailable_ref("sensor.test", "unknown"));
+  assert(ha_entity_state_unavailable_ref("light.test", "unknown"));
   assert(normalize_width_compensation_percent(0) == 100);
   assert(normalize_width_compensation_percent(25) == 50);
   assert(normalize_width_compensation_percent(175) == 150);
@@ -131,7 +146,7 @@ def compiler() -> str | None:
 
 def pure_config_header() -> str:
     text = CONFIG_HEADER.read_text(encoding="utf-8")
-    marker = "constexpr size_t HA_STATE_TEXT_MAX_LEN"
+    marker = "inline const char* weather_icon_for_state"
     index = text.find(marker)
     if index < 0:
         raise RuntimeError(f"Could not find pure parser boundary in {CONFIG_HEADER}")

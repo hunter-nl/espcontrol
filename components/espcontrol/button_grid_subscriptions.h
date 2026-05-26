@@ -353,8 +353,8 @@ inline void subscribe_action_card_target_availability(ActionCardStateCtx *ctx,
   if (!ctx || entity_id.empty()) return;
   ha_subscribe_state(
     entity_id,
-    std::function<void(esphome::StringRef)>([ctx](esphome::StringRef state) {
-      ctx->action_available = !ha_state_unavailable_ref(state);
+    std::function<void(esphome::StringRef)>([ctx, entity_id](esphome::StringRef state) {
+      ctx->action_available = !ha_entity_state_unavailable_ref(entity_id, state);
       apply_action_card_availability(ctx);
     })
   );
@@ -366,8 +366,8 @@ inline void subscribe_action_card_display_state(ActionCardStateCtx *ctx,
   ctx->has_state_entity = true;
   ha_subscribe_state(
     entity_id,
-    std::function<void(esphome::StringRef)>([ctx](esphome::StringRef state) {
-      bool unavailable = ha_state_unavailable_ref(state);
+    std::function<void(esphome::StringRef)>([ctx, entity_id](esphome::StringRef state) {
+      bool unavailable = ha_entity_state_unavailable_ref(entity_id, state);
       ctx->state_available = !unavailable;
       if (!unavailable && is_entity_on_ref(state)) lv_obj_add_state(ctx->btn, LV_STATE_CHECKED);
       else lv_obj_clear_state(ctx->btn, LV_STATE_CHECKED);
