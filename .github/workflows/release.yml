@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to build and upload assets for
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -16,10 +21,15 @@ env:
 jobs:
   device-matrix:
     name: Prepare Device Matrix
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
+      - name: Prepare self-hosted workspace
+        run: |
+          rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?* 2>/dev/null ||
+            sudo rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?*
+
       - uses: actions/checkout@v6
         with:
           sparse-checkout: |
@@ -85,7 +95,7 @@ jobs:
       - name: Compile firmware
         working-directory: espcontrol-${{ matrix.slug }}
         env:
-          VERSION: ${{ github.event.release.tag_name || github.ref_name }}
+          VERSION: ${{ inputs.release_tag || github.event.release.tag_name || github.ref_name }}
         run: >-
           ${DOCKER} run --rm
           --user "$(id -u):$(id -g)"
@@ -114,7 +124,7 @@ jobs:
           cp "${BUILD_DIR}/firmware.factory.bin" output/${{ matrix.slug }}.factory.bin
           cp "${BUILD_DIR}/firmware.bin" output/${{ matrix.slug }}.ota.bin
 
-          VERSION="${{ github.event.release.tag_name || github.ref_name }}"
+          VERSION="${{ inputs.release_tag || github.event.release.tag_name || github.ref_name }}"
           python3 espcontrol-${{ matrix.slug }}/scripts/firmware_release.py manifest \
             --slug "${{ matrix.slug }}" \
             --chip "${{ matrix.chip }}" \
@@ -150,7 +160,7 @@ jobs:
 
   publish:
     name: Publish to Release
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || inputs.release_tag != ''
     needs: build-firmware
     runs-on: self-hosted
     steps:
@@ -165,7 +175,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_ID: ${{ github.event.release.id }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name || github.ref_name }}
         run: |
+          if [ -z "${RELEASE_ID}" ]; then
+            RELEASE_JSON=$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}")
+            RELEASE_ID=$(printf '%s' "${RELEASE_JSON}" | jq -r '.id')
+          fi
+
           API_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}"
           UPLOAD_URL="https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets"
           ASSET_API_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/assets"
