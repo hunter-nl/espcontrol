@@ -353,7 +353,7 @@ lvgl:
   id: main_lvgl
   # Keep LVGL after WiFi and after the display driver.
   setup_priority: 230
-  buffer_size: 25%
+  buffer_size: 12%
   displays: my_display
   rotation: 180
   touchscreens:
