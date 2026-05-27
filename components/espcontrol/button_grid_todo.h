@@ -540,6 +540,7 @@ inline void todo_card_open_modal(TodoCardCtx *ctx) {
   ui.title_lbl = control_modal_create_title(
     ui.panel, todo_card_label(ctx), content_w - layout.back_size - gap,
     ctx->label_font, ctx->width_compensation_percent);
+  lv_obj_set_style_text_color(ui.title_lbl, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
   lv_obj_align(ui.title_lbl, LV_ALIGN_TOP_MID, 0, title_y - layout.back_size / 2);
 
   ui.list = control_modal_create_scroll_list(ui.panel, content_w, list_h, 0);
