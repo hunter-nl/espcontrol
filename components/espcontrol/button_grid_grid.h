@@ -838,7 +838,9 @@ inline void grid_phase2(
           s, p,
           has_on ? on_val : DEFAULT_SLIDER_COLOR,
           has_off ? off_val : DEFAULT_OFF_COLOR,
-          lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
+          display_volume_label_font(display)
+            ? display_volume_label_font(display)
+            : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
           display_icon_font(display),
           display_main_width_percent(display));
         subscribe_todo_state(ctx);
@@ -1362,7 +1364,9 @@ inline void grid_phase2(
             sub_slot, sb_cfg,
             has_on ? on_val : DEFAULT_SLIDER_COLOR,
             has_off ? off_val : DEFAULT_OFF_COLOR,
-            lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
+            display_volume_label_font(display)
+              ? display_volume_label_font(display)
+              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
             display_icon_font(display),
             display_main_width_percent(display));
           subscribe_todo_state(ctx);
