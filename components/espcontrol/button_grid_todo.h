@@ -233,9 +233,9 @@ inline void todo_modal_clear_items() {
 inline void request_todo_items(TodoCardCtx *ctx);
 inline void todo_modal_render_items(TodoCardCtx *ctx, const std::vector<TodoItem> &items);
 
-inline void send_todo_complete_action(TodoCardCtx *ctx, const TodoItem &item) {
+inline void send_todo_status_action(TodoCardCtx *ctx, const TodoItem &item, const char *status) {
   std::string key = todo_item_action_key(item);
-  if (!todo_card_context_valid(ctx) || key.empty()) return;
+  if (!todo_card_context_valid(ctx) || key.empty() || !status || !status[0]) return;
 
   esphome::api::HomeassistantActionRequest req;
   static uint32_t call_id = 350000;
@@ -243,22 +243,32 @@ inline void send_todo_complete_action(TodoCardCtx *ctx, const TodoItem &item) {
   if (!ha_action_begin(req, "todo.update_item", false, 3, next_id)) return;
   ha_action_add_entity(req, ctx->entity_id);
   ha_action_add_data(req, "item", key.c_str());
-  ha_action_add_data(req, "status", "completed");
+  ha_action_add_data(req, "status", status);
 
+  bool completing = std::string(status) == "completed";
   ha_register_action_response_callback(
     req.call_id,
-    [ctx, item](const esphome::api::ActionResponse &response) {
+    [ctx, item, completing](const esphome::api::ActionResponse &response) {
       if (!response.is_success()) {
-        ESP_LOGW("todo", "Completing todo item failed for %s: %s",
+        ESP_LOGW("todo", "Updating todo item failed for %s: %s",
           ctx && !ctx->entity_id.empty() ? ctx->entity_id.c_str() : "todo",
           response.get_error_message().c_str());
-        todo_completed_remove(item);
+        if (completing) todo_completed_remove(item);
+        else todo_completed_add(item);
         if (todo_modal_ui().active == ctx) todo_modal_render_items(ctx, todo_modal_ui().visible_items);
-        todo_modal_set_status("Could not complete");
+        todo_modal_set_status(completing ? "Could not complete" : "Could not restore");
         return;
       }
     });
   ha_action_send(req);
+}
+
+inline void send_todo_complete_action(TodoCardCtx *ctx, const TodoItem &item) {
+  send_todo_status_action(ctx, item, "completed");
+}
+
+inline void send_todo_restore_action(TodoCardCtx *ctx, const TodoItem &item) {
+  send_todo_status_action(ctx, item, "needs_action");
 }
 
 inline lv_obj_t *todo_modal_create_list_item_row(
@@ -298,10 +308,9 @@ inline lv_obj_t *todo_modal_create_list_item_row(
     lv_obj_t *box = lv_obj_create(row);
     lv_obj_set_size(box, checkbox_size, checkbox_size);
     lv_obj_set_style_radius(box, checkbox_size / 4, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(box, lv_color_hex(accent_color), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(box, checked ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(box, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_color(box, lv_color_hex(checked ? accent_color : DARK_TEXT_MUTED), LV_PART_MAIN);
-    lv_obj_set_style_border_width(box, checked ? 0 : 2, LV_PART_MAIN);
+    lv_obj_set_style_border_width(box, 2, LV_PART_MAIN);
     lv_obj_set_style_shadow_width(box, 0, LV_PART_MAIN);
     lv_obj_clear_flag(box, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_clear_flag(box, LV_OBJ_FLAG_CLICKABLE);
@@ -309,8 +318,10 @@ inline lv_obj_t *todo_modal_create_list_item_row(
     if (checked) {
       lv_obj_t *check = lv_label_create(box);
       lv_label_set_text(check, find_icon("Check"));
-      lv_obj_set_style_text_color(check, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+      lv_obj_set_style_text_color(check, lv_color_hex(accent_color), LV_PART_MAIN);
       if (icon_font) lv_obj_set_style_text_font(check, icon_font, LV_PART_MAIN);
+      lv_obj_set_style_transform_scale_x(check, 160, LV_PART_MAIN);
+      lv_obj_set_style_transform_scale_y(check, 160, LV_PART_MAIN);
       lv_obj_center(check);
     }
     label_x = checkbox_size + gap;
@@ -350,40 +361,6 @@ inline lv_obj_t *todo_modal_create_list_item_row(
   return row;
 }
 
-inline void todo_modal_create_completed_header(lv_obj_t *parent,
-                                               lv_coord_t height,
-                                               const lv_font_t *font) {
-  lv_obj_t *row = lv_obj_create(parent);
-  lv_obj_set_width(row, lv_pct(100));
-  lv_obj_set_height(row, height);
-  lv_obj_set_style_radius(row, 0, LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(row, 0, LV_PART_MAIN);
-  lv_obj_set_style_shadow_width(row, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(row, 0, LV_PART_MAIN);
-  lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_clear_flag(row, LV_OBJ_FLAG_CLICKABLE);
-
-  lv_obj_t *divider = lv_obj_create(row);
-  lv_obj_set_size(divider, lv_pct(100), 1);
-  lv_obj_set_style_bg_color(divider, lv_color_hex(DARK_BACKGROUND_SECONDARY), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(divider, LV_OPA_COVER, LV_PART_MAIN);
-  lv_obj_set_style_border_width(divider, 0, LV_PART_MAIN);
-  lv_obj_set_style_shadow_width(divider, 0, LV_PART_MAIN);
-  lv_obj_clear_flag(divider, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_clear_flag(divider, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_align(divider, LV_ALIGN_TOP_MID, 0, 0);
-
-  lv_obj_t *label = lv_label_create(row);
-  lv_label_set_text(label, "Completed");
-  lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
-  lv_obj_set_width(label, lv_pct(100));
-  lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_SOFT), LV_PART_MAIN);
-  lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
-  if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
-  lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
-}
-
 inline void todo_modal_render_items(TodoCardCtx *ctx, const std::vector<TodoItem> &items) {
   TodoModalUi &ui = todo_modal_ui();
   if (!todo_card_context_valid(ctx) || ui.active != ctx || !ui.list) return;
@@ -404,8 +381,8 @@ inline void todo_modal_render_items(TodoCardCtx *ctx, const std::vector<TodoItem
   ControlModalLayout layout = control_modal_calc_layout(ctx->width_compensation_percent);
   lv_coord_t row_h = control_modal_scaled_px(48, layout.short_side);
   if (row_h < 34) row_h = 34;
-  lv_coord_t checkbox_size = control_modal_scaled_px(18, layout.short_side);
-  if (checkbox_size < 13) checkbox_size = 13;
+  lv_coord_t checkbox_size = control_modal_scaled_px(15, layout.short_side);
+  if (checkbox_size < 11) checkbox_size = 11;
   lv_coord_t item_gap = control_modal_scaled_px(12, layout.short_side);
   if (item_gap < 8) item_gap = 8;
   lv_coord_t content_w = ui.list ? lv_obj_get_width(ui.list) : layout.panel_w;
@@ -441,15 +418,25 @@ inline void todo_modal_render_items(TodoCardCtx *ctx, const std::vector<TodoItem
   }
 
   if (ctx->show_completed_items && !ui.completed_items.empty()) {
-    lv_coord_t header_h = control_modal_scaled_px(64, layout.short_side);
-    if (header_h < 44) header_h = 44;
-    todo_modal_create_completed_header(ui.list, header_h, ctx->label_font);
     for (const auto &completed : ui.completed_items) {
-      todo_modal_create_list_item_row(
+      if (click_index >= TODO_MAX_ITEMS) break;
+      lv_obj_t *row = todo_modal_create_list_item_row(
         ui.list, completed.summary.empty() ? "(untitled)" : completed.summary,
-        false, true, true, true, row_h, content_w, checkbox_size, item_gap,
+        true, true, true, true, row_h, content_w, checkbox_size, item_gap,
         ctx->accent_color, ctx->label_font, ctx->icon_font,
         ctx->width_compensation_percent);
+      ui.item_clicks[click_index].ctx = ctx;
+      ui.item_clicks[click_index].item = completed;
+      lv_obj_add_event_cb(row, [](lv_event_t *e) {
+        TodoItemClick *click = (TodoItemClick *)lv_event_get_user_data(e);
+        if (!click || !click->ctx) return;
+        TodoCardCtx *click_ctx = click->ctx;
+        TodoItem item = click->item;
+        todo_completed_remove(item);
+        todo_modal_render_items(click_ctx, todo_modal_ui().visible_items);
+        send_todo_restore_action(click_ctx, item);
+      }, LV_EVENT_CLICKED, &ui.item_clicks[click_index]);
+      click_index++;
     }
   }
 }
