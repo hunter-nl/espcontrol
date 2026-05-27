@@ -152,7 +152,10 @@ inline WebhookHeaders parse_webhook_headers(const std::string &value,
 
 inline void send_webhook_action(const ParsedCfg &p) {
   std::string url = trim_webhook_text(p.entity);
-  if (url.empty()) return;
+  if (url.empty()) {
+    ESP_LOGW("webhook", "Webhook card has no URL");
+    return;
+  }
   std::string method = normalize_webhook_method(p.sensor);
   std::string body = (method == "GET" || method == "DELETE") ? "" : p.unit;
   WebhookHeaders headers = parse_webhook_headers(webhook_card_headers(p), body);
@@ -161,6 +164,7 @@ inline void send_webhook_action(const ParsedCfg &p) {
     ESP_LOGW("webhook", "Webhook sender is not registered");
     return;
   }
+  ESP_LOGI("webhook", "Calling webhook with method %s", method.c_str());
   sender(url, method, body, headers);
 }
 

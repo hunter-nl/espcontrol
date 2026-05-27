@@ -14,6 +14,10 @@ inline bool card_runtime_allow_in_subpage(const std::string &type) {
   return card_contract_allow_in_subpage(type);
 }
 
+inline std::string card_runtime_subpage_type_from_code(const std::string &code) {
+  return card_contract_subpage_type_from_code(code);
+}
+
 inline const char *card_runtime_default_icon_name(const std::string &type) {
   return card_contract_default_icon_name(type);
 }

@@ -69,7 +69,7 @@ esphome:
                 ESP_LOGW("webhook", "Webhook %s returned HTTP %d", url.c_str(), status);
                 return false;
               }
-              ESP_LOGD("webhook", "Webhook %s returned HTTP %d", url.c_str(), status);
+              ESP_LOGI("webhook", "Webhook %s returned HTTP %d", url.c_str(), status);
               return true;
             });
             set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
@@ -165,7 +165,7 @@ esphome:
                 ESP_LOGW("webhook", "Webhook %s returned HTTP %d", url.c_str(), status);
                 return false;
               }
-              ESP_LOGD("webhook", "Webhook %s returned HTTP %d", url.c_str(), status);
+              ESP_LOGI("webhook", "Webhook %s returned HTTP %d", url.c_str(), status);
               return true;
             });
             set_width_compensation_vertical_axis(cfg.width_compensation_vertical);

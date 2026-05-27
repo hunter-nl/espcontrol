@@ -297,7 +297,7 @@ def cfg_lines(device: dict) -> list[str]:
     lines.append("                ESP_LOGW(\"webhook\", \"Webhook %s returned HTTP %d\", url.c_str(), status);")
     lines.append("                return false;")
     lines.append("              }")
-    lines.append("              ESP_LOGD(\"webhook\", \"Webhook %s returned HTTP %d\", url.c_str(), status);")
+    lines.append("              ESP_LOGI(\"webhook\", \"Webhook %s returned HTTP %d\", url.c_str(), status);")
     lines.append("              return true;")
     lines.append("            });")
     lines.append("            set_width_compensation_vertical_axis(cfg.width_compensation_vertical);")

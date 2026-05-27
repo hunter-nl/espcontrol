@@ -2193,6 +2193,22 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|A,scene.movie
   ],
 }, "compact action subpage state entity parse");
 
+assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|WH,https%3A//webhook-test.net/abc,Door%20Alert,Flash,,POST,%7B%22value%22%3Atrue%7D,,webhook_headers=Content-Type%253A%20application/json")), {
+  order: ["1", "B"],
+  buttons: [
+    buttonShape({
+      entity: "https://webhook-test.net/abc",
+      label: "Door Alert",
+      icon: "Flash",
+      icon_on: "Auto",
+      sensor: "POST",
+      unit: "{\"value\":true}",
+      type: "webhook",
+      options: "webhook_headers=Content-Type%3A application/json",
+    }),
+  ],
+}, "compact webhook subpage parse");
+
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|U,input_select.house_mode,House%20Mode,Chevron%20Down")), {
   order: ["1", "B"],
   buttons: [

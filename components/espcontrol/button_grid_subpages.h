@@ -12,7 +12,7 @@ struct SubpageBtn {
   std::string icon_on;
   std::string sensor;     // sensor entity, cover/internal mode, or action name
   std::string unit;
-  std::string type;       // button type: "" (toggle), action, sensor, door_window, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, lock, alarm, alarm_action, media, push, internal, subpage
+  std::string type;       // button type: "" (toggle), action, sensor, door_window, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, lock, alarm, alarm_action, media, push, webhook, internal, subpage
   std::string precision;  // decimal places for sensor display; "text" = text sensor mode
   std::string options;    // comma-delimited card options
 };
@@ -30,34 +30,7 @@ inline std::vector<std::string> split_subpage_fields(const std::string &value, c
 }
 
 inline std::string compact_subpage_type(const std::string &code) {
-  if (code == "A") return "action";
-  if (code == "U") return "option_select";
-  if (code == "D") return "calendar";
-  if (code == "T") return "timezone";
-  if (code == "S") return "sensor";
-  if (code == "X") return "door_window";
-  if (code == "W") return "weather";
-  if (code == "F") return "weather_forecast";
-  if (code == "B") return "fan_switch";
-  if (code == "J") return "fan_speed";
-  if (code == "O") return "fan_oscillate";
-  if (code == "E") return "fan_direction";
-  if (code == "Z") return "fan_preset";
-  if (code == "V") return "light_brightness";
-  if (code == "Q") return "light_switch";
-  if (code == "Y") return "alarm";
-  if (code == "AA") return "alarm_action";
-  if (code == "L") return "slider";
-  if (code == "C") return "cover";
-  if (code == "N") return "light_temperature";
-  if (code == "R") return "garage";
-  if (code == "K") return "lock";
-  if (code == "M") return "media";
-  if (code == "H") return "climate";
-  if (code == "P") return "push";
-  if (code == "I") return "internal";
-  if (code == "G") return "subpage";
-  return code;
+  return card_runtime_subpage_type_from_code(code);
 }
 
 inline std::string decode_compact_subpage_field(const std::string &value) {
@@ -144,6 +117,14 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       b.icon = alarm_action_icon_name(b.sensor);
     }
   }
+  if (b.type == "webhook") {
+    b.sensor = normalize_webhook_method(b.sensor);
+    if (b.sensor == "GET" || b.sensor == "DELETE") b.unit.clear();
+    b.precision.clear();
+    b.icon_on.clear();
+    if (b.icon.empty() || b.icon == "Auto") b.icon = "Flash";
+    b.options = webhook_card_options_normalized(b.options);
+  }
   if (b.type == "light_switch") {
     b.sensor.clear();
     b.unit.clear();
@@ -173,6 +154,7 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (!b.type.empty() && b.type != "action" && b.type != "alarm" &&
       b.type != "alarm_action" &&
       b.type != "climate" && b.type != "garage" &&
+      b.type != "webhook" &&
       b.type != "sensor" && b.type != "door_window" &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();

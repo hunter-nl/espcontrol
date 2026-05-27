@@ -1330,6 +1330,14 @@ inline void grid_phase2(
         }
         continue;
       }
+      if (sb_cfg.type == "webhook") {
+        ParsedCfg *ctx = new ParsedCfg(sb_cfg);
+        lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
+          ParsedCfg *c = (ParsedCfg *)lv_event_get_user_data(e);
+          if (c) send_webhook_action(*c);
+        }, LV_EVENT_CLICKED, ctx);
+        continue;
+      }
       if (sb_cfg.type == "option_select") {
         if (!sb_cfg.entity.empty()) {
           OptionSelectCtx *ctx = create_option_select_context(
