@@ -32,7 +32,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Option Select | option_select | select, input_select | Yes | Own picker item | None | Hidden |
 | Trigger | push | None | Yes | Own picker item | None | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
-| Todo | todo | todo | Yes | Own picker item | Show Item Count: count, icon; Label Display: label, count; Show Completed Items: show, hide | Experimental |
+| Todo | todo | todo | Yes | Own picker item | Status: icon, count; Label: label, count; Show Completed Items: show, hide | Experimental |
 | Sensor | sensor | sensor, binary_sensor, text_sensor | Yes | Own picker item | Large Sensor Numbers; Active Color | Visible |
 | Slider | slider | light, fan | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | No | Own picker item | None | Visible |

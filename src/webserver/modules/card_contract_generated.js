@@ -820,17 +820,17 @@ var CARD_CONTRACT_CARDS = {
     "options": [
       {
         "name": "count_display",
-        "label": "Show Item Count",
+        "label": "Status",
         "kind": "choice",
         "values": [
-          "count",
-          "icon"
+          "icon",
+          "count"
         ],
         "defaultValue": "count"
       },
       {
         "name": "label_display",
-        "label": "Label Display",
+        "label": "Label",
         "kind": "choice",
         "values": [
           "label",

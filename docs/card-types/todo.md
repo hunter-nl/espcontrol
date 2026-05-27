@@ -18,8 +18,8 @@ Todo cards are currently hidden behind **Developer Experimental Features** while
 2. Select a card and change its type to **Todo**.
 3. Choose a `todo.*` entity, such as `todo.shopping`.
 4. Optionally set a label and icon.
-5. Use **Show Item Count** to choose whether the card shows the incomplete count or the icon.
-6. Use **Label Shows Item Count** to choose whether the label stays static or shows the incomplete count.
+5. Use **Label** to choose whether the label stays static or shows the incomplete count.
+6. Use **Status** to choose whether the card shows the selected icon or the incomplete count.
 7. Use **Show Completed Items** to choose whether checked-off items stay visible in a completed section.
 
 ## How It Works

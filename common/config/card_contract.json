@@ -685,14 +685,14 @@
       "options": [
         {
           "name": "count_display",
-          "label": "Show Item Count",
+          "label": "Status",
           "kind": "choice",
-          "values": ["count", "icon"],
+          "values": ["icon", "count"],
           "defaultValue": "count"
         },
         {
           "name": "label_display",
-          "label": "Label Display",
+          "label": "Label",
           "kind": "choice",
           "values": ["label", "count"],
           "defaultValue": "label"

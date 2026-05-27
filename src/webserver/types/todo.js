@@ -23,20 +23,30 @@ var TODO_CARD_METADATA = {
     fallback: "Check",
   },
   countDisplay: {
-    label: "Show Item Count",
-    idSuffix: "todo-show-count",
-    checked: function (b) { return todoCardShowCount(b); },
-    onChange: function (button, cardHelpers, checked) {
-      setTodoCardShowCount(button, checked);
+    label: "Status",
+    options: [
+      ["icon", "Icon"],
+      ["count", "Item Counter"],
+    ],
+    value: function (b) {
+      return todoCardShowCount(b) ? "count" : "icon";
+    },
+    onSelect: function (button, cardHelpers, value) {
+      setTodoCardShowCount(button, value === "count");
       cardHelpers.saveField("options", button.options);
     },
   },
   labelDisplay: {
-    label: "Label Shows Item Count",
-    idSuffix: "todo-label-count",
-    checked: function (b) { return todoCardLabelShowsCount(b); },
-    onChange: function (button, cardHelpers, checked) {
-      setTodoCardLabelShowsCount(button, checked);
+    label: "Label",
+    options: [
+      ["label", "Label"],
+      ["count", "Item Counter"],
+    ],
+    value: function (b) {
+      return todoCardLabelShowsCount(b) ? "count" : "label";
+    },
+    onSelect: function (button, cardHelpers, value) {
+      setTodoCardLabelShowsCount(button, value === "count");
       cardHelpers.saveField("options", button.options);
     },
   },
@@ -82,32 +92,39 @@ registerButtonType("todo", {
   renderSettings: function (panel, b, slot, helpers) {
     normalizeTodoConfig(b);
     helpers.renderCardEntityField(panel, b, helpers, TODO_CARD_METADATA);
-    var labelControl = helpers.renderCardTextField(panel, b, helpers, TODO_CARD_METADATA.labelField);
-    var labelDisplayToggle = helpers.renderCardOptionToggle(panel, b, helpers, Object.assign({}, TODO_CARD_METADATA.labelDisplay, {
-      onChange: function (button, cardHelpers, checked) {
-        setTodoCardLabelShowsCount(button, checked);
+
+    helpers.renderCardSegmentControl(panel, b, helpers, Object.assign({}, TODO_CARD_METADATA.labelDisplay, {
+      onSelect: function (button, cardHelpers, value) {
+        setTodoCardLabelShowsCount(button, value === "count");
         cardHelpers.saveField("options", button.options);
         syncLabelField();
         scheduleRender();
       },
     }));
-    var iconPicker = helpers.renderCardIconPicker(panel, b, helpers, TODO_CARD_METADATA.icon);
-    var countToggle = helpers.renderCardOptionToggle(panel, b, helpers, Object.assign({}, TODO_CARD_METADATA.countDisplay, {
-      onChange: function (button, cardHelpers, checked) {
-        setTodoCardShowCount(button, checked);
+    var labelSection = condField();
+    labelSection.classList.add("sp-climate-settings-gap");
+    helpers.renderCardTextField(labelSection, b, helpers, TODO_CARD_METADATA.labelField);
+    panel.appendChild(labelSection);
+
+    helpers.renderCardSegmentControl(panel, b, helpers, Object.assign({}, TODO_CARD_METADATA.countDisplay, {
+      onSelect: function (button, cardHelpers, value) {
+        setTodoCardShowCount(button, value === "count");
         cardHelpers.saveField("options", button.options);
         syncIconPicker();
         scheduleRender();
       },
     }));
+    var iconSection = condField();
+    iconSection.classList.add("sp-climate-settings-gap");
+    helpers.renderCardIconPicker(iconSection, b, helpers, TODO_CARD_METADATA.icon);
+    panel.appendChild(iconSection);
+
     helpers.renderCardOptionToggle(panel, b, helpers, TODO_CARD_METADATA.completedDisplay);
     function syncLabelField() {
-      labelControl.field.style.display = todoCardLabelShowsCount(b) ? "none" : "";
-      labelDisplayToggle.input.checked = todoCardLabelShowsCount(b);
+      labelSection.classList.toggle("sp-visible", !todoCardLabelShowsCount(b));
     }
     function syncIconPicker() {
-      iconPicker.style.display = todoCardShowCount(b) ? "none" : "";
-      countToggle.input.checked = todoCardShowCount(b);
+      iconSection.classList.toggle("sp-visible", !todoCardShowCount(b));
     }
     syncLabelField();
     syncIconPicker();
