@@ -812,10 +812,7 @@ inline void grid_phase2(
       std::string state_entity = action_card_state_entity(p);
       if (!state_entity.empty()) {
         ActionCardStateCtx *ctx = create_action_card_state_context(s, p);
-        subscribe_action_card_target_availability(ctx, p.entity);
         subscribe_action_card_display_state(ctx, state_entity);
-      } else {
-        subscribe_control_availability(s.btn, s.btn, p.entity);
       }
       continue;
     }
@@ -1339,10 +1336,7 @@ inline void grid_phase2(
           std::string state_entity = action_card_state_entity(sb_cfg);
           if (!state_entity.empty()) {
             ActionCardStateCtx *action_ctx = create_action_card_state_context(sub_slot, sb_cfg);
-            subscribe_action_card_target_availability(action_ctx, sb_cfg.entity);
             subscribe_action_card_display_state(action_ctx, state_entity);
-          } else {
-            subscribe_control_availability(sub_slot.btn, sub_slot.btn, sb_cfg.entity);
           }
           ParsedCfg *ctx = new ParsedCfg(sb_cfg);
           lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {

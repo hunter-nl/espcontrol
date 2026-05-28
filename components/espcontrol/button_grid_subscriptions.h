@@ -298,7 +298,6 @@ struct ActionCardStateCtx {
   lv_obj_t *text_lbl = nullptr;
   lv_obj_t *sensor_lbl = nullptr;
   lv_obj_t *unit_lbl = nullptr;
-  bool action_available = true;
   bool state_available = true;
   bool has_state_entity = false;
   bool show_text_state = false;
@@ -323,8 +322,7 @@ inline ActionCardStateCtx *create_action_card_state_context(const BtnSlot &s,
 
 inline void apply_action_card_availability(ActionCardStateCtx *ctx) {
   if (!ctx || !ctx->btn) return;
-  bool available = ctx->action_available &&
-                   (!ctx->has_state_entity || ctx->state_available);
+  bool available = !ctx->has_state_entity || ctx->state_available;
   apply_control_availability(ctx->btn, ctx->btn, available);
 }
 
@@ -348,18 +346,6 @@ inline void apply_action_card_display_value(ActionCardStateCtx *ctx,
     lv_label_set_text(ctx->sensor_lbl, "");
     if (ctx->unit_lbl) lv_label_set_text(ctx->unit_lbl, "");
   }
-}
-
-inline void subscribe_action_card_target_availability(ActionCardStateCtx *ctx,
-                                                      const std::string &entity_id) {
-  if (!ctx || entity_id.empty()) return;
-  ha_subscribe_state(
-    entity_id,
-    std::function<void(esphome::StringRef)>([ctx, entity_id](esphome::StringRef state) {
-      ctx->action_available = !ha_entity_state_unavailable_ref(entity_id, state);
-      apply_action_card_availability(ctx);
-    })
-  );
 }
 
 inline void subscribe_action_card_display_state(ActionCardStateCtx *ctx,

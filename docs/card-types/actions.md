@@ -65,7 +65,7 @@ Action cards are normally stateless: they flash when tapped, then return to thei
 
 Turn on **Show State** when an action should behave like a shortcut but still show whether something is active. For example, an Action card might run a scene called `scene.movie_mode`, while **State Entity** watches `input_boolean.movie_mode`.
 
-When the state entity is active, the Action card stays highlighted. If either the action entity or the state entity is unavailable, the card is disabled until Home Assistant reports it as available again.
+When the state entity is active, the Action card stays highlighted. If the state entity is unavailable, the card is disabled until Home Assistant reports it as available again. The action target itself stays tappable because many Home Assistant command-only entities, including `button.*` entities, do not report a useful on/off state.
 
 ## How It Works on the Panel
 
