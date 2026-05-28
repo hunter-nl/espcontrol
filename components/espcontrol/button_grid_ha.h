@@ -82,6 +82,13 @@ inline bool ha_register_action_response_callback(uint32_t call_id,
   return true;
 }
 
+inline bool ha_cancel_action_response_callback(uint32_t call_id, const char *error_message = "cancelled") {
+  if (!ha_api_available() || call_id == 0) return false;
+  esphome::api::global_api_server->handle_action_response(
+    call_id, false, esphome::StringRef(error_message ? error_message : "cancelled"));
+  return true;
+}
+
 inline bool ha_subscribe_state(const std::string &entity_id,
                                HomeAssistantStateCallback callback) {
   if (!ha_api_available() || entity_id.empty()) return false;

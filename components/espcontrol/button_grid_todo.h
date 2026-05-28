@@ -9,6 +9,7 @@ constexpr int TODO_MAX_ITEMS = 8;
 constexpr size_t TODO_RESPONSE_TEXT_MAX_LEN = 1536;
 constexpr int TODO_RESPONSE_KEY_MAX_LEN = 96;
 constexpr int TODO_RESPONSE_SUMMARY_MAX_LEN = 80;
+constexpr uint32_t TODO_REQUEST_TIMEOUT_MS = 15000;
 
 struct TodoItem {
   std::string key;
@@ -54,9 +55,39 @@ struct TodoModalUi {
   bool more_items_visible = false;
 };
 
+struct TodoRequestState {
+  uint32_t call_id = 0;
+  uint32_t started_ms = 0;
+};
+
 inline TodoModalUi &todo_modal_ui() {
   static TodoModalUi ui;
   return ui;
+}
+
+inline TodoRequestState &todo_request_state() {
+  static TodoRequestState state;
+  return state;
+}
+
+inline void todo_clear_request_state(uint32_t call_id) {
+  TodoRequestState &state = todo_request_state();
+  if (state.call_id == call_id) state = TodoRequestState();
+}
+
+inline void todo_cancel_request(uint32_t call_id, const char *reason) {
+  if (call_id == 0) return;
+  todo_clear_request_state(call_id);
+  ha_cancel_action_response_callback(call_id, reason);
+}
+
+inline void todo_cancel_stale_request() {
+  TodoRequestState &state = todo_request_state();
+  if (state.call_id == 0) return;
+  if (millis() - state.started_ms >= TODO_REQUEST_TIMEOUT_MS) {
+    uint32_t call_id = state.call_id;
+    todo_cancel_request(call_id, "timeout");
+  }
 }
 
 inline bool todo_card_context_valid(TodoCardCtx *ctx) {
@@ -436,6 +467,8 @@ inline void request_todo_items(TodoCardCtx *ctx) {
   if (!todo_card_context_valid(ctx) || !todo_entity_id_safe(ctx->entity_id)) return;
   todo_modal_clear_items();
   todo_modal_set_status("Loading");
+  todo_cancel_stale_request();
+  if (todo_request_state().call_id != 0) return;
   if (!ha_api_state_connected()) {
     todo_modal_set_status("Could not load");
     return;
@@ -449,13 +482,10 @@ inline void request_todo_items(TodoCardCtx *ctx) {
     return;
   }
 
-  if (!ha_action_send(req)) {
-    todo_modal_set_status("Could not load");
-    return;
-  }
   if (!ha_register_action_response_callback(
     req.call_id,
-    [ctx](const esphome::api::ActionResponse &response) {
+    [ctx, call_id](const esphome::api::ActionResponse &response) {
+      todo_clear_request_state(call_id);
       if (todo_modal_ui().active != ctx) return;
       if (!response.is_success()) {
         ESP_LOGW("todo", "Todo request failed for %s: %s",
@@ -472,6 +502,15 @@ inline void request_todo_items(TodoCardCtx *ctx) {
       }
       todo_modal_render_items(ctx, items);
     })) {
+    todo_modal_set_status("Could not load");
+    return;
+  }
+
+  TodoRequestState &state = todo_request_state();
+  state.call_id = req.call_id;
+  state.started_ms = millis();
+  if (!ha_action_send(req)) {
+    todo_cancel_request(req.call_id, "send failed");
     todo_modal_set_status("Could not load");
   }
 }
