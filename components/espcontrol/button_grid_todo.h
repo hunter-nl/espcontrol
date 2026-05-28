@@ -573,8 +573,8 @@ inline void todo_card_open_modal(TodoCardCtx *ctx) {
   lv_coord_t list_y = layout.inset + layout.back_size + gap;
   lv_coord_t list_h = layout.panel_h - list_y - layout.inset;
   if (list_h < 60) list_h = 60;
-  lv_coord_t list_pad = control_modal_scaled_px(18, layout.short_side);
-  if (list_pad < 12) list_pad = 12;
+  lv_coord_t list_pad = control_modal_scaled_px(10, layout.short_side);
+  if (list_pad < 6) list_pad = 6;
   lv_coord_t list_w = content_w - list_pad * 2;
   if (list_w < 80) {
     list_w = content_w;
