@@ -124,8 +124,10 @@ def firmware_todo_request_errors(firmware_dir: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: bound pending todo item requests with a timeout")
     if "stale_request_cancelled = todo_cancel_stale_request()" not in text:
         errors.append(f"{rel}: periodically expire stale todo requests while the modal is open")
-    if 'todo_cancel_pending_request("modal closed")' not in text:
+    if 'todo_cancel_pending_request("modal closed"' not in text:
         errors.append(f"{rel}: cancel pending todo item requests when the modal closes")
+    if 'todo_cancel_pending_request("modal closed", false)' not in text:
+        errors.append(f"{rel}: close todo modals without retrying their cancelled request")
     if '"send failed"' in text and 'ui.waiting_for_ha = true;' not in text:
         errors.append(f"{rel}: retry todo loads when Home Assistant disconnects during send")
     pending_match = re.search(
@@ -659,6 +661,33 @@ def run_self_test() -> int:
         '  ha_register_action_response_callback(req.call_id, cb);\n'
         '}\n',
         ("cancel pending todo item requests when the modal closes",),
+    )
+    expect_todo_request_errors(
+        "modal close retries cancelled request",
+        'constexpr int TODO_RESPONSE_KEY_MAX_LEN = 96;\n'
+        'constexpr int TODO_RESPONSE_SUMMARY_MAX_LEN = 80;\n'
+        'constexpr int TODO_REQUEST_TIMEOUT_MS = 15000;\n'
+        'inline bool todo_cancel_stale_request() { return false; }\n'
+        'inline bool todo_begin_get_items_request() {\n'
+        '  ha_action_begin(req, "todo.get_items", false, 1, call_id);\n'
+        '  req.wants_response = true;\n'
+        '  req.response_template = response_template;\n'
+        '  ha_action_add_entity(req, ctx->entity_id);\n'
+        '  return true;\n'
+        '}\n'
+        'inline void todo_modal_hide() {\n'
+        '  todo_cancel_pending_request("modal closed");\n'
+        '  ui = TodoModalUi();\n'
+        '}\n'
+        'inline void request_todo_items() {\n'
+        '  todo_cancel_stale_request();\n'
+        '  bool stale_request_cancelled = todo_cancel_stale_request();\n'
+        '  if (!ha_api_state_connected()) return;\n'
+        '  todo_clear_request_state(call_id);\n'
+        '  todo_clear_request_state(call_id);\n'
+        '  ha_register_action_response_callback(req.call_id, cb);\n'
+        '}\n',
+        ("close todo modals without retrying their cancelled request",),
     )
     expect_todo_request_errors(
         "todo send failed has no retry",

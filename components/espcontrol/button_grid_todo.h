@@ -86,12 +86,12 @@ inline void todo_cancel_request(uint32_t call_id, const char *reason) {
   ha_cancel_action_response_callback(call_id, reason);
 }
 
-inline void todo_cancel_pending_request(const char *reason) {
+inline void todo_cancel_pending_request(const char *reason, bool keep_modal_waiting = true) {
   uint32_t call_id = todo_request_state().call_id;
   if (call_id == 0) return;
   todo_cancel_request(call_id, reason);
   TodoModalUi &ui = todo_modal_ui();
-  if (ui.active != nullptr) {
+  if (keep_modal_waiting && ui.active != nullptr) {
     ui.waiting_for_ha = true;
     todo_modal_set_status("Waiting for Home Assistant");
   }
@@ -239,8 +239,9 @@ inline std::string todo_item_action_key(const TodoItem &item) {
 }
 
 inline void todo_modal_hide() {
-  todo_cancel_pending_request("modal closed");
   TodoModalUi &ui = todo_modal_ui();
+  ui.active = nullptr;
+  todo_cancel_pending_request("modal closed", false);
   control_modal_delete_overlay(ControlModalKind::TODO_LIST, ui.overlay);
   ui = TodoModalUi();
 }
