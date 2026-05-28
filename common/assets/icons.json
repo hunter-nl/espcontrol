@@ -369,6 +369,11 @@
       "mdi": "dishwasher"
     },
     {
+      "name": "Dishwasher Off",
+      "codepoint": "F11B9",
+      "mdi": "dishwasher-off"
+    },
+    {
       "name": "Dog",
       "codepoint": "F0A43",
       "mdi": "dog"
