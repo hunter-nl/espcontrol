@@ -97,6 +97,8 @@ def firmware_todo_request_errors(firmware_dir: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: keep the todo response template alive until after the request is sent")
     if "TODO_RESPONSE_KEY_MAX_LEN" not in text or "TODO_RESPONSE_SUMMARY_MAX_LEN" not in text:
         errors.append(f"{rel}: bound todo response text before Home Assistant sends it")
+    if "std::to_string(TODO_RESPONSE_TEXT_MAX_LEN)" not in text or "|length" not in text:
+        errors.append(f"{rel}: cap rendered todo responses before Home Assistant sends them")
     if 'ha_action_add_data(req, "status"' in body:
         errors.append(f"{rel}: filter todo items in the response template, not in action data")
     if "TODO_REQUEST_TIMEOUT_MS" not in text or text.count("todo_cancel_stale_request()") < 2:
@@ -308,6 +310,20 @@ def run_self_test() -> int:
         )
         errors = firmware_todo_request_errors(firmware_dir, root)
         assert any("bound todo response text" in error for error in errors), errors
+    expect_todo_request_errors(
+        "unbounded rendered todo response",
+        'constexpr int TODO_RESPONSE_KEY_MAX_LEN = 96;\n'
+        'constexpr int TODO_RESPONSE_SUMMARY_MAX_LEN = 80;\n'
+        'constexpr int TODO_RESPONSE_TEXT_MAX_LEN = 1536;\n'
+        'inline bool todo_begin_get_items_request() {\n'
+        '  ha_action_begin(req, "todo.get_items", false, 1, call_id);\n'
+        '  req.wants_response = true;\n'
+        '  req.response_template = response_template;\n'
+        '  ha_action_add_entity(req, ctx->entity_id);\n'
+        '  return true;\n'
+        '}\n',
+        ("cap rendered todo responses",),
+    )
     expect_todo_request_errors(
         "unbounded pending todo request",
         'constexpr int TODO_RESPONSE_KEY_MAX_LEN = 96;\n'

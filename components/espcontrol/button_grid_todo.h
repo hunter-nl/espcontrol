@@ -434,22 +434,31 @@ inline void todo_modal_render_items(TodoCardCtx *ctx, const std::vector<TodoItem
 inline std::string todo_items_response_template(const std::string &entity_id) {
   return std::string("{% set entity = '") + entity_id + "' %}"
     "{% set items = response.get(entity, {}).get('items', []) %}"
-    "{% set ns = namespace(count=0, out='') %}"
+    "{% set ns = namespace(count=0, shown=0, out='') %}"
     "{% macro esc(v) -%}{{ (v|string)|replace('%','%25')|replace('|','%7C')|replace('\\n','%0A')|replace('\\r','%0D') }}{%- endmacro %}"
     "{% for item in items %}"
     "{% if item.status is not defined or item.status == 'needs_action' %}"
-    "{% if ns.count < " + std::to_string(TODO_MAX_ITEMS) + " %}"
+    "{% if ns.shown < " + std::to_string(TODO_MAX_ITEMS) + " %}"
     "{% set summary = item.summary if item.summary is defined else '' %}"
     "{% set key = item.uid if item.uid is defined and item.uid else summary %}"
     "{% set key = (key|string)[:" + std::to_string(TODO_RESPONSE_KEY_MAX_LEN) + "] %}"
     "{% set summary = (summary|string)[:" + std::to_string(TODO_RESPONSE_SUMMARY_MAX_LEN) + "] %}"
-    "{% set ns.out = ns.out ~ ('\\n' if ns.out else '') ~ esc(key) ~ '|' ~ esc(summary) %}"
+    "{% set line = esc(key) ~ '|' ~ esc(summary) %}"
+    "{% set next_len = (ns.out|length) + (1 if ns.out else 0) + (line|length) %}"
+    "{% if next_len <= " + std::to_string(TODO_RESPONSE_TEXT_MAX_LEN) + " %}"
+    "{% set ns.out = ns.out ~ ('\\n' if ns.out else '') ~ line %}"
+    "{% set ns.shown = ns.shown + 1 %}"
+    "{% endif %}"
     "{% endif %}"
     "{% set ns.count = ns.count + 1 %}"
     "{% endif %}"
     "{% endfor %}"
-    "{{ ns.out }}{% if ns.count > " + std::to_string(TODO_MAX_ITEMS) +
-    " %}\\n__MORE__|{{ ns.count - " + std::to_string(TODO_MAX_ITEMS) + " }}{% endif %}";
+    "{{ ns.out }}{% if ns.count > ns.shown %}"
+    "{% set more = '__MORE__|' ~ (ns.count - ns.shown) %}"
+    "{% set next_len = (ns.out|length) + (1 if ns.out else 0) + (more|length) %}"
+    "{% if next_len <= " + std::to_string(TODO_RESPONSE_TEXT_MAX_LEN) + " %}"
+    "{{ '\\n' if ns.out else '' }}{{ more }}"
+    "{% endif %}{% endif %}";
 }
 
 inline uint32_t next_todo_items_call_id() {
