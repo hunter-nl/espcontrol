@@ -22,6 +22,13 @@ var TODO_CARD_METADATA = {
     field: "icon",
     fallback: "Check",
   },
+  iconDisplay: {
+    label: "Icon Display",
+    options: [
+      ["icon", "Icon"],
+      ["count", "Counter"],
+    ],
+  },
   preview: {
     badge: "check",
   },
@@ -32,7 +39,7 @@ function normalizeTodoConfig(b) {
   b.sensor = "";
   b.unit = "";
   b.precision = "";
-  b.options = "";
+  b.options = normalizeTodoOptions(b.options);
   b.icon_on = "Auto";
   if (!b.icon || b.icon === "Auto") b.icon = "Check";
 }
@@ -58,11 +65,23 @@ registerButtonType("todo", {
     helpers.renderCardEntityField(panel, b, helpers, TODO_CARD_METADATA);
     helpers.renderCardTextField(panel, b, helpers, TODO_CARD_METADATA.labelField);
     helpers.renderCardIconPicker(panel, b, helpers, TODO_CARD_METADATA.icon);
+    helpers.renderCardSegmentControl(panel, b, helpers, {
+      segment: Object.assign({}, TODO_CARD_METADATA.iconDisplay, {
+        value: function () { return todoCardStatusMode(b); },
+        onSelect: function (button, cardHelpers, value) {
+          setTodoCardStatusMode(button, value);
+          cardHelpers.saveField("options", button.options);
+          scheduleRender();
+        },
+      }),
+    });
   },
   renderPreview: function (b, helpers) {
     var label = b.label || b.entity || "Todo";
     return {
-      iconHtml: cardSensorPreviewHtml(b, helpers, "3", ""),
+      iconHtml: todoCardShowCount(b)
+        ? cardSensorPreviewHtml(b, helpers, "3", null)
+        : '<span class="sp-btn-icon mdi mdi-' + iconSlug(b.icon && b.icon !== "Auto" ? b.icon : "Check") + '"></span>',
       labelHtml: cardBadgeLabelHtml(helpers, label, TODO_CARD_METADATA.preview.badge),
     };
   },

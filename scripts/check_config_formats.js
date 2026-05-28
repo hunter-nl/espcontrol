@@ -1532,12 +1532,12 @@ assertButtonRoundTrip(hooks, "todo button", {
 assert.deepStrictEqual(Array.from(hooks.cardContractDomains("todo")), ["todo"], "todo card only accepts todo entities");
 assert.deepStrictEqual(
   Array.from(hooks.cardContractOptions("todo"), (option) => option.name),
-  [],
-  "todo card exposes no advanced display options"
+  ["count_display"],
+  "todo card exposes the icon/counter display option"
 );
 assert.strictEqual(hooks.todoCardShowCount({ type: "todo", options: "" }), true, "todo shows item count by default");
-assert.strictEqual(hooks.todoCardShowCount({ type: "todo", options: "count_display=icon" }), true, "todo ignores legacy icon display options");
-assert.strictEqual(hooks.todoCardStatusMode({ type: "todo", options: "count_display=top_task" }), "count", "todo ignores legacy top task options");
+assert.strictEqual(hooks.todoCardShowCount({ type: "todo", options: "count_display=icon" }), false, "todo can show the configured icon instead of the counter");
+assert.strictEqual(hooks.todoCardStatusMode({ type: "todo", options: "count_display=top_task" }), "count", "todo falls back to counter for legacy top task options");
 assert.strictEqual(hooks.todoCardShowsTopTask({ type: "todo", options: "count_display=top_task" }), false, "todo does not use top task mode");
 assert.strictEqual(hooks.todoCardLabelShowsCount({ type: "todo", options: "" }), false, "todo label is static by default");
 assert.strictEqual(hooks.todoCardLabelShowsCount({ type: "todo", options: "label_display=count" }), false, "todo ignores legacy count label options");

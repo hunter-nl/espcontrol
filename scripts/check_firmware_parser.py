@@ -143,6 +143,11 @@ int main() {
   assert(todo.icon_on == "Auto");
   assert(todo.type == "todo");
   assert(todo.options == "");
+  assert(todo_card_show_count(todo));
+  auto todo_icon_display = parse_cfg("todo.shopping;Shopping;Check;Auto;;;todo;;count_display=icon");
+  assert(todo_icon_display.options == "count_display=icon");
+  assert(!todo_card_show_count(todo_icon_display));
+  assert(!card_large_numbers_supported(todo_icon_display));
   auto todo_legacy_options = parse_cfg("todo.shopping;Shopping;Check;Auto;;;todo;;count_display=top_task,label_display=count,completed_display=hide,large_numbers");
   assert(todo_legacy_options.options == "");
   assert(todo_card_show_count(todo_legacy_options));

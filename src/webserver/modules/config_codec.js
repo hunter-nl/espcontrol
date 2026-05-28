@@ -358,7 +358,7 @@ function setSensorLargeNumbersEnabled(b, enabled) {
 }
 
 function normalizeTodoCountDisplayMode(value) {
-  return "count";
+  return value === "icon" ? "icon" : "count";
 }
 
 function normalizeTodoLabelDisplayMode(value) {
@@ -370,15 +370,20 @@ function normalizeTodoCompletedDisplayMode(value) {
 }
 
 function normalizeTodoOptions(options) {
-  return "";
+  var countMode = normalizeTodoCountDisplayMode(
+    configOptionValue(options, TODO_COUNT_DISPLAY_OPTION));
+  return countMode === "icon"
+    ? setConfigOptionValue("", TODO_COUNT_DISPLAY_OPTION, countMode)
+    : "";
 }
 
 function todoCardShowCount(b) {
-  return true;
+  return todoCardStatusMode(b) === "count";
 }
 
 function todoCardStatusMode(b) {
-  return "count";
+  return normalizeTodoCountDisplayMode(
+    configOptionValue(b && b.options, TODO_COUNT_DISPLAY_OPTION));
 }
 
 function todoCardShowsTopTask(b) {
@@ -387,13 +392,24 @@ function todoCardShowsTopTask(b) {
 
 function setTodoCardShowCount(b, enabled) {
   if (!b) return "";
-  b.options = "";
+  b.options = setConfigOptionValue(
+    b.options,
+    TODO_COUNT_DISPLAY_OPTION,
+    enabled ? "" : "icon"
+  );
+  b.options = normalizeTodoOptions(b.options);
   return b.options;
 }
 
 function setTodoCardStatusMode(b, value) {
   if (!b) return "";
-  b.options = "";
+  var normalized = normalizeTodoCountDisplayMode(value);
+  b.options = setConfigOptionValue(
+    b.options,
+    TODO_COUNT_DISPLAY_OPTION,
+    normalized === "count" ? "" : normalized
+  );
+  b.options = normalizeTodoOptions(b.options);
   return b.options;
 }
 

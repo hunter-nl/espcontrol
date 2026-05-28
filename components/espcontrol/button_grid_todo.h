@@ -114,20 +114,20 @@ inline void todo_apply_card_text(TodoCardCtx *ctx) {
   if (!ctx) return;
   if (ctx->label_lbl) lv_label_set_text(ctx->label_lbl, todo_card_label(ctx).c_str());
   if (ctx->value_lbl) lv_label_set_text(ctx->value_lbl, ctx->available ? ctx->count_text.c_str() : "--");
-  if (ctx->unit_lbl) {
-    const char *unit = "";
-    if (ctx->available && !ctx->count_text.empty() && ctx->count_text != "--") {
-      unit = ctx->count_text == "1" ? "item" : "items";
-    }
-    lv_label_set_text(ctx->unit_lbl, unit);
-  }
+  if (ctx->unit_lbl) lv_label_set_text(ctx->unit_lbl, "");
 }
 
 inline void setup_todo_card(BtnSlot &s, const ParsedCfg &p, uint32_t secondary_color) {
   lv_obj_set_style_bg_color(s.btn, lv_color_hex(secondary_color),
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
-  lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+  bool show_count = todo_card_show_count(p);
+  if (show_count) {
+    lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+  }
   lv_label_set_text(s.icon_lbl,
     (!p.icon.empty() && p.icon != "Auto") ? find_icon(p.icon.c_str()) : find_icon("Check"));
   lv_label_set_text(s.sensor_lbl, "--");

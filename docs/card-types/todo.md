@@ -13,7 +13,8 @@ Todo cards show a Home Assistant `todo.*` list on the panel. The card shows the 
 1. Select a card and change its type to **Todo**.
 2. Choose an **Entity**, such as `todo.shopping`.
 3. Set **Label** if you want a custom list name.
-4. Optionally choose an icon.
+4. Choose whether the top-left corner shows the **Counter** or the **Icon**.
+5. Optionally choose an icon.
 
 ## How It Works
 

@@ -256,8 +256,7 @@ inline std::string door_window_card_options_normalized(const std::string &option
 }
 
 inline std::string normalize_todo_count_display(const std::string &value) {
-  (void) value;
-  return "count";
+  return value == "icon" ? "icon" : "count";
 }
 
 inline std::string normalize_todo_label_display(const std::string &value) {
@@ -271,13 +270,13 @@ inline std::string normalize_todo_completed_display(const std::string &value) {
 }
 
 inline std::string todo_card_options_normalized(const std::string &options) {
-  (void) options;
-  return "";
+  return normalize_todo_count_display(cfg_option_value(options, "count_display")) == "icon"
+    ? "count_display=icon"
+    : "";
 }
 
 inline bool todo_card_show_count(const ParsedCfg &p) {
-  (void) p;
-  return true;
+  return normalize_todo_count_display(cfg_option_value(p.options, "count_display")) == "count";
 }
 
 inline bool todo_card_shows_top_task(const ParsedCfg &p) {
