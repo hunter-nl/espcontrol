@@ -588,6 +588,13 @@ inline void todo_card_open_modal(TodoCardCtx *ctx) {
   lv_coord_t list_y = layout.inset + layout.back_size + gap;
   lv_coord_t list_h = layout.panel_h - list_y - layout.inset;
   if (list_h < 60) list_h = 60;
+  lv_coord_t list_pad = control_modal_scaled_px(14, layout.short_side);
+  if (list_pad < 6) list_pad = 6;
+  lv_coord_t list_w = content_w - list_pad * 2;
+  if (list_w < 80) {
+    list_w = content_w;
+    list_pad = 0;
+  }
 
   ui.title_lbl = control_modal_create_title(
     ui.panel, todo_lite_card_label(ctx), content_w - layout.back_size - gap,
@@ -599,8 +606,8 @@ inline void todo_card_open_modal(TodoCardCtx *ctx) {
 
   lv_coord_t row_gap = control_modal_scaled_px(14, layout.short_side);
   if (row_gap < 8) row_gap = 8;
-  ui.list = control_modal_create_scroll_list(ui.panel, content_w, list_h, row_gap);
-  lv_obj_align(ui.list, LV_ALIGN_TOP_LEFT, layout.inset, list_y);
+  ui.list = control_modal_create_scroll_list(ui.panel, list_w, list_h, row_gap);
+  lv_obj_align(ui.list, LV_ALIGN_TOP_LEFT, layout.inset + list_pad, list_y);
 
   lv_obj_move_foreground(ui.overlay);
   todo_lite_request_items(ctx);
