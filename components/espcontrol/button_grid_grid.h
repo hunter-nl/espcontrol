@@ -137,10 +137,6 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
   if (s.sensor_container) lv_obj_align(s.sensor_container, align, 0, 0);
 }
 
-inline void apply_centered_large_number_card_layout(const BtnSlot &s) {
-  if (s.sensor_container) lv_obj_align(s.sensor_container, LV_ALIGN_CENTER, 0, 0);
-}
-
 inline lv_align_t wide_large_date_time_card_align(const ParsedCfg &p) {
   return (p.type == "clock" || (p.type == "calendar" && calendar_card_shows_time(p)))
     ? LV_ALIGN_LEFT_MID
@@ -288,7 +284,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
         card_large_numbers_enabled(p) && display_large_sensor_font(display)) {
       apply_large_sensor_number_style(
         s, display_large_sensor_font(display), display_large_sensor_unit_offset_percent(display));
-      apply_centered_large_number_card_layout(s);
     }
     return;
   }
