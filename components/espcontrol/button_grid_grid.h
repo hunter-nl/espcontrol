@@ -137,6 +137,12 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
   if (s.sensor_container) lv_obj_align(s.sensor_container, align, 0, 0);
 }
 
+inline lv_align_t wide_large_date_time_card_align(const ParsedCfg &p) {
+  return (p.type == "clock" || (p.type == "calendar" && calendar_card_shows_time(p)))
+    ? LV_ALIGN_LEFT_MID
+    : LV_ALIGN_CENTER;
+}
+
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const GridConfig &cfg,
                               const CardPalette &palette,
@@ -181,7 +187,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       apply_large_sensor_number_style(
         s, display_large_sensor_font(display), display_large_sensor_unit_offset_percent(display));
       if (wide_large_date_time_card_layout(row_span, col_span)) {
-        apply_wide_large_date_time_card_layout(s, LV_ALIGN_LEFT_MID);
+        apply_wide_large_date_time_card_layout(s, wide_large_date_time_card_align(p));
       }
     }
     return;
@@ -193,7 +199,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       apply_large_sensor_number_style(
         s, display_large_sensor_font(display), display_large_sensor_unit_offset_percent(display));
       if (wide_large_date_time_card_layout(row_span, col_span)) {
-        apply_wide_large_date_time_card_layout(s);
+        apply_wide_large_date_time_card_layout(s, wide_large_date_time_card_align(p));
       }
     }
     return;

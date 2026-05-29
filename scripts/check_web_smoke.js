@@ -285,6 +285,7 @@ const wideDateTimePreview = hooks.buttonTypePreviewFor("calendar", {
   clockFormat: "24h",
 });
 assert(wideDateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time wide preview supports large numbers");
+assert.strictEqual(wideDateTimePreview.buttonClass, "sp-clock-wide-large", "date/time wide large preview is left aligned");
 assert.strictEqual(wideDateTimePreview.labelHtml, "", "date/time wide large preview hides the date label");
 
 const clockPreview = hooks.buttonTypePreviewFor("clock", {

@@ -153,7 +153,9 @@ registerButtonType("calendar", {
     var now = new Date();
     var isDateTime = b.precision === "datetime";
     var hideLabel = cardLargeNumbersHidePreviewLabel(b, helpers, DATE_TIME_CARD_METADATA);
-    var buttonClass = hideLabel ? "sp-date-time-wide-large" : undefined;
+    var buttonClass = hideLabel
+      ? (isDateTime ? "sp-clock-wide-large" : "sp-date-time-wide-large")
+      : undefined;
     var day = String(now.getDate());
     var month = typeof monthNameForIndex === "function"
       ? monthNameForIndex(now.getMonth())
