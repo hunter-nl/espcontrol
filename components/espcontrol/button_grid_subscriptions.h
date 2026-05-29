@@ -99,6 +99,27 @@ inline void subscribe_text_sensor_value(lv_obj_t *text_lbl, const std::string &s
   );
 }
 
+inline void subscribe_sensor_text_card_value(lv_obj_t *text_lbl, const ParsedCfg &p,
+                                             lv_obj_t *availability_obj = nullptr,
+                                             bool active_color = false,
+                                             uint32_t on_color = DEFAULT_SLIDER_COLOR,
+                                             uint32_t sensor_color = DEFAULT_TERTIARY_COLOR) {
+  if (p.sensor.empty()) return;
+  ha_subscribe_state(
+    p.sensor,
+    std::function<void(esphome::StringRef)>(
+      [text_lbl, p, availability_obj, active_color, on_color, sensor_color](esphome::StringRef state) {
+      bool unavailable = ha_state_unavailable_ref(state);
+      if (availability_obj) {
+        apply_control_availability(availability_obj, availability_obj, !unavailable, false);
+      }
+      apply_sensor_active_color(availability_obj, active_color, state,
+        on_color, sensor_color, unavailable);
+      set_wrapped_button_label_text(text_lbl, sensor_state_display_text(p, state));
+    })
+  );
+}
+
 inline void subscribe_door_window_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
                                         const std::string &sensor_id,
                                         const char *closed_icon, const char *open_icon,

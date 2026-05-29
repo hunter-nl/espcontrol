@@ -961,6 +961,36 @@ var CARD_CONTRACT_CARDS = {
         "supportedWhen": {
           "never": true
         }
+      },
+      {
+        "name": "state_labels",
+        "label": "Custom State Labels",
+        "kind": "flag",
+        "supportedWhen": {
+          "precision": [
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "state_low_label",
+        "label": "Low Label",
+        "kind": "text",
+        "supportedWhen": {
+          "precision": [
+            "text"
+          ]
+        }
+      },
+      {
+        "name": "state_high_label",
+        "label": "High Label",
+        "kind": "text",
+        "supportedWhen": {
+          "precision": [
+            "text"
+          ]
+        }
       }
     ],
     "default": {

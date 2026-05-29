@@ -82,6 +82,14 @@ int main() {
   assert(compact.type == "sensor");
   assert(compact.precision == "1");
   assert(card_large_numbers_enabled(compact));
+  auto state_labels = parse_cfg(";;;;sensor.bin_level;;sensor;text;state_labels,state_high_label=Please%20empty");
+  assert(sensor_state_labels_enabled(state_labels));
+  assert(state_labels.options == "state_labels,state_high_label=Please empty");
+  assert(sensor_state_display_text(state_labels, "low") == "");
+  assert(sensor_state_display_text(state_labels, "high") == "Please empty");
+  assert(sensor_state_display_text(state_labels, "medium") == "Medium");
+  auto numeric_state_labels = parse_cfg(";;;;sensor.bin_level;;sensor;0;state_labels,state_high_label=Please%20empty");
+  assert(numeric_state_labels.options == "");
 
   auto clock = parse_cfg(";;;;;;clock;;large_numbers");
   assert(clock.type == "clock");

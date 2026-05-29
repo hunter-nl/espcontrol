@@ -319,7 +319,7 @@ inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p,
                                    const CardPalette &palette) {
   if (is_text_sensor_card(p)) {
     if (!p.sensor.empty())
-      subscribe_text_sensor_value(s.text_lbl, p.sensor, s.btn,
+      subscribe_sensor_text_card_value(s.text_lbl, p, s.btn,
         sensor_active_color_enabled(p), palette.on_val, palette.sensor_val);
     return true;
   }

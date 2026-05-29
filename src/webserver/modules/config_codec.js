@@ -1,5 +1,9 @@
 // ── Subpage helpers ────────────────────────────────────────────────────
 
+var SENSOR_STATE_LABELS_OPTION = "state_labels";
+var SENSOR_STATE_LOW_LABEL_OPTION = "state_low_label";
+var SENSOR_STATE_HIGH_LABEL_OPTION = "state_high_label";
+
 function normalizeButtonConfig(b) {
   if (b) b.options = b.options || "";
   if (b && isBrightnessSliderType(b.type) && b.sensor) {
@@ -503,6 +507,33 @@ function setSensorActiveColorEnabled(b, enabled) {
   return b.options;
 }
 
+function sensorStateLabelsEnabled(b) {
+  return !!(b && b.type === "sensor" && b.precision === "text" &&
+    configOptionEnabled(b.options, SENSOR_STATE_LABELS_OPTION));
+}
+
+function sensorStateLowLabel(b) {
+  return sensorStateLabelsEnabled(b)
+    ? configOptionValue(b.options, SENSOR_STATE_LOW_LABEL_OPTION)
+    : "";
+}
+
+function sensorStateHighLabel(b) {
+  return sensorStateLabelsEnabled(b)
+    ? configOptionValue(b.options, SENSOR_STATE_HIGH_LABEL_OPTION)
+    : "";
+}
+
+function setSensorStateLabels(b, enabled, lowLabel, highLabel) {
+  if (!b) return "";
+  var options = b.options || "";
+  options = setConfigOption(options, SENSOR_STATE_LABELS_OPTION, enabled);
+  options = setConfigOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION, enabled ? lowLabel : "");
+  options = setConfigOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION, enabled ? highLabel : "");
+  b.options = normalizeSensorOptions(options, b.precision);
+  return b.options;
+}
+
 function normalizeSensorOptions(options, precision) {
   var out = "";
   if (configOptionEnabled(options, SENSOR_LARGE_NUMBERS_OPTION) &&
@@ -512,6 +543,13 @@ function normalizeSensorOptions(options, precision) {
   if (configOptionEnabled(options, SENSOR_ACTIVE_COLOR_OPTION) &&
       cardContractOptionSupportedFor("sensor", SENSOR_ACTIVE_COLOR_OPTION, { precision: precision })) {
     out = setConfigOption(out, SENSOR_ACTIVE_COLOR_OPTION, true);
+  }
+  if (precision === "text" && configOptionEnabled(options, SENSOR_STATE_LABELS_OPTION)) {
+    out = setConfigOption(out, SENSOR_STATE_LABELS_OPTION, true);
+    out = setConfigOptionValue(out, SENSOR_STATE_LOW_LABEL_OPTION,
+      configOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION));
+    out = setConfigOptionValue(out, SENSOR_STATE_HIGH_LABEL_OPTION,
+      configOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION));
   }
   return out;
 }

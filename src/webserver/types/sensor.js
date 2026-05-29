@@ -104,6 +104,54 @@ registerButtonType("sensor", {
     });
     panel.appendChild(textSection);
 
+    var hasStateLabels = sensorStateLabelsEnabled(b);
+    var advancedToggleSection = helpers.toggleSection(
+      "Advanced",
+      helpers.idPrefix + "sensor-advanced-toggle",
+      hasStateLabels
+    );
+    var advancedToggle = advancedToggleSection.toggle;
+    var advanced = advancedToggleSection.section;
+    textSection.appendChild(advancedToggle.row);
+    if (hasStateLabels) advanced.classList.add("sp-visible");
+
+    var lowLabelField = helpers.textField(
+      "Low Label",
+      helpers.idPrefix + "sensor-low-label",
+      sensorStateLowLabel(b),
+      "e.g. Empty"
+    );
+    var lowLabelInp = lowLabelField.input;
+    advanced.appendChild(lowLabelField.field);
+
+    var highLabelField = helpers.textField(
+      "High Label",
+      helpers.idPrefix + "sensor-high-label",
+      sensorStateHighLabel(b),
+      "e.g. Please empty"
+    );
+    var highLabelInp = highLabelField.input;
+    advanced.appendChild(highLabelField.field);
+
+    function saveStateLabels() {
+      setSensorStateLabels(b, advancedToggle.input.checked, lowLabelInp.value, highLabelInp.value);
+      helpers.saveField("options", b.options);
+    }
+
+    lowLabelInp.addEventListener("change", saveStateLabels);
+    highLabelInp.addEventListener("change", saveStateLabels);
+    advancedToggle.input.addEventListener("change", function () {
+      if (this.checked) {
+        advanced.classList.add("sp-visible");
+      } else {
+        advanced.classList.remove("sp-visible");
+        lowLabelInp.value = "";
+        highLabelInp.value = "";
+      }
+      saveStateLabels();
+    });
+    textSection.appendChild(advanced);
+
     function setMode(mode, persist) {
       isTextMode = mode === "text";
       numericBtn.classList.toggle("active", !isTextMode);
@@ -131,6 +179,10 @@ registerButtonType("sensor", {
         helpers.saveField("precision", "");
         helpers.saveField("icon", "Auto");
         helpers.saveField("options", b.options);
+        advancedToggle.input.checked = false;
+        advanced.classList.remove("sp-visible");
+        lowLabelInp.value = "";
+        highLabelInp.value = "";
         var iconPreview = textIconPicker.querySelector(".sp-icon-picker-preview");
         if (iconPreview) iconPreview.className = "sp-icon-picker-preview mdi mdi-cog";
         var iconInput = textIconPicker.querySelector(".sp-icon-picker-input");

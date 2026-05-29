@@ -50,6 +50,9 @@ constexpr uint32_t DARK_OVERLAY = 0x000000;
 constexpr uint32_t DARK_TRACK_BACKGROUND = correct_display_color(0x333333);
 constexpr int MAX_GRID_SLOTS = 25;
 constexpr int MAX_SUBPAGE_ITEMS = MAX_GRID_SLOTS * MAX_GRID_SLOTS;
+constexpr const char *SENSOR_STATE_LABELS_OPTION = "state_labels";
+constexpr const char *SENSOR_STATE_LOW_LABEL_OPTION = "state_low_label";
+constexpr const char *SENSOR_STATE_HIGH_LABEL_OPTION = "state_high_label";
 
 #include "button_grid_contract_generated.h"
 #include "button_grid_card_runtime.h"
@@ -235,6 +238,20 @@ inline std::string sensor_card_options_normalized(const std::string &options,
   if (cfg_option_token_present(options, "active_color")) {
     if (!out.empty()) out += ",";
     out += "active_color";
+  }
+  if (precision == "text" && cfg_option_token_present(options, SENSOR_STATE_LABELS_OPTION)) {
+    if (!out.empty()) out += ",";
+    out += SENSOR_STATE_LABELS_OPTION;
+    std::string low_label = cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION);
+    std::string high_label = cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION);
+    if (!low_label.empty()) {
+      out += ",";
+      out += std::string(SENSOR_STATE_LOW_LABEL_OPTION) + "=" + encode_compact_field(low_label);
+    }
+    if (!high_label.empty()) {
+      out += ",";
+      out += std::string(SENSOR_STATE_HIGH_LABEL_OPTION) + "=" + encode_compact_field(high_label);
+    }
   }
   return out;
 }
@@ -682,6 +699,11 @@ inline bool sensor_active_color_enabled(const ParsedCfg &p) {
   return p.type == "sensor" && cfg_option_enabled(p.options, "active_color");
 }
 
+inline bool sensor_state_labels_enabled(const ParsedCfg &p) {
+  return p.type == "sensor" && p.precision == "text" &&
+         cfg_option_enabled(p.options, SENSOR_STATE_LABELS_OPTION);
+}
+
 inline bool door_window_active_color_enabled(const ParsedCfg &p) {
   return p.type == "door_window" && cfg_option_enabled(p.options, "active_color");
 }
@@ -829,6 +851,17 @@ inline std::string text_sensor_display_text(esphome::StringRef value,
   }
   while (!out.empty() && (out.back() == ' ' || out.back() == '\n')) out.pop_back();
   return out;
+}
+
+inline std::string sensor_state_display_text(const ParsedCfg &p,
+                                             esphome::StringRef value,
+                                             size_t max_len = HA_TEXT_SENSOR_STATE_MAX_LEN) {
+  if (sensor_state_labels_enabled(p)) {
+    std::string state = normalized_state_text(value, max_len);
+    if (state == "low") return cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION);
+    if (state == "high") return cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION);
+  }
+  return text_sensor_display_text(value, max_len);
 }
 
 inline void lv_label_set_text_limited(lv_obj_t *label, esphome::StringRef value, size_t max_len) {
