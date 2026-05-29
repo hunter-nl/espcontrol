@@ -146,7 +146,14 @@ def firmware_todo_request_errors(firmware_dir: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: clear pending todo request state when responses arrive")
     if "ha_api_state_connected()" not in text:
         errors.append(f"{rel}: wait for Home Assistant state subscription before todo actions")
-    if text.count("ha_register_action_response_callback(") > 1:
+    callback_sections = [text]
+    lite_marker = "#elif defined(ESPCONTROL_TODO_LITE) && ESPCONTROL_TODO_LITE"
+    full_marker = "#else\n\nconstexpr uint32_t TODO_CARD_CTX_MAGIC"
+    if lite_marker in text and full_marker in text:
+        before_lite, lite_and_full = text.split(lite_marker, 1)
+        lite, full = lite_and_full.split(full_marker, 1)
+        callback_sections = [before_lite, lite, full]
+    if any(section.count("ha_register_action_response_callback(") > 1 for section in callback_sections):
         errors.append(f"{rel}: only todo list loading should register a response callback")
     return errors
 

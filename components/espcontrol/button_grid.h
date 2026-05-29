@@ -12,6 +12,7 @@
 #include <string>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <cctype>
 #include <cstdint>
 #include <ctime>
