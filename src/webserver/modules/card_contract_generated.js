@@ -964,7 +964,7 @@ var CARD_CONTRACT_CARDS = {
       },
       {
         "name": "state_labels",
-        "label": "Custom State Labels",
+        "label": "Status Translation",
         "kind": "flag",
         "supportedWhen": {
           "precision": [
@@ -973,8 +973,8 @@ var CARD_CONTRACT_CARDS = {
         }
       },
       {
-        "name": "state_low_label",
-        "label": "Low Label",
+        "name": "state_input",
+        "label": "Input Status",
         "kind": "text",
         "supportedWhen": {
           "precision": [
@@ -983,8 +983,8 @@ var CARD_CONTRACT_CARDS = {
         }
       },
       {
-        "name": "state_high_label",
-        "label": "High Label",
+        "name": "state_output",
+        "label": "Display Text",
         "kind": "text",
         "supportedWhen": {
           "precision": [

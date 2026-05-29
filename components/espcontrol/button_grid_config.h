@@ -51,6 +51,8 @@ constexpr uint32_t DARK_TRACK_BACKGROUND = correct_display_color(0x333333);
 constexpr int MAX_GRID_SLOTS = 25;
 constexpr int MAX_SUBPAGE_ITEMS = MAX_GRID_SLOTS * MAX_GRID_SLOTS;
 constexpr const char *SENSOR_STATE_LABELS_OPTION = "state_labels";
+constexpr const char *SENSOR_STATE_INPUT_OPTION = "state_input";
+constexpr const char *SENSOR_STATE_OUTPUT_OPTION = "state_output";
 constexpr const char *SENSOR_STATE_LOW_LABEL_OPTION = "state_low_label";
 constexpr const char *SENSOR_STATE_HIGH_LABEL_OPTION = "state_high_label";
 
@@ -242,15 +244,22 @@ inline std::string sensor_card_options_normalized(const std::string &options,
   if (precision == "text" && cfg_option_token_present(options, SENSOR_STATE_LABELS_OPTION)) {
     if (!out.empty()) out += ",";
     out += SENSOR_STATE_LABELS_OPTION;
-    std::string low_label = cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION);
-    std::string high_label = cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION);
-    if (!low_label.empty()) {
-      out += ",";
-      out += std::string(SENSOR_STATE_LOW_LABEL_OPTION) + "=" + encode_compact_field(low_label);
+    std::string input = cfg_option_value(options, SENSOR_STATE_INPUT_OPTION);
+    std::string output = cfg_option_value(options, SENSOR_STATE_OUTPUT_OPTION);
+    if (input.empty() && !cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION).empty()) {
+      input = "high";
+      output = cfg_option_value(options, SENSOR_STATE_HIGH_LABEL_OPTION);
+    } else if (input.empty() && !cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION).empty()) {
+      input = "low";
+      output = cfg_option_value(options, SENSOR_STATE_LOW_LABEL_OPTION);
     }
-    if (!high_label.empty()) {
+    if (!input.empty()) {
       out += ",";
-      out += std::string(SENSOR_STATE_HIGH_LABEL_OPTION) + "=" + encode_compact_field(high_label);
+      out += std::string(SENSOR_STATE_INPUT_OPTION) + "=" + encode_compact_field(input);
+    }
+    if (!output.empty()) {
+      out += ",";
+      out += std::string(SENSOR_STATE_OUTPUT_OPTION) + "=" + encode_compact_field(output);
     }
   }
   return out;
@@ -854,13 +863,31 @@ inline std::string text_sensor_display_text(esphome::StringRef value,
   return out;
 }
 
+inline std::string sensor_state_translation_key(const std::string &value) {
+  std::string text = trim_display_unit(value);
+  for (char &ch : text) {
+    ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+  }
+  return text;
+}
+
 inline std::string sensor_state_display_text(const ParsedCfg &p,
                                              esphome::StringRef value,
                                              size_t max_len = HA_TEXT_SENSOR_STATE_MAX_LEN) {
   if (sensor_state_labels_enabled(p)) {
     std::string state = normalized_state_text(value, max_len);
-    if (state == "low") return cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION);
-    if (state == "high") return cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION);
+    std::string input = cfg_option_value(p.options, SENSOR_STATE_INPUT_OPTION);
+    std::string output = cfg_option_value(p.options, SENSOR_STATE_OUTPUT_OPTION);
+    if (input.empty() && !cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION).empty()) {
+      input = "high";
+      output = cfg_option_value(p.options, SENSOR_STATE_HIGH_LABEL_OPTION);
+    } else if (input.empty() && !cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION).empty()) {
+      input = "low";
+      output = cfg_option_value(p.options, SENSOR_STATE_LOW_LABEL_OPTION);
+    }
+    if (!input.empty() && state == sensor_state_translation_key(input)) {
+      return output;
+    }
   }
   return text_sensor_display_text(value, max_len);
 }

@@ -448,7 +448,7 @@ const sensorOptionSpecs = hooks.cardContractOptions("sensor");
 const sensorOptionByName = Object.fromEntries(sensorOptionSpecs.map((option) => [option.name, option]));
 assert.deepStrictEqual(
   Array.from(sensorOptionSpecs, (option) => option.name),
-  ["large_numbers", "active_color", "state_labels", "state_low_label", "state_high_label"],
+  ["large_numbers", "active_color", "state_labels", "state_input", "state_output"],
   "sensor option specs preserve current option order"
 );
 assert.deepStrictEqual(
@@ -663,11 +663,13 @@ assertButtonRoundTrip(hooks, "large sensor numbers option", {
 const parsedActiveSensor = hooks.parseButtonConfig(";;;;binary_sensor.patio_door;;sensor;text;active_color");
 assert.strictEqual(hooks.sensorActiveColorEnabled(parsedActiveSensor), false, "sensor active colour removed");
 
-const stateLabelSensor = hooks.parseButtonConfig(";;;;sensor.bin_level;;sensor;text;state_labels,state_high_label=Please%20empty");
+const stateLabelSensor = hooks.parseButtonConfig(";;;;sensor.bin_level;;sensor;text;state_labels,state_input=high,state_output=Please%20empty");
 assert.strictEqual(hooks.sensorStateLabelsEnabled(stateLabelSensor), true, "sensor text state labels enabled");
-assert.strictEqual(hooks.sensorStateLowLabel(stateLabelSensor), "", "sensor low label can be intentionally blank");
-assert.strictEqual(hooks.sensorStateHighLabel(stateLabelSensor), "Please empty", "sensor high label is decoded");
-assertButtonRoundTrip(hooks, "sensor custom state labels", stateLabelSensor, false);
+assert.strictEqual(hooks.sensorStateInput(stateLabelSensor), "high", "sensor state input is decoded");
+assert.strictEqual(hooks.sensorStateOutput(stateLabelSensor), "Please empty", "sensor state output is decoded");
+assertButtonRoundTrip(hooks, "sensor status translation", stateLabelSensor, false);
+const legacyStateLabelSensor = hooks.parseButtonConfig(";;;;sensor.bin_level;;sensor;text;state_labels,state_high_label=Please%20empty");
+assert.strictEqual(legacyStateLabelSensor.options, "state_labels,state_input=high,state_output=Please empty", "legacy high label migrates to status translation");
 const numericStateLabelSensor = hooks.parseButtonConfig(";;;;sensor.bin_level;;sensor;0;state_labels,state_high_label=Please%20empty");
 assert.strictEqual(numericStateLabelSensor.options, "", "sensor state labels are text-mode only");
 

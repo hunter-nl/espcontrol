@@ -115,41 +115,41 @@ registerButtonType("sensor", {
     panel.appendChild(advancedToggle.row);
     if (hasStateLabels) advanced.classList.add("sp-visible");
 
-    var lowLabelField = helpers.textField(
-      "Low Label",
-      helpers.idPrefix + "sensor-low-label",
-      sensorStateLowLabel(b),
-      "e.g. Empty"
+    var inputTextField = helpers.textField(
+      "Input Status",
+      helpers.idPrefix + "sensor-state-input",
+      sensorStateInput(b),
+      "e.g. high"
     );
-    var lowLabelInp = lowLabelField.input;
-    advanced.appendChild(lowLabelField.field);
+    var inputTextInp = inputTextField.input;
+    advanced.appendChild(inputTextField.field);
 
-    var highLabelField = helpers.textField(
-      "High Label",
-      helpers.idPrefix + "sensor-high-label",
-      sensorStateHighLabel(b),
+    var outputTextField = helpers.textField(
+      "Display Text",
+      helpers.idPrefix + "sensor-state-output",
+      sensorStateOutput(b),
       "e.g. Please empty"
     );
-    var highLabelInp = highLabelField.input;
-    advanced.appendChild(highLabelField.field);
+    var outputTextInp = outputTextField.input;
+    advanced.appendChild(outputTextField.field);
 
-    function saveStateLabels() {
-      setSensorStateLabels(b, advancedToggle.input.checked, lowLabelInp.value, highLabelInp.value);
+    function saveStateTranslation() {
+      setSensorStateTranslation(b, advancedToggle.input.checked, inputTextInp.value, outputTextInp.value);
       helpers.saveField("options", b.options);
     }
 
-    lowLabelInp.addEventListener("change", saveStateLabels);
-    highLabelInp.addEventListener("change", saveStateLabels);
+    inputTextInp.addEventListener("change", saveStateTranslation);
+    outputTextInp.addEventListener("change", saveStateTranslation);
     advancedToggle.input.addEventListener("change", function () {
       if (this.checked) {
         if (!isTextMode) setMode("text", true);
         advanced.classList.add("sp-visible");
       } else {
         advanced.classList.remove("sp-visible");
-        lowLabelInp.value = "";
-        highLabelInp.value = "";
+        inputTextInp.value = "";
+        outputTextInp.value = "";
       }
-      saveStateLabels();
+      saveStateTranslation();
     });
     panel.appendChild(advanced);
 
@@ -182,8 +182,8 @@ registerButtonType("sensor", {
         helpers.saveField("options", b.options);
         advancedToggle.input.checked = false;
         advanced.classList.remove("sp-visible");
-        lowLabelInp.value = "";
-        highLabelInp.value = "";
+        inputTextInp.value = "";
+        outputTextInp.value = "";
         var iconPreview = textIconPicker.querySelector(".sp-icon-picker-preview");
         if (iconPreview) iconPreview.className = "sp-icon-picker-preview mdi mdi-cog";
         var iconInput = textIconPicker.querySelector(".sp-icon-picker-input");

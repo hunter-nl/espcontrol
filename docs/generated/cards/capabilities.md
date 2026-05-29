@@ -35,7 +35,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Trigger | push | None | Yes | Own picker item | None | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
 | Todo | todo | todo | Yes | Own picker item | Icon Display: icon, count; Large Todo Numbers | Visible |
-| Sensor | sensor | sensor, binary_sensor, text_sensor | Yes | Own picker item | Large Sensor Numbers; Active Color; Custom State Labels; Low Label; High Label | Visible |
+| Sensor | sensor | sensor, binary_sensor, text_sensor | Yes | Own picker item | Large Sensor Numbers; Active Color; Status Translation; Input Status; Display Text | Visible |
 | Slider | slider | light, fan | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | No | Own picker item | Subpage Type: default, lights, climate, presence, media; Large State Numbers | Visible |
 | Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |

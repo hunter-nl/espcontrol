@@ -1,6 +1,8 @@
 // ── Subpage helpers ────────────────────────────────────────────────────
 
 var SENSOR_STATE_LABELS_OPTION = "state_labels";
+var SENSOR_STATE_INPUT_OPTION = "state_input";
+var SENSOR_STATE_OUTPUT_OPTION = "state_output";
 var SENSOR_STATE_LOW_LABEL_OPTION = "state_low_label";
 var SENSOR_STATE_HIGH_LABEL_OPTION = "state_high_label";
 
@@ -519,24 +521,42 @@ function sensorStateLabelsEnabled(b) {
     configOptionEnabled(b.options, SENSOR_STATE_LABELS_OPTION));
 }
 
-function sensorStateLowLabel(b) {
+function legacySensorStateInput(options) {
+  if (configOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION)) return "high";
+  if (configOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION)) return "low";
+  return "";
+}
+
+function legacySensorStateOutput(options) {
+  if (configOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION)) {
+    return configOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION);
+  }
+  if (configOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION)) {
+    return configOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION);
+  }
+  return "";
+}
+
+function sensorStateInput(b) {
   return sensorStateLabelsEnabled(b)
-    ? configOptionValue(b.options, SENSOR_STATE_LOW_LABEL_OPTION)
+    ? (configOptionValue(b.options, SENSOR_STATE_INPUT_OPTION) || legacySensorStateInput(b.options))
     : "";
 }
 
-function sensorStateHighLabel(b) {
+function sensorStateOutput(b) {
   return sensorStateLabelsEnabled(b)
-    ? configOptionValue(b.options, SENSOR_STATE_HIGH_LABEL_OPTION)
+    ? (configOptionValue(b.options, SENSOR_STATE_OUTPUT_OPTION) || legacySensorStateOutput(b.options))
     : "";
 }
 
-function setSensorStateLabels(b, enabled, lowLabel, highLabel) {
+function setSensorStateTranslation(b, enabled, inputText, outputText) {
   if (!b) return "";
   var options = b.options || "";
   options = setConfigOption(options, SENSOR_STATE_LABELS_OPTION, enabled);
-  options = setConfigOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION, enabled ? lowLabel : "");
-  options = setConfigOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION, enabled ? highLabel : "");
+  options = setConfigOptionValue(options, SENSOR_STATE_INPUT_OPTION, enabled ? inputText : "");
+  options = setConfigOptionValue(options, SENSOR_STATE_OUTPUT_OPTION, enabled ? outputText : "");
+  options = setConfigOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION, "");
+  options = setConfigOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION, "");
   b.options = normalizeSensorOptions(options, b.precision);
   return b.options;
 }
@@ -553,10 +573,10 @@ function normalizeSensorOptions(options, precision) {
   }
   if (precision === "text" && configOptionEnabled(options, SENSOR_STATE_LABELS_OPTION)) {
     out = setConfigOption(out, SENSOR_STATE_LABELS_OPTION, true);
-    out = setConfigOptionValue(out, SENSOR_STATE_LOW_LABEL_OPTION,
-      configOptionValue(options, SENSOR_STATE_LOW_LABEL_OPTION));
-    out = setConfigOptionValue(out, SENSOR_STATE_HIGH_LABEL_OPTION,
-      configOptionValue(options, SENSOR_STATE_HIGH_LABEL_OPTION));
+    out = setConfigOptionValue(out, SENSOR_STATE_INPUT_OPTION,
+      configOptionValue(options, SENSOR_STATE_INPUT_OPTION) || legacySensorStateInput(options));
+    out = setConfigOptionValue(out, SENSOR_STATE_OUTPUT_OPTION,
+      configOptionValue(options, SENSOR_STATE_OUTPUT_OPTION) || legacySensorStateOutput(options));
   }
   return out;
 }
