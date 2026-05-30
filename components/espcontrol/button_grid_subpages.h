@@ -272,6 +272,14 @@ inline BtnSlot create_dynamic_card_slot(lv_obj_t *btn,
   lv_label_set_text(slot.text_lbl, "Configure");
   lv_obj_align(slot.text_lbl, LV_ALIGN_BOTTOM_LEFT, 0, 0);
   configure_button_label_wrap(slot.text_lbl);
+
+  slot.subpage_lbl = lv_label_create(btn);
+  if (label_font) lv_obj_set_style_text_font(slot.subpage_lbl, label_font, LV_PART_MAIN);
+  lv_obj_set_style_text_color(slot.subpage_lbl, text_color, LV_PART_MAIN);
+  lv_obj_set_style_text_opa(slot.subpage_lbl, LV_OPA_50, LV_PART_MAIN);
+  lv_label_set_text(slot.subpage_lbl, "›");
+  lv_obj_align(slot.subpage_lbl, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+  lv_obj_add_flag(slot.subpage_lbl, LV_OBJ_FLAG_HIDDEN);
   return slot;
 }
 

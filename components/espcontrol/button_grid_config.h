@@ -74,6 +74,7 @@ struct BtnSlot {
   lv_obj_t *sensor_container;       // flex row shown when sensor overlay is active
   lv_obj_t *sensor_lbl;             // numeric sensor value
   lv_obj_t *unit_lbl;               // unit suffix (°C, %, etc.)
+  lv_obj_t *subpage_lbl = nullptr;  // small chevron marker for subpage cards
 };
 
 // Extract the Nth semicolon-delimited field from a config string

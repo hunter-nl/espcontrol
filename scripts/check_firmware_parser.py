@@ -49,15 +49,18 @@ constexpr int LV_STATE_DEFAULT = 0;
 constexpr int LV_STATE_DISABLED = 4;
 constexpr int LV_LABEL_LONG_WRAP = 0;
 constexpr int LV_ALIGN_BOTTOM_LEFT = 0;
+constexpr int LV_ALIGN_BOTTOM_RIGHT = 1;
 constexpr int LV_OPA_COVER = 255;
 constexpr int LV_OPA_50 = 128;
 constexpr int LV_OBJ_FLAG_CLICKABLE = 1;
+constexpr int LV_OBJ_FLAG_HIDDEN = 2;
 inline int lv_color_hex(uint32_t value) { return static_cast<int>(value); }
 inline int lv_pct(int value) { return value; }
 inline void lv_obj_set_style_transform_scale_x(lv_obj_t *, int, int) {}
 inline void lv_obj_set_style_transform_scale_y(lv_obj_t *, int, int) {}
 inline void lv_obj_set_style_bg_color(lv_obj_t *, int, lv_style_selector_t) {}
 inline void lv_obj_set_style_opa(lv_obj_t *, int, int) {}
+inline void lv_obj_set_style_text_opa(lv_obj_t *, int, int) {}
 inline void lv_obj_add_state(lv_obj_t *, int) {}
 inline void lv_obj_clear_state(lv_obj_t *, int) {}
 inline void lv_obj_add_flag(lv_obj_t *, int) {}
@@ -66,6 +69,7 @@ inline void lv_label_set_long_mode(lv_obj_t *, int) {}
 inline void lv_obj_set_width(lv_obj_t *, int) {}
 inline void lv_label_set_text(lv_obj_t *, const char *) {}
 inline void lv_obj_align(lv_obj_t *, int, int, int) {}
+inline void lv_obj_move_foreground(lv_obj_t *) {}
 
 #include "button_grid_config_pure.h"
 #include "button_grid_layout.h"
@@ -126,6 +130,10 @@ int main() {
   auto action_large = parse_cfg("script.kitchen_lights;Kitchen Lights;Flash;Auto;script.turn_on;;action;;state_entity=sensor.kitchen_power,state_unit=W,state_precision=1,large_numbers");
   assert(action_large.options == "state_entity=sensor.kitchen_power,state_unit=W,state_precision=1,large_numbers");
   assert(card_large_numbers_enabled(action_large));
+  auto action_icon = parse_cfg("script.goodnight;Goodnight;Flash;Check Circle;script.turn_on;;action;;state_entity=input_boolean.goodnight_ready,state_precision=icon");
+  assert(action_card_state_icon_mode(action_icon));
+  assert(!action_card_state_numeric_mode(action_icon));
+  assert(!action_card_state_text_mode(action_icon));
 
   auto climate_large = parse_cfg("climate.living_room;Living;Thermostat;Auto;;;climate;1;large_numbers");
   assert(climate_large.options == "large_numbers");

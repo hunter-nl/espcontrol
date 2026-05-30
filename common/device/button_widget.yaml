@@ -53,6 +53,12 @@ button:
         text: "Configure"
         long_mode: wrap
         width: 100%
+    # Subpage marker (shown only for subpage cards by the shared grid code)
+    - label:
+        align: bottom_right
+        id: button_${num}_subpage_label
+        text: "›"
+        hidden: true
   # Fire push event, navigate to subpage, or toggle the bound HA entity
   on_short_click:
     - if:

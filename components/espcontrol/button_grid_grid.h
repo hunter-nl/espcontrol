@@ -158,6 +158,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (s.unit_lbl) lv_obj_clear_flag(s.unit_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.sensor_container) lv_obj_align(s.sensor_container, LV_ALIGN_TOP_LEFT, 0, 0);
+  set_subpage_chevron_visible(s, p.type == "subpage");
 
   if (is_text_sensor_card(p)) {
     setup_text_sensor_card(s, p, palette.has_sensor_color, palette.sensor_val);
@@ -476,6 +477,7 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
   }
   display_apply_main_width(s.icon_lbl, display);
   display_apply_slot_text_width(s, display);
+  if (p.type == "subpage") set_subpage_chevron_visible(s, true);
 
   if (p.type == "media") {
     refresh_media_card_layout(s, p, cfg, row_span);
