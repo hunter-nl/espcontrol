@@ -436,16 +436,6 @@ function buildSettingsPage(parent) {
     postTemperatureDegreeSymbol(state.temperatureDegreeSymbolOn);
   });
 
-  var subpageChevron = toggleRow("Show Subpage Chevron", "sp-set-subpage-chevron", state.subpageChevronsOn);
-  clockBarBody.appendChild(subpageChevron.row);
-  els.setSubpageChevronToggle = subpageChevron.input;
-  subpageChevron.input.addEventListener("change", function () {
-    state.subpageChevronsOn = this.checked;
-    syncClockBarUi();
-    renderPreview();
-    postSubpageChevron(state.subpageChevronsOn);
-  });
-
   var clockBarBadge = document.createElement("span");
   clockBarBadge.setAttribute("aria-label", "Clock bar on");
   clockBarBadge.innerHTML = '<span class="sp-card-badge-dot"></span><span>ON</span>';

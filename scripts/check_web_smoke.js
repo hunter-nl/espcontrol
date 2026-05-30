@@ -728,7 +728,7 @@ const subpagePlainPreview = hooks.buttonTypePreviewFor("subpage", {
   icon: "Lightbulb",
   type: "subpage",
 });
-assert(subpagePlainPreview.labelHtml.includes("mdi-chevron-right"), "plain subpage preview uses the chevron badge");
+assert(!subpagePlainPreview.labelHtml.includes("mdi-chevron-right"), "plain subpage preview omits the chevron badge");
 
 const subpageIconPreview = hooks.buttonTypePreviewFor("subpage", {
   entity: "cover.office_blind",
@@ -739,7 +739,7 @@ const subpageIconPreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
 });
 assert(subpageIconPreview.iconHtml.includes("mdi-blinds"), "subpage icon-state preview uses the configured icon");
-assert(subpageIconPreview.labelHtml.includes("mdi-chevron-right"), "subpage icon-state preview uses the chevron badge");
+assert(!subpageIconPreview.labelHtml.includes("mdi-chevron-right"), "subpage icon-state preview omits the chevron badge");
 
 const subpageLightsPreview = hooks.buttonTypePreviewFor("subpage", {
   entity: "light.living_room",
@@ -749,7 +749,7 @@ const subpageLightsPreview = hooks.buttonTypePreviewFor("subpage", {
 });
 assert(subpageLightsPreview.iconHtml.includes("mdi-lightbulb"), "lights subpage preset preview uses the lightbulb icon");
 assert(subpageLightsPreview.labelHtml.includes("Lighting"), "lights subpage preset preview uses the Lighting label");
-assert(subpageLightsPreview.labelHtml.includes("mdi-chevron-right"), "lights subpage preset preview uses the chevron badge");
+assert(!subpageLightsPreview.labelHtml.includes("mdi-chevron-right"), "lights subpage preset preview omits the chevron badge");
 
 const subpageMediaPreview = hooks.buttonTypePreviewFor("subpage", {
   entity: "media_player.living_room",
@@ -759,7 +759,7 @@ const subpageMediaPreview = hooks.buttonTypePreviewFor("subpage", {
 });
 assert(subpageMediaPreview.iconHtml.includes("mdi-speaker"), "media subpage preset preview uses the speaker icon");
 assert(subpageMediaPreview.labelHtml.includes("Media"), "media subpage preset preview uses the Media label");
-assert(subpageMediaPreview.labelHtml.includes("mdi-chevron-right"), "media subpage preset preview uses the chevron badge");
+assert(!subpageMediaPreview.labelHtml.includes("mdi-chevron-right"), "media subpage preset preview omits the chevron badge");
 
 const subpageClimatePreview = hooks.buttonTypePreviewFor("subpage", {
   entity: "climate.living_room",
@@ -769,7 +769,7 @@ const subpageClimatePreview = hooks.buttonTypePreviewFor("subpage", {
 });
 assert(subpageClimatePreview.iconHtml.includes("mdi-thermostat"), "climate subpage preset preview uses the thermostat icon");
 assert(subpageClimatePreview.labelHtml.includes("Climate"), "climate subpage preset preview uses the Climate label");
-assert(subpageClimatePreview.labelHtml.includes("mdi-chevron-right"), "climate subpage preset preview uses the chevron badge");
+assert(!subpageClimatePreview.labelHtml.includes("mdi-chevron-right"), "climate subpage preset preview omits the chevron badge");
 
 const subpagePresencePreview = hooks.buttonTypePreviewFor("subpage", {
   entity: "person.jane",
@@ -779,7 +779,7 @@ const subpagePresencePreview = hooks.buttonTypePreviewFor("subpage", {
 });
 assert(subpagePresencePreview.iconHtml.includes("mdi-account"), "presence subpage preset preview uses the account icon");
 assert(subpagePresencePreview.labelHtml.includes("Presence"), "presence subpage preset preview uses the Presence label");
-assert(subpagePresencePreview.labelHtml.includes("mdi-chevron-right"), "presence subpage preset preview uses the chevron badge");
+assert(!subpagePresencePreview.labelHtml.includes("mdi-chevron-right"), "presence subpage preset preview omits the chevron badge");
 
 const subpageCustomPresetPreview = hooks.buttonTypePreviewFor("subpage", {
   entity: "climate.living_room",
@@ -800,7 +800,7 @@ const subpageNumericPreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
 });
 assert(subpageNumericPreview.iconHtml.includes("sp-sensor-preview"), "subpage numeric preview uses the shared number preview");
-assert(subpageNumericPreview.labelHtml.includes("mdi-chevron-right"), "subpage numeric preview uses the chevron badge");
+assert(!subpageNumericPreview.labelHtml.includes("mdi-chevron-right"), "subpage numeric preview omits the chevron badge");
 const subpageLargePreview = hooks.buttonTypePreviewFor("subpage", {
   label: "Open Windows",
   icon: "Window Closed",
@@ -820,7 +820,7 @@ const subpageTextPreview = hooks.buttonTypePreviewFor("subpage", {
 });
 assert(subpageTextPreview.iconHtml.includes("mdi-thermometer"), "subpage text preview uses the configured icon");
 assert(subpageTextPreview.labelHtml.includes("State"), "subpage text preview keeps the State label");
-assert(subpageTextPreview.labelHtml.includes("mdi-chevron-right"), "subpage text preview uses the chevron badge");
+assert(!subpageTextPreview.labelHtml.includes("mdi-chevron-right"), "subpage text preview omits the chevron badge");
 
 const mediaVolumePreview = hooks.buttonTypePreviewFor("media", {
   entity: "media_player.kitchen",
