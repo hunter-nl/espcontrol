@@ -332,9 +332,13 @@ inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p,
   }
   if (p.type == "sensor") {
     if (!p.sensor.empty()) {
-      subscribe_sensor_value(s.sensor_lbl, p.sensor, parse_precision(p.precision),
-        s.unit_lbl, p.unit, s.btn,
-        sensor_active_color_enabled(p), palette.on_val, palette.sensor_val);
+      if (p.precision == "icon") {
+        subscribe_sensor_icon_state(s.btn, s.icon_lbl, p);
+      } else {
+        subscribe_sensor_value(s.sensor_lbl, p.sensor, parse_precision(p.precision),
+          s.unit_lbl, p.unit, s.btn,
+          sensor_active_color_enabled(p), palette.on_val, palette.sensor_val);
+      }
       if (p.label.empty())
         subscribe_friendly_name(s.text_lbl, p.sensor);
     }

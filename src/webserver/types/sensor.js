@@ -12,10 +12,12 @@ var SENSOR_CARD_METADATA = {
   segment: {
     label: "Type",
     options: [
+      ["icon", "Icon"],
       ["numeric", "Numeric"],
       ["text", "Text"],
     ],
     value: function (b) {
+      if (b.precision === "icon") return "icon";
       return b.precision === "text" ? "text" : "numeric";
     },
   },
@@ -23,10 +25,11 @@ var SENSOR_CARD_METADATA = {
     label: "Large Sensor Numbers",
     idSuffix: "large-sensor-numbers",
     supported: function (b) {
-      return b.precision !== "text";
+      return b.precision !== "icon" && b.precision !== "text";
     },
   },
   preview: {
+    iconBadge: "toggle-switch",
     numericBadge: "gauge",
     textBadge: "format-text",
   },
@@ -45,11 +48,12 @@ registerButtonType("sensor", {
     b.entity = "";
     b.icon_on = "Auto";
     if (!b.precision) b.precision = "";
-    if (b.precision !== "text") b.icon = "Auto";
+    if (b.precision !== "icon" && b.precision !== "text") b.icon = "Auto";
     b.options = normalizeSensorOptions(b.options, b.precision);
   },
   renderSettings: function (panel, b, slot, helpers) {
-    var isTextMode = b.precision === "text";
+    var displayMode = b.precision === "icon" || b.precision === "text" ? b.precision : "numeric";
+    var isTextMode = displayMode === "text";
 
     helpers.renderCardEntityField(panel, b, helpers, SENSOR_CARD_METADATA);
 
@@ -60,6 +64,7 @@ registerButtonType("sensor", {
         },
       }),
     });
+    var iconBtn = mode.buttons.icon;
     var numericBtn = mode.buttons.numeric;
     var textBtn = mode.buttons.text;
 
@@ -103,6 +108,23 @@ registerButtonType("sensor", {
       fallback: "Auto",
     });
     panel.appendChild(textSection);
+
+    var iconSection = condField();
+    var offIconPicker = helpers.renderCardIconPicker(iconSection, b, helpers, {
+      pickerIdSuffix: "icon-off-picker",
+      idSuffix: "icon-off",
+      field: "icon",
+      fallback: "Auto",
+      label: "Icon",
+    });
+    var onIconPicker = helpers.renderCardIconPicker(iconSection, b, helpers, {
+      pickerIdSuffix: "icon-on-picker",
+      idSuffix: "icon-on",
+      field: "icon_on",
+      fallback: "Auto",
+      label: "On Icon",
+    });
+    panel.appendChild(iconSection);
 
     var hasStateLabels = sensorStateLabelsEnabled(b);
     var advancedToggleSection = helpers.toggleSection(
@@ -186,12 +208,22 @@ registerButtonType("sensor", {
     });
     panel.appendChild(advanced);
 
+    function resetIconPicker(picker, value, slug) {
+      var iconPreview = picker.querySelector(".sp-icon-picker-preview");
+      if (iconPreview) iconPreview.className = "sp-icon-picker-preview mdi mdi-" + slug;
+      var iconInput = picker.querySelector(".sp-icon-picker-input");
+      if (iconInput) iconInput.value = value;
+    }
+
     function setMode(mode, persist) {
-      isTextMode = mode === "text";
-      numericBtn.classList.toggle("active", !isTextMode);
+      displayMode = mode === "icon" || mode === "text" ? mode : "numeric";
+      isTextMode = displayMode === "text";
+      iconBtn.classList.toggle("active", displayMode === "icon");
+      numericBtn.classList.toggle("active", displayMode === "numeric");
       textBtn.classList.toggle("active", isTextMode);
-      numericSection.classList.toggle("sp-visible", !isTextMode);
+      numericSection.classList.toggle("sp-visible", displayMode === "numeric");
       textSection.classList.toggle("sp-visible", isTextMode);
+      iconSection.classList.toggle("sp-visible", displayMode === "icon");
       if (!persist) return;
       if (isTextMode) {
         b.precision = "text";
@@ -206,12 +238,14 @@ registerButtonType("sensor", {
         helpers.saveField("unit", "");
         helpers.saveField("icon_on", "Auto");
         helpers.saveField("options", b.options);
-      } else {
-        b.precision = "";
-        b.icon = "Auto";
-        b.options = normalizeSensorOptions(b.options, "");
-        helpers.saveField("precision", "");
-        helpers.saveField("icon", "Auto");
+        resetIconPicker(onIconPicker, "Auto", "cog");
+      } else if (displayMode === "icon") {
+        b.precision = "icon";
+        b.unit = "";
+        b.options = normalizeSensorOptions(b.options, "icon");
+        unitInp.value = "";
+        helpers.saveField("precision", "icon");
+        helpers.saveField("unit", "");
         helpers.saveField("options", b.options);
         advancedToggle.input.checked = false;
         advanced.classList.remove("sp-visible");
@@ -219,17 +253,39 @@ registerButtonType("sensor", {
         outputTextInp.value = "";
         inputText2Inp.value = "";
         outputText2Inp.value = "";
-        var iconPreview = textIconPicker.querySelector(".sp-icon-picker-preview");
-        if (iconPreview) iconPreview.className = "sp-icon-picker-preview mdi mdi-cog";
-        var iconInput = textIconPicker.querySelector(".sp-icon-picker-input");
-        if (iconInput) iconInput.value = "Auto";
+      } else {
+        b.precision = "";
+        b.icon = "Auto";
+        b.icon_on = "Auto";
+        b.options = normalizeSensorOptions(b.options, "");
+        helpers.saveField("precision", "");
+        helpers.saveField("icon", "Auto");
+        helpers.saveField("icon_on", "Auto");
+        helpers.saveField("options", b.options);
+        advancedToggle.input.checked = false;
+        advanced.classList.remove("sp-visible");
+        inputTextInp.value = "";
+        outputTextInp.value = "";
+        inputText2Inp.value = "";
+        outputText2Inp.value = "";
+        resetIconPicker(textIconPicker, "Auto", "cog");
+        resetIconPicker(offIconPicker, "Auto", "cog");
+        resetIconPicker(onIconPicker, "Auto", "cog");
         precisionSelect.value = "0";
       }
     }
 
-    setMode(isTextMode ? "text" : "numeric", false);
+    setMode(displayMode, false);
   },
   renderPreview: function (b, helpers) {
+    if (b.precision === "icon") {
+      var stateIconName = b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : "cog";
+      return {
+        iconHtml: '<span class="sp-btn-icon mdi mdi-' + stateIconName + '"></span>',
+        labelHtml: cardBadgeLabelHtml(helpers, b.label || b.sensor || "Sensor", SENSOR_CARD_METADATA.preview.iconBadge),
+      };
+    }
+
     if (b.precision === "text") {
       var iconName = b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : "cog";
       return {

@@ -913,6 +913,7 @@ var CARD_CONTRACT_CARDS = {
         "kind": "flag",
         "supportedWhen": {
           "precisionNot": [
+            "icon",
             "text"
           ]
         }
@@ -1239,6 +1240,7 @@ var CARD_CONTRACT_LARGE_NUMBERS = {
   "action": true,
   "sensor": {
     "excludedPrecisions": [
+      "icon",
       "text"
     ]
   },

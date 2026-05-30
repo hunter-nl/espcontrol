@@ -237,7 +237,7 @@ inline std::string media_card_options_normalized(const std::string &options,
 inline std::string sensor_card_options_normalized(const std::string &options,
                                                   const std::string &precision) {
   std::string out;
-  if (precision != "text" && cfg_option_token_present(options, "large_numbers")) {
+  if (precision != "icon" && precision != "text" && cfg_option_token_present(options, "large_numbers")) {
     out = "large_numbers";
   }
   if (cfg_option_token_present(options, "active_color")) {

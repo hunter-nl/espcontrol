@@ -97,6 +97,10 @@ int main() {
   assert(legacy_state_labels.options == "state_labels,state_input=high,state_output=Please empty");
   auto numeric_state_labels = parse_cfg(";;;;sensor.bin_level;;sensor;0;state_labels,state_high_label=Please%20empty");
   assert(numeric_state_labels.options == "");
+  auto icon_sensor = parse_cfg(";;;;binary_sensor.patio_door;;sensor;icon;large_numbers");
+  assert(icon_sensor.precision == "icon");
+  assert(icon_sensor.options == "");
+  assert(!card_large_numbers_enabled(icon_sensor));
 
   auto clock = parse_cfg(";;;;;;clock;;large_numbers");
   assert(clock.type == "clock");

@@ -452,8 +452,8 @@ assert.deepStrictEqual(
 );
 assert.deepStrictEqual(
   Array.from(sensorOptionByName.large_numbers.supportedWhen.precisionNot),
-  ["text"],
-  "sensor large-number option spec excludes text sensor mode"
+  ["icon", "text"],
+  "sensor large-number option spec excludes icon and text sensor modes"
 );
 assert.strictEqual(
   hooks.cardContractOptionSupportedFor("sensor", "large_numbers", { precision: "" }),
@@ -464,6 +464,11 @@ assert.strictEqual(
   hooks.cardContractOptionSupportedFor("sensor", "large_numbers", { precision: "text" }),
   false,
   "sensor large-number option blocks text mode"
+);
+assert.strictEqual(
+  hooks.cardContractOptionSupportedFor("sensor", "large_numbers", { precision: "icon" }),
+  false,
+  "sensor large-number option blocks icon mode"
 );
 assert.strictEqual(sensorOptionByName.active_color.hidden, true, "sensor active-colour option spec remains hidden");
 assert.strictEqual(sensorOptionByName.active_color.migration, "drop", "sensor active-colour option spec documents cleanup");
@@ -658,6 +663,16 @@ assertButtonRoundTrip(hooks, "large sensor numbers option", {
   precision: "",
   options: "large_numbers",
 }, false);
+
+const iconSensor = hooks.parseButtonConfig(";;;;binary_sensor.patio_door;;sensor;icon;");
+iconSensor.icon = "Door Closed";
+iconSensor.icon_on = "Door Open";
+assertButtonRoundTrip(hooks, "sensor icon display", iconSensor, false);
+assert.strictEqual(
+  hooks.cardLargeNumbersEnabled({ type: "sensor", precision: "icon", options: "large_numbers" }),
+  false,
+  "sensor icon display does not use large numbers"
+);
 
 const parsedActiveSensor = hooks.parseButtonConfig(";;;;binary_sensor.patio_door;;sensor;text;active_color");
 assert.strictEqual(hooks.sensorActiveColorEnabled(parsedActiveSensor), false, "sensor active colour removed");

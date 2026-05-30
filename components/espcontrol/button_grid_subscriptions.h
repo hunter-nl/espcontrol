@@ -99,6 +99,28 @@ inline void subscribe_text_sensor_value(lv_obj_t *text_lbl, const std::string &s
   );
 }
 
+inline void subscribe_sensor_icon_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
+                                        const ParsedCfg &p) {
+  if (p.sensor.empty()) return;
+  const char *icon_off = (p.icon.empty() || p.icon == "Auto")
+    ? find_icon("Auto") : find_icon(p.icon.c_str());
+  bool has_icon_on = !p.icon_on.empty() && p.icon_on != "Auto";
+  const char *icon_on = has_icon_on ? find_icon(p.icon_on.c_str()) : icon_off;
+  ha_subscribe_state(
+    p.sensor,
+    std::function<void(esphome::StringRef)>(
+      [btn_ptr, icon_lbl, icon_off, icon_on](esphome::StringRef state) {
+      bool unavailable = ha_state_unavailable_ref(state);
+      if (btn_ptr) {
+        apply_control_availability(btn_ptr, btn_ptr, !unavailable, false);
+        if (!unavailable && is_entity_on_ref(state)) lv_obj_add_state(btn_ptr, LV_STATE_CHECKED);
+        else lv_obj_clear_state(btn_ptr, LV_STATE_CHECKED);
+      }
+      lv_label_set_text(icon_lbl, (!unavailable && is_entity_on_ref(state)) ? icon_on : icon_off);
+    })
+  );
+}
+
 inline void subscribe_sensor_text_card_value(lv_obj_t *text_lbl, const ParsedCfg &p,
                                              lv_obj_t *availability_obj = nullptr,
                                              bool active_color = false,

@@ -765,7 +765,7 @@
           "label": "Large Sensor Numbers",
           "kind": "flag",
           "supportedWhen": {
-            "precisionNot": ["text"]
+            "precisionNot": ["icon", "text"]
           }
         },
         {
@@ -1010,6 +1010,7 @@
     "action": true,
     "sensor": {
       "excludedPrecisions": [
+        "icon",
         "text"
       ]
     },

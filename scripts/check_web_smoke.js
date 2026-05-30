@@ -420,6 +420,16 @@ const sensorTextPreview = hooks.buttonTypePreviewFor("sensor", {
 assert(sensorTextPreview.iconHtml.includes("mdi-washing-machine"), "sensor text preview uses the selected icon");
 assert(sensorTextPreview.labelHtml.includes("mdi-format-text"), "sensor text preview uses the text badge");
 
+const sensorIconPreview = hooks.buttonTypePreviewFor("sensor", {
+  sensor: "binary_sensor.patio_door",
+  icon: "Door Closed",
+  icon_on: "Door Open",
+  type: "sensor",
+  precision: "icon",
+});
+assert(sensorIconPreview.iconHtml.includes("mdi-door"), "sensor icon preview uses the selected icon");
+assert(sensorIconPreview.labelHtml.includes("mdi-toggle-switch"), "sensor icon preview uses the icon badge");
+
 const legacyForecastPreview = hooks.buttonTypePreviewFor("weather_forecast", {
   entity: "weather.forecast_home",
   type: "weather_forecast",

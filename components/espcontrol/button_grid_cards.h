@@ -10,6 +10,17 @@ inline void setup_sensor_card(BtnSlot &s, const ParsedCfg &p,
       static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT));
   }
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+  if (p.precision == "icon") {
+    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
+    const char *icon_cp = (p.icon.empty() || p.icon == "Auto")
+      ? find_icon("Auto") : find_icon(p.icon.c_str());
+    lv_label_set_text(s.icon_lbl, icon_cp);
+    if (!p.label.empty()) {
+      lv_label_set_text(s.text_lbl, p.label.c_str());
+    }
+    return;
+  }
   lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
   if (!p.unit.empty()) {
