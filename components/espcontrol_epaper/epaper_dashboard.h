@@ -1,9 +1,6 @@
 #pragma once
 
-#include "esphome/core/color.h"
-#include "esphome/core/log.h"
 #include "esphome/components/api/api_server.h"
-#include "esphome/components/font/font.h"
 #include "lvgl.h"
 
 #include <array>
@@ -271,81 +268,6 @@ inline std::string epaper_dashboard_display_value(const EpaperDashboardTile &til
   if (!tile.value.empty()) return tile.value;
   if (!tile.entity.empty() || !tile.sensor.empty()) return "...";
   return "";
-}
-
-template <typename DisplayT>
-void epaper_dashboard_render_wifi_setup(DisplayT &it,
-                                        esphome::font::Font *header_font,
-                                        esphome::font::Font *label_font,
-                                        esphome::font::Font *value_font,
-                                        const char *ssid) {
-  const int width = 800;
-  const int height = 480;
-  auto black = esphome::Color::BLACK;
-  auto white = esphome::Color::WHITE;
-  const char *hotspot = ssid && ssid[0] != '\0' ? ssid : "ESP setup hotspot";
-
-  it.fill(white);
-  it.rectangle(18, 18, width - 36, height - 36, black);
-  it.line(70, 132, width - 70, 132, black);
-  it.print(70, 76, value_font, black, "WiFi Setup");
-  it.print(70, 160, header_font, black, "Connect to the setup hotspot");
-  it.print(70, 205, label_font, black, hotspot);
-  it.print(70, 265, header_font, black, "Then open this address");
-  it.print(70, 310, value_font, black, "192.168.4.1");
-  it.print(70, 385, label_font, black, "After WiFi setup, add the device in Home Assistant.");
-}
-
-template <typename DisplayT>
-void epaper_dashboard_render(DisplayT &it,
-                             esphome::font::Font *header_font,
-                             esphome::font::Font *label_font,
-                             esphome::font::Font *value_font,
-                             int page) {
-  page = epaper_dashboard_wrap_page(page);
-  const int width = 800;
-  const int height = 480;
-  const int cols = 5;
-  const int rows = 4;
-  const int margin = 10;
-  const int header_h = 42;
-  const int gap = 6;
-  const int tile_w = (width - margin * 2 - gap * (cols - 1)) / cols;
-  const int tile_h = (height - header_h - margin * 2 - gap * (rows - 1)) / rows;
-  auto black = esphome::Color::BLACK;
-  auto white = esphome::Color::WHITE;
-
-  it.fill(white);
-  it.line(margin, header_h - 6, width - margin, header_h - 6, black);
-  it.print(margin, 8, header_font, black, "ESPControl");
-  char page_label[20];
-  std::snprintf(page_label, sizeof(page_label), "Page %d/%d", page + 1, EPAPER_DASHBOARD_PAGES);
-  it.print(width - 120, 8, header_font, black, page_label);
-
-  auto &tiles = epaper_dashboard_tiles();
-  int start = page * EPAPER_DASHBOARD_PAGE_SLOTS;
-  for (int i = 0; i < EPAPER_DASHBOARD_PAGE_SLOTS; i++) {
-    int col = i % cols;
-    int row = i / cols;
-    int x = margin + col * (tile_w + gap);
-    int y = header_h + margin + row * (tile_h + gap);
-    const auto &tile = tiles[start + i];
-    bool configured = !tile.config.empty();
-    bool active = epaper_dashboard_state_active(tile.value);
-
-    if (configured && active) {
-      it.filled_rectangle(x, y, tile_w, tile_h, black);
-      it.rectangle(x, y, tile_w, tile_h, black);
-      it.print(x + 8, y + 8, label_font, white, tile.label.c_str());
-      it.print(x + 8, y + tile_h - 34, value_font, white, epaper_dashboard_display_value(tile).c_str());
-    } else {
-      it.rectangle(x, y, tile_w, tile_h, black);
-      if (configured) {
-        it.print(x + 8, y + 8, label_font, black, tile.label.c_str());
-        it.print(x + 8, y + tile_h - 34, value_font, black, epaper_dashboard_display_value(tile).c_str());
-      }
-    }
-  }
 }
 
 }  // namespace espcontrol

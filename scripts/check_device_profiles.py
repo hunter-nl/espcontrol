@@ -74,13 +74,25 @@ def test_generated_web(profile_slugs: list[str]) -> None:
 def test_generated_yaml(profiles: dict[str, dict]) -> None:
     for slug, profile in profiles.items():
         package_path = ROOT / "devices" / slug / "packages.yaml"
+        device_path = ROOT / "devices" / slug / "device" / "device.yaml"
+        lvgl_path = ROOT / "devices" / slug / "device" / "lvgl.yaml"
         sensor_path = ROOT / "devices" / slug / "device" / "sensors.yaml"
         package = package_path.read_text(encoding="utf-8")
+        device = device_path.read_text(encoding="utf-8")
         sensors = sensor_path.read_text(encoding="utf-8")
         assert f'device_slug: "{slug}"' in package, f"{slug}: packages.yaml missing device slug"
         assert f'firmware_manifest_slug: "{slug}"' in package, f"{slug}: packages.yaml missing manifest slug"
         if (profile["firmware"].get("display") or {}).get("mode") == "monochrome":
             assert "epaper_dashboard_set_config" in sensors, f"{slug}: sensors.yaml missing e-paper dashboard config"
+            assert lvgl_path.is_file(), f"{slug}: LVGL page definition is missing"
+            lvgl = lvgl_path.read_text(encoding="utf-8")
+            assert "lvgl:" in lvgl, f"{slug}: LVGL page definition missing lvgl root"
+            assert "main_page" in lvgl, f"{slug}: LVGL page definition missing dashboard page"
+            assert "trmnl_wifi_setup_page" in lvgl, f"{slug}: LVGL page definition missing WiFi setup page"
+            assert "displays: epaper" in device, f"{slug}: device.yaml does not bind LVGL to e-paper display"
+            display_block = device.split("display:", 1)[1].split("\nlvgl:", 1)[0]
+            assert "lambda: |-" not in display_block, f"{slug}: e-paper display still uses direct drawing lambda"
+            assert "epaper_dashboard_render" not in device, f"{slug}: device.yaml still references direct renderer"
         else:
             assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
 
