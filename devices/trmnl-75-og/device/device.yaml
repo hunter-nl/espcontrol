@@ -10,9 +10,6 @@ esp32:
   board: esp32-s3-devkitc-1
   framework:
     type: arduino
-  platformio_options:
-    build_flags:
-      - "-DESPCONTROL_DISABLE_TODO=1"
 
 external_components:
   - source:
@@ -28,6 +25,9 @@ espcontrol_epaper:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
+  platformio_options:
+    build_flags:
+      - "-DESPCONTROL_DISABLE_TODO=1"
   on_boot:
     - priority: 600
       then:

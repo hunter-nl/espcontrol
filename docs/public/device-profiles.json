@@ -104,10 +104,10 @@
       "screenSize": "7.5 inches",
       "resolution": "800 x 480",
       "orientation": "Landscape",
-      "slots": 20,
+      "slots": 12,
       "grid": {
-        "rows": 4,
-        "cols": 5
+        "rows": 3,
+        "cols": 4
       },
       "chipFamily": "ESP32-S3",
       "relays": 0,

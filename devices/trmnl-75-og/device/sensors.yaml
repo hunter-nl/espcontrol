@@ -20,14 +20,6 @@ script:
           espcontrol::epaper_dashboard_bind_lvgl_slot(9, id(trmnl_tile_10), id(trmnl_tile_10_icon_label), id(trmnl_tile_10_sensor_container), id(trmnl_tile_10_label), id(trmnl_tile_10_value), id(trmnl_tile_10_unit));
           espcontrol::epaper_dashboard_bind_lvgl_slot(10, id(trmnl_tile_11), id(trmnl_tile_11_icon_label), id(trmnl_tile_11_sensor_container), id(trmnl_tile_11_label), id(trmnl_tile_11_value), id(trmnl_tile_11_unit));
           espcontrol::epaper_dashboard_bind_lvgl_slot(11, id(trmnl_tile_12), id(trmnl_tile_12_icon_label), id(trmnl_tile_12_sensor_container), id(trmnl_tile_12_label), id(trmnl_tile_12_value), id(trmnl_tile_12_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(12, id(trmnl_tile_13), id(trmnl_tile_13_icon_label), id(trmnl_tile_13_sensor_container), id(trmnl_tile_13_label), id(trmnl_tile_13_value), id(trmnl_tile_13_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(13, id(trmnl_tile_14), id(trmnl_tile_14_icon_label), id(trmnl_tile_14_sensor_container), id(trmnl_tile_14_label), id(trmnl_tile_14_value), id(trmnl_tile_14_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(14, id(trmnl_tile_15), id(trmnl_tile_15_icon_label), id(trmnl_tile_15_sensor_container), id(trmnl_tile_15_label), id(trmnl_tile_15_value), id(trmnl_tile_15_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(15, id(trmnl_tile_16), id(trmnl_tile_16_icon_label), id(trmnl_tile_16_sensor_container), id(trmnl_tile_16_label), id(trmnl_tile_16_value), id(trmnl_tile_16_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(16, id(trmnl_tile_17), id(trmnl_tile_17_icon_label), id(trmnl_tile_17_sensor_container), id(trmnl_tile_17_label), id(trmnl_tile_17_value), id(trmnl_tile_17_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(17, id(trmnl_tile_18), id(trmnl_tile_18_icon_label), id(trmnl_tile_18_sensor_container), id(trmnl_tile_18_label), id(trmnl_tile_18_value), id(trmnl_tile_18_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(18, id(trmnl_tile_19), id(trmnl_tile_19_icon_label), id(trmnl_tile_19_sensor_container), id(trmnl_tile_19_label), id(trmnl_tile_19_value), id(trmnl_tile_19_unit));
-          espcontrol::epaper_dashboard_bind_lvgl_slot(19, id(trmnl_tile_20), id(trmnl_tile_20_icon_label), id(trmnl_tile_20_sensor_container), id(trmnl_tile_20_label), id(trmnl_tile_20_value), id(trmnl_tile_20_unit));
 
   - id: trmnl_update_clock_bar
     then:
@@ -56,7 +48,7 @@ script:
       - script.execute: trmnl_bind_lvgl_widgets
       - lambda: |-
           // BEGIN GENERATED TRMNL DASHBOARD CONFIG
-          // Generated from devices/manifest.json plan: 4 pages x 20 slots.
+          // Generated from devices/manifest.json plan: 1 page x 12 slots.
           espcontrol::epaper_dashboard_set_config(0, id(button_1_config).state);
           espcontrol::epaper_dashboard_set_config(1, id(button_2_config).state);
           espcontrol::epaper_dashboard_set_config(2, id(button_3_config).state);
@@ -69,74 +61,6 @@ script:
           espcontrol::epaper_dashboard_set_config(9, id(button_10_config).state);
           espcontrol::epaper_dashboard_set_config(10, id(button_11_config).state);
           espcontrol::epaper_dashboard_set_config(11, id(button_12_config).state);
-          espcontrol::epaper_dashboard_set_config(12, id(button_13_config).state);
-          espcontrol::epaper_dashboard_set_config(13, id(button_14_config).state);
-          espcontrol::epaper_dashboard_set_config(14, id(button_15_config).state);
-          espcontrol::epaper_dashboard_set_config(15, id(button_16_config).state);
-          espcontrol::epaper_dashboard_set_config(16, id(button_17_config).state);
-          espcontrol::epaper_dashboard_set_config(17, id(button_18_config).state);
-          espcontrol::epaper_dashboard_set_config(18, id(button_19_config).state);
-          espcontrol::epaper_dashboard_set_config(19, id(button_20_config).state);
-          espcontrol::epaper_dashboard_set_config(20, id(button_21_config).state);
-          espcontrol::epaper_dashboard_set_config(21, id(button_22_config).state);
-          espcontrol::epaper_dashboard_set_config(22, id(button_23_config).state);
-          espcontrol::epaper_dashboard_set_config(23, id(button_24_config).state);
-          espcontrol::epaper_dashboard_set_config(24, id(button_25_config).state);
-          espcontrol::epaper_dashboard_set_config(25, id(button_26_config).state);
-          espcontrol::epaper_dashboard_set_config(26, id(button_27_config).state);
-          espcontrol::epaper_dashboard_set_config(27, id(button_28_config).state);
-          espcontrol::epaper_dashboard_set_config(28, id(button_29_config).state);
-          espcontrol::epaper_dashboard_set_config(29, id(button_30_config).state);
-          espcontrol::epaper_dashboard_set_config(30, id(button_31_config).state);
-          espcontrol::epaper_dashboard_set_config(31, id(button_32_config).state);
-          espcontrol::epaper_dashboard_set_config(32, id(button_33_config).state);
-          espcontrol::epaper_dashboard_set_config(33, id(button_34_config).state);
-          espcontrol::epaper_dashboard_set_config(34, id(button_35_config).state);
-          espcontrol::epaper_dashboard_set_config(35, id(button_36_config).state);
-          espcontrol::epaper_dashboard_set_config(36, id(button_37_config).state);
-          espcontrol::epaper_dashboard_set_config(37, id(button_38_config).state);
-          espcontrol::epaper_dashboard_set_config(38, id(button_39_config).state);
-          espcontrol::epaper_dashboard_set_config(39, id(button_40_config).state);
-          espcontrol::epaper_dashboard_set_config(40, id(button_41_config).state);
-          espcontrol::epaper_dashboard_set_config(41, id(button_42_config).state);
-          espcontrol::epaper_dashboard_set_config(42, id(button_43_config).state);
-          espcontrol::epaper_dashboard_set_config(43, id(button_44_config).state);
-          espcontrol::epaper_dashboard_set_config(44, id(button_45_config).state);
-          espcontrol::epaper_dashboard_set_config(45, id(button_46_config).state);
-          espcontrol::epaper_dashboard_set_config(46, id(button_47_config).state);
-          espcontrol::epaper_dashboard_set_config(47, id(button_48_config).state);
-          espcontrol::epaper_dashboard_set_config(48, id(button_49_config).state);
-          espcontrol::epaper_dashboard_set_config(49, id(button_50_config).state);
-          espcontrol::epaper_dashboard_set_config(50, id(button_51_config).state);
-          espcontrol::epaper_dashboard_set_config(51, id(button_52_config).state);
-          espcontrol::epaper_dashboard_set_config(52, id(button_53_config).state);
-          espcontrol::epaper_dashboard_set_config(53, id(button_54_config).state);
-          espcontrol::epaper_dashboard_set_config(54, id(button_55_config).state);
-          espcontrol::epaper_dashboard_set_config(55, id(button_56_config).state);
-          espcontrol::epaper_dashboard_set_config(56, id(button_57_config).state);
-          espcontrol::epaper_dashboard_set_config(57, id(button_58_config).state);
-          espcontrol::epaper_dashboard_set_config(58, id(button_59_config).state);
-          espcontrol::epaper_dashboard_set_config(59, id(button_60_config).state);
-          espcontrol::epaper_dashboard_set_config(60, id(button_61_config).state);
-          espcontrol::epaper_dashboard_set_config(61, id(button_62_config).state);
-          espcontrol::epaper_dashboard_set_config(62, id(button_63_config).state);
-          espcontrol::epaper_dashboard_set_config(63, id(button_64_config).state);
-          espcontrol::epaper_dashboard_set_config(64, id(button_65_config).state);
-          espcontrol::epaper_dashboard_set_config(65, id(button_66_config).state);
-          espcontrol::epaper_dashboard_set_config(66, id(button_67_config).state);
-          espcontrol::epaper_dashboard_set_config(67, id(button_68_config).state);
-          espcontrol::epaper_dashboard_set_config(68, id(button_69_config).state);
-          espcontrol::epaper_dashboard_set_config(69, id(button_70_config).state);
-          espcontrol::epaper_dashboard_set_config(70, id(button_71_config).state);
-          espcontrol::epaper_dashboard_set_config(71, id(button_72_config).state);
-          espcontrol::epaper_dashboard_set_config(72, id(button_73_config).state);
-          espcontrol::epaper_dashboard_set_config(73, id(button_74_config).state);
-          espcontrol::epaper_dashboard_set_config(74, id(button_75_config).state);
-          espcontrol::epaper_dashboard_set_config(75, id(button_76_config).state);
-          espcontrol::epaper_dashboard_set_config(76, id(button_77_config).state);
-          espcontrol::epaper_dashboard_set_config(77, id(button_78_config).state);
-          espcontrol::epaper_dashboard_set_config(78, id(button_79_config).state);
-          espcontrol::epaper_dashboard_set_config(79, id(button_80_config).state);
           // END GENERATED TRMNL DASHBOARD CONFIG
 
 interval:

@@ -671,7 +671,7 @@
       }
     },
     "trmnl-75-og": {
-      "slots": 20,
+      "slots": 12,
       "public": {
         "name": "TRMNL 7.5 OG",
         "docsPath": "/screens/trmnl-75-og",
@@ -680,9 +680,9 @@
         "orientation": "Landscape"
       },
       "layout": {
-        "cols": 5,
-        "rows": 4,
-        "firmwareGrid": "4x5"
+        "cols": 4,
+        "rows": 3,
+        "firmwareGrid": "3x4"
       },
       "web": {
         "dragMode": "swap",

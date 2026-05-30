@@ -24,13 +24,14 @@ lvgl:
           text_color: 0x000000
       - label:
           id: trmnl_page_label
-          text: "Page 1/4"
+          text: ""
           text_font: font_trmnl_label_14
           text_color: 0x000000
           align: top_right
           x: -50
           y: 11
           text_align: right
+          hidden: true
       - obj:
           id: network_status_button
           align: top_right
@@ -110,8 +111,8 @@ lvgl:
       scrollbar_mode: "off"
       layout:
         type: grid
-        grid_columns: [FR(1), FR(1), FR(1), FR(1), FR(1)]
-        grid_rows: [FR(1), FR(1), FR(1), FR(1)]
+        grid_columns: [FR(1), FR(1), FR(1), FR(1)]
+        grid_rows: [FR(1), FR(1), FR(1)]
         pad_row: 10
         pad_column: 10
       width: 100%
@@ -134,11 +135,3 @@ lvgl:
         - !include { file: trmnl_tile_widget.yaml, vars: { num: "10" } }
         - !include { file: trmnl_tile_widget.yaml, vars: { num: "11" } }
         - !include { file: trmnl_tile_widget.yaml, vars: { num: "12" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "13" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "14" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "15" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "16" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "17" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "18" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "19" } }
-        - !include { file: trmnl_tile_widget.yaml, vars: { num: "20" } }

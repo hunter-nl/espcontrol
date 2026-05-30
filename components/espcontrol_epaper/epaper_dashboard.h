@@ -13,8 +13,9 @@
 
 namespace espcontrol {
 
-constexpr int EPAPER_DASHBOARD_PAGE_SLOTS = 20;
-constexpr int EPAPER_DASHBOARD_PAGES = 4;
+constexpr int EPAPER_DASHBOARD_PAGE_SLOTS = 12;
+constexpr int EPAPER_DASHBOARD_PAGES = 1;
+constexpr int EPAPER_DASHBOARD_COLS = 4;
 constexpr int EPAPER_DASHBOARD_TOTAL_SLOTS =
     EPAPER_DASHBOARD_PAGE_SLOTS * EPAPER_DASHBOARD_PAGES;
 
@@ -231,8 +232,8 @@ inline void epaper_dashboard_update_lvgl_page(int page) {
     const auto &tile = tiles[start + i];
     auto &slot = slots[i];
     if (!slot.tile) continue;
-    int col = i % 5;
-    int row = i / 5;
+    int col = i % EPAPER_DASHBOARD_COLS;
+    int row = i / EPAPER_DASHBOARD_COLS;
     bool configured = !tile.config.empty();
     bool active = configured && epaper_dashboard_state_active(tile.value);
     bool show_value = configured && epaper_dashboard_state_card_type(tile);

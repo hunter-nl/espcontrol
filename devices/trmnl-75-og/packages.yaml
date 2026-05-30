@@ -12,7 +12,6 @@ substitutions:
 packages:
   entity_names:    !include ../../common/config/entity_names.yaml
   device:          !include device/device.yaml
-  api_navigate:    !include ../../common/device/api_navigate.yaml
   fonts_device:    !include device/fonts.yaml
   button_order:    !include ../../common/config/button_order.yaml
   btn_1:           !include { file: ../../common/config/button_config_template.yaml, vars: { num: "1" } }
@@ -27,73 +26,5 @@ packages:
   btn_10:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "10" } }
   btn_11:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "11" } }
   btn_12:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "12" } }
-  btn_13:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "13" } }
-  btn_14:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "14" } }
-  btn_15:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "15" } }
-  btn_16:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "16" } }
-  btn_17:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "17" } }
-  btn_18:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "18" } }
-  btn_19:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "19" } }
-  btn_20:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "20" } }
-  btn_21:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "21" } }
-  btn_22:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "22" } }
-  btn_23:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "23" } }
-  btn_24:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "24" } }
-  btn_25:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "25" } }
-  btn_26:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "26" } }
-  btn_27:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "27" } }
-  btn_28:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "28" } }
-  btn_29:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "29" } }
-  btn_30:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "30" } }
-  btn_31:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "31" } }
-  btn_32:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "32" } }
-  btn_33:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "33" } }
-  btn_34:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "34" } }
-  btn_35:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "35" } }
-  btn_36:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "36" } }
-  btn_37:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "37" } }
-  btn_38:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "38" } }
-  btn_39:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "39" } }
-  btn_40:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "40" } }
-  btn_41:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "41" } }
-  btn_42:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "42" } }
-  btn_43:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "43" } }
-  btn_44:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "44" } }
-  btn_45:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "45" } }
-  btn_46:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "46" } }
-  btn_47:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "47" } }
-  btn_48:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "48" } }
-  btn_49:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "49" } }
-  btn_50:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "50" } }
-  btn_51:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "51" } }
-  btn_52:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "52" } }
-  btn_53:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "53" } }
-  btn_54:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "54" } }
-  btn_55:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "55" } }
-  btn_56:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "56" } }
-  btn_57:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "57" } }
-  btn_58:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "58" } }
-  btn_59:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "59" } }
-  btn_60:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "60" } }
-  btn_61:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "61" } }
-  btn_62:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "62" } }
-  btn_63:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "63" } }
-  btn_64:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "64" } }
-  btn_65:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "65" } }
-  btn_66:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "66" } }
-  btn_67:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "67" } }
-  btn_68:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "68" } }
-  btn_69:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "69" } }
-  btn_70:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "70" } }
-  btn_71:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "71" } }
-  btn_72:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "72" } }
-  btn_73:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "73" } }
-  btn_74:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "74" } }
-  btn_75:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "75" } }
-  btn_76:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "76" } }
-  btn_77:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "77" } }
-  btn_78:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "78" } }
-  btn_79:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "79" } }
-  btn_80:          !include { file: ../../common/config/button_config_template.yaml, vars: { num: "80" } }
   lvgl:            !include device/lvgl.yaml
   sensors:         !include device/sensors.yaml
