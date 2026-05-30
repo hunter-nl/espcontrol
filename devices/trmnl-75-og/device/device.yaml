@@ -26,12 +26,41 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   on_boot:
+    - priority: 600
+      then:
+        - lambda: |-
+            std::string mac = get_mac_address();
+            std::string compact;
+            for (char c : mac) {
+              if (c != ':' && c != '-') compact.push_back(c);
+            }
+            std::string suffix = compact.length() > 6 ? compact.substr(compact.length() - 6) : compact;
+            if (suffix.empty()) suffix = "SETUP";
+            wifi::WiFiAP ap;
+            ap.set_ssid("ESP_" + suffix);
+            wifi::global_wifi_component->set_ap(ap);
     - priority: -100
       then:
         - script.execute: trmnl_sync_dashboard_config
         - component.update: epaper
 
 logger:
+
+wifi:
+  power_save_mode: none
+  reboot_timeout: 30min
+  ap:
+    ap_timeout: 90s
+  on_connect:
+    - component.update: epaper
+  on_disconnect:
+    - delay: 90s
+    - if:
+        condition:
+          not:
+            wifi.connected:
+        then:
+          - component.update: epaper
 
 api:
   reboot_timeout: 0s
@@ -156,10 +185,19 @@ display:
     update_interval: never
     rotation: 0
     lambda: |-
-      espcontrol::epaper_dashboard_render(
-        it,
-        id(font_trmnl_header_20),
-        id(font_trmnl_label_14),
-        id(font_trmnl_value_24),
-        id(trmnl_current_page));
+      if (!wifi::global_wifi_component->has_sta()) {
+        espcontrol::epaper_dashboard_render_wifi_setup(
+          it,
+          id(font_trmnl_header_20),
+          id(font_trmnl_label_14),
+          id(font_trmnl_value_24),
+          wifi::global_wifi_component->get_ap().get_ssid().c_str());
+      } else {
+        espcontrol::epaper_dashboard_render(
+          it,
+          id(font_trmnl_header_20),
+          id(font_trmnl_label_14),
+          id(font_trmnl_value_24),
+          id(trmnl_current_page));
+      }
       espcontrol::epaper_dashboard_clear_dirty();

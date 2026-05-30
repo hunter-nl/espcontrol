@@ -189,6 +189,29 @@ inline std::string epaper_dashboard_display_value(const EpaperDashboardTile &til
 }
 
 template <typename DisplayT>
+void epaper_dashboard_render_wifi_setup(DisplayT &it,
+                                        esphome::font::Font *header_font,
+                                        esphome::font::Font *label_font,
+                                        esphome::font::Font *value_font,
+                                        const char *ssid) {
+  const int width = 800;
+  const int height = 480;
+  auto black = esphome::Color::BLACK;
+  auto white = esphome::Color::WHITE;
+  const char *hotspot = ssid && ssid[0] != '\0' ? ssid : "ESP setup hotspot";
+
+  it.fill(white);
+  it.rectangle(18, 18, width - 36, height - 36, black);
+  it.line(70, 132, width - 70, 132, black);
+  it.print(70, 76, value_font, black, "WiFi Setup");
+  it.print(70, 160, header_font, black, "Connect to the setup hotspot");
+  it.print(70, 205, label_font, black, hotspot);
+  it.print(70, 265, header_font, black, "Then open this address");
+  it.print(70, 310, value_font, black, "192.168.4.1");
+  it.print(70, 385, label_font, black, "After WiFi setup, add the device in Home Assistant.");
+}
+
+template <typename DisplayT>
 void epaper_dashboard_render(DisplayT &it,
                              esphome::font::Font *header_font,
                              esphome::font::Font *label_font,
