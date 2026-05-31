@@ -299,15 +299,21 @@ inline void epaper_dashboard_update_lvgl_page(int page) {
     int col = i % EPAPER_DASHBOARD_COLS;
     int row = i / EPAPER_DASHBOARD_COLS;
     bool configured = !tile.config.empty();
+    lv_obj_set_grid_cell(slot.tile, LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
+    if (!configured) {
+      lv_obj_add_flag(slot.tile, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_invalidate(slot.tile);
+      continue;
+    }
+    lv_obj_clear_flag(slot.tile, LV_OBJ_FLAG_HIDDEN);
     const std::string &active_value = !tile.state.empty() ? tile.state : tile.sensor_value;
     bool active = configured && epaper_dashboard_state_active(active_value);
     bool show_value = configured && !epaper_dashboard_command_only_type(tile) &&
         epaper_dashboard_sensor_card_type(tile);
     bool value_replaces_icon = show_value && epaper_dashboard_value_replaces_icon(tile);
     epaper_dashboard_style_lvgl_tile(slot.tile, slot.icon, slot.label, slot.value, slot.unit, configured, active);
-    lv_obj_set_grid_cell(slot.tile, LV_GRID_ALIGN_STRETCH, col, 1, LV_GRID_ALIGN_STRETCH, row, 1);
     if (slot.icon) {
-      lv_label_set_text(slot.icon, configured ? epaper_dashboard_icon(tile, active) : find_icon("Auto"));
+      lv_label_set_text(slot.icon, epaper_dashboard_icon(tile, active));
       if (value_replaces_icon) lv_obj_add_flag(slot.icon, LV_OBJ_FLAG_HIDDEN);
       else lv_obj_clear_flag(slot.icon, LV_OBJ_FLAG_HIDDEN);
     }
@@ -320,17 +326,17 @@ inline void epaper_dashboard_update_lvgl_page(int page) {
       }
     }
     if (slot.label) {
-      lv_label_set_text(slot.label, configured ? tile.label.c_str() : "Configure");
+      lv_label_set_text(slot.label, tile.label.c_str());
       lv_obj_clear_flag(slot.label, LV_OBJ_FLAG_HIDDEN);
     }
     if (slot.value) {
       std::string value = epaper_dashboard_display_value(tile);
-      lv_label_set_text(slot.value, configured ? value.c_str() : "");
+      lv_label_set_text(slot.value, value.c_str());
       if (show_value) lv_obj_clear_flag(slot.value, LV_OBJ_FLAG_HIDDEN);
       else lv_obj_add_flag(slot.value, LV_OBJ_FLAG_HIDDEN);
     }
     if (slot.unit) {
-      lv_label_set_text(slot.unit, configured ? tile.unit.c_str() : "");
+      lv_label_set_text(slot.unit, tile.unit.c_str());
       if (show_value && !tile.unit.empty()) lv_obj_clear_flag(slot.unit, LV_OBJ_FLAG_HIDDEN);
       else lv_obj_add_flag(slot.unit, LV_OBJ_FLAG_HIDDEN);
     }
