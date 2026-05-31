@@ -149,6 +149,22 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
     buildSubpageGrid: buildSubpageGrid,
     serializeSubpageGrid: serializeSubpageGrid,
     splitSubpageConfigChunks: EspControlModel.splitSubpageConfigChunks,
+    subpageChunkPostKeysFor: function (full, raw, previousPending) {
+      var oldRaw = state.subpageRaw[1];
+      var oldPending = state.subpageSavePending[1];
+      state.subpageRaw[1] = raw || {};
+      state.subpageSavePending[1] = previousPending || "";
+      var keys = subpageEntityKeys();
+      var chunks = EspControlModel.splitSubpageConfigChunks(full || "", keys.length, 255) || [];
+      var previousPendingChunks = EspControlModel.splitSubpageConfigChunks(
+        state.subpageSavePending[1] || "", keys.length, 255) || [];
+      var out = keys.filter(function (_key, index) {
+        return subpageChunkShouldPost(1, keys, chunks, index, previousPendingChunks);
+      });
+      state.subpageRaw[1] = oldRaw;
+      state.subpageSavePending[1] = oldPending;
+      return out;
+    },
     parseBackOrderToken: parseBackOrderToken,
     backOrderToken: backOrderToken,
     backLabelFromOrder: backLabelFromOrder,

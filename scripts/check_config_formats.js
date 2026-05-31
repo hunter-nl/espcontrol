@@ -2168,6 +2168,23 @@ assertSubpageRoundTrip(hooks, "climate subpage icon display", {
   ],
 }, true);
 
+const climateIconSubpage = hooks.serializeSubpageConfig({
+  order: ["1", "B"],
+  buttons: [
+    buttonShape({ entity: "climate.hallway", label: "Hallway", icon: "Thermostat", icon_on: "Radiator", type: "climate", precision: "1", options: "number_display=icon" }),
+  ],
+});
+assert.deepStrictEqual(
+  Array.from(hooks.subpageChunkPostKeysFor(climateIconSubpage, { ext: "|A,scene.old,Old,Flash,,scene.turn_on" }, "")),
+  ["subpage_config", "subpage_config_ext"],
+  "saving a shorter climate subpage clears stale extension chunks"
+);
+assert.deepStrictEqual(
+  Array.from(hooks.subpageChunkPostKeysFor(climateIconSubpage, {}, climateIconSubpage + "|A," + "scene.old_action_with_long_tail_".repeat(8))),
+  ["subpage_config", "subpage_config_ext"],
+  "saving over a pending longer subpage clears stale extension chunks"
+);
+
 assertSubpageRoundTrip(hooks, "light temperature subpage", {
   order: ["1", "B"],
   buttons: [

@@ -337,6 +337,20 @@ function subpageEntityKeys() {
   return keys.slice(0, count);
 }
 
+var SUBPAGE_RAW_CHUNK_FIELDS = ["main", "ext", "ext2", "ext3", "ext4", "ext5", "ext6", "ext7"];
+
+function subpageChunkShouldPost(slot, keys, chunks, index, previousPendingChunks) {
+  if (chunks[index] || index === 0) return true;
+  var chunkName = entityNameForSlot(keys[index], slot);
+  if (hasRememberedPostPath("text", chunkName, [])) return true;
+  var raw = state.subpageRaw[slot];
+  var rawField = SUBPAGE_RAW_CHUNK_FIELDS[index];
+  return !!(
+    (raw && rawField && raw[rawField]) ||
+    (previousPendingChunks && previousPendingChunks[index])
+  );
+}
+
 function saveSubpageEntity(slot) {
   var sp = state.subpages[slot];
   var full = sp ? serializeSubpageConfig(sp) : "";
@@ -346,11 +360,13 @@ function saveSubpageEntity(slot) {
     showBanner("Subpage is too large to save. Shorten labels or entity IDs.", "error");
     return;
   }
+  var previousPendingChunks = EspControlModel.splitSubpageConfigChunks(
+    state.subpageSavePending[slot] || "", keys.length, 255) || [];
   state.subpageSavePending[slot] = full;
   for (var ki = 0; ki < keys.length; ki++) {
     var chunkName = entityNameForSlot(keys[ki], slot);
     var chunk = chunks[ki] || "";
-    if (!chunk && ki > 0 && !hasRememberedPostPath("text", chunkName, [])) continue;
+    if (!subpageChunkShouldPost(slot, keys, chunks, ki, previousPendingChunks)) continue;
     postText(chunkName, chunk);
   }
 }
