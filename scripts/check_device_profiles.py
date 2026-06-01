@@ -292,6 +292,7 @@ def test_trmnl_epaper_icon_literals() -> None:
 def test_weather_card_visual_matches_preview() -> None:
     cards = BUTTON_GRID_CARDS.read_text(encoding="utf-8")
     styles = (ROOT / "src" / "webserver" / "modules" / "styles.js").read_text(encoding="utf-8")
+    subpages = (ROOT / "components" / "espcontrol" / "button_grid_subpages.h").read_text(encoding="utf-8")
     assert ".sp-type-badge{display:none}" in styles, "web preview type badges should remain visually hidden"
     assert "set_weather_card_badge" not in cards, (
         "device weather cards should not show the hidden web preview type badge"
@@ -350,6 +351,9 @@ def test_weather_card_visual_matches_preview() -> None:
     )
     assert 'if (normalized == "sunny-off") return "unavailable";' in config, (
         "current weather device cards should map the web unavailable weather icon name"
+    )
+    assert 'if (b.type == "weather" && !card_runtime_weather_forecast_precision(b.precision))' in subpages, (
+        "subpage weather cards must normalize invalid weather modes like main grid cards"
     )
     for alias, state in (
         ("clear-day", "sunny"),
