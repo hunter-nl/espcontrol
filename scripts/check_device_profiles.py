@@ -16,6 +16,7 @@ WEB_OUTPUT_DIR = ROOT / "docs" / "public" / "webserver"
 DEVICE_CAPABILITIES_JSON = ROOT / "docs" / "public" / "device-profiles.json"
 DEVICE_DOCS_DIR = ROOT / "docs" / "generated" / "screens"
 COMPAT_FIXTURES = ROOT / "compatibility" / "fixtures" / "product_compatibility.json"
+BUTTON_GRID_CARDS = ROOT / "components" / "espcontrol" / "button_grid_cards.h"
 REQUIRED_SETUP_ICON_GLYPHS = {
     r'"\U000F012C"': "mdi-check",
     r'"\U000F0996"': "mdi-progress-clock",
@@ -136,6 +137,17 @@ def test_trmnl_epaper_icon_literals() -> None:
     assert not missing_glyphs, f"TRMNL hard-coded icon glyphs missing from icon font: {', '.join(missing_glyphs)}"
 
 
+def test_weather_card_device_badges() -> None:
+    cards = BUTTON_GRID_CARDS.read_text(encoding="utf-8")
+    assert "set_weather_card_badge" in cards, "device weather cards should render the web preview badge"
+    assert 'set_weather_card_badge(s, "Weather Cloudy")' in cards, (
+        "current weather device card should render the same weather badge as the web preview"
+    )
+    assert 'set_weather_card_badge(s, "Weather Partly Cloudy")' in cards, (
+        "forecast weather device card should render the same forecast badge as the web preview"
+    )
+
+
 def test_firmware_matrices(profile_slugs: list[str]) -> None:
     profiles = load_device_profiles()
     release = device_matrix.release_matrix(profiles)
@@ -159,6 +171,7 @@ def main() -> int:
     test_generated_yaml(profiles)
     test_setup_icon_glyphs()
     test_trmnl_epaper_icon_literals()
+    test_weather_card_device_badges()
     test_firmware_matrices(profile_slugs)
     test_public_firmware_slugs(profile_slugs)
     print("Device profile cross-checks passed.")

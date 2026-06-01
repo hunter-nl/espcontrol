@@ -430,6 +430,17 @@ inline void setup_clock_card(BtnSlot &s, const ParsedCfg &p,
   register_timezone_card(s.sensor_lbl, s.unit_lbl, s.text_lbl, p.entity, "", false);
 }
 
+inline void set_weather_card_badge(BtnSlot &s, const char *icon_name) {
+  if (!s.subpage_lbl) return;
+  lv_label_set_text(s.subpage_lbl, find_icon(icon_name));
+  lv_obj_clear_flag(s.subpage_lbl, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_align(s.subpage_lbl, LV_ALIGN_BOTTOM_RIGHT, 0, 2);
+  if (s.text_lbl) {
+    configure_button_label_wrap(s.text_lbl);
+    lv_obj_set_width(s.text_lbl, lv_pct(86));
+  }
+}
+
 inline void setup_weather_card(BtnSlot &s, bool has_sensor_color, uint32_t sensor_val) {
   if (has_sensor_color) {
     lv_obj_set_style_bg_color(s.btn, lv_color_hex(sensor_val),
@@ -438,6 +449,7 @@ inline void setup_weather_card(BtnSlot &s, bool has_sensor_color, uint32_t senso
   lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
   lv_label_set_text(s.icon_lbl, find_icon("Weather Cloudy"));
   lv_label_set_text(s.text_lbl, "Weather");
+  set_weather_card_badge(s, "Weather Cloudy");
 }
 
 inline bool weather_card_shows_forecast(const ParsedCfg &p) {
@@ -468,6 +480,7 @@ inline void setup_weather_forecast_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_text(s.text_lbl, label.c_str());
   apply_width_compensation(s.sensor_container, width_compensation_percent);
   apply_width_compensation(s.text_lbl, width_compensation_percent);
+  set_weather_card_badge(s, "Weather Partly Cloudy");
   register_weather_forecast_card(s.sensor_lbl, s.unit_lbl, s.text_lbl, p.entity, day, p.label);
 }
 
