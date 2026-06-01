@@ -1,75 +1,84 @@
 # =============================================================================
-# FONTS (DEVICE OVERRIDE) - Font variants for the 1060x470 display
+# FONTS - Generic style IDs for the 1060x470 display
 # =============================================================================
-# Supplements the common fonts with device-specific variants for the main UI.
-# The common fonts (label_font, clockbar_font, setup fonts, etc.) still load
-# for shared UI areas; this file only keeps 1060x470-specific font sizes.
+# Feature YAML should reference these functional style IDs, not physical font
+# names or sizes. Sizes remain device-specific behind the same style names.
 # =============================================================================
 
 font:
-  # Main page icons: 44px on the 480px S3 reference scaled to this 600px short side
+  # Main action/setup icons
   - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
-    id: font_mdi_55_icons
+    id: font_icon_main
     size: 55
     bpp: 4
     glyphs: !include ../../../common/assets/icon_glyphs.yaml
 
-  # Climate card icons (25% smaller than main page icons)
+  # Smaller card icons
   - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
-    id: font_mdi_41_icons
+    id: font_icon_card
     size: 41
     bpp: 4
     glyphs: !include ../../../common/assets/icon_glyphs.yaml
 
-  # Main page: large statistics / sensor values, 15% larger than the shared 48px font
-  - file: "gfonts://Roboto@Light"
-    id: font_roboto_light_55_digits
-    size: 55
+  # Status, network, and subpage icons
+  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+    id: font_icon_status
+    size: 19
     bpp: 4
-    glyphs:
-      - "0123456789.-°/%"
-      - ":"
+    glyphs: !include ../../../common/assets/network_status_glyphs.yaml
 
-  # Main page: option-select values, close to sensor value size with full text coverage
+  # Main labels and setup body text
+  - file: "gfonts://Roboto"
+    id: font_text_body
+    size: 22
+    bpp: 4
+    glyphs: !include ../../../common/assets/text_glyphs.yaml
+    extras:
+      - file: "gfonts://Heebo"
+        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
+
+  # Headings and media titles
   - file: "gfonts://Roboto@Light"
-    id: font_roboto_light_48_text
-    size: 48
+    id: font_text_title
+    size: 43
     bpp: 4
     glyphs: !include ../../../common/assets/text_glyphs.yaml
     extras:
       - file: "gfonts://Heebo@Light"
         glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
 
-  # Main page: large-card sensor values (2.5x the regular sensor value font)
+  # Larger modal/supporting labels
+  - file: "gfonts://Roboto"
+    id: font_text_large
+    size: 28
+    bpp: 4
+    glyphs:
+      - " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/°"
+
+  # Normal sensor values
+  - file: "gfonts://Roboto@Light"
+    id: font_number_value
+    size: 55
+    bpp: 4
+    glyphs:
+      - "0123456789.-°/%"
+      - ":"
+
+  # Large sensor values
   - file: "gfonts://Roboto@Thin"
-    id: font_roboto_thin_138_digits
+    id: font_number_value_large
     size: 138
     bpp: 4
     glyphs:
       - "0123456789.-°/%"
       - ":"
 
-  # Top bar network status icon
-  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
-    id: font_mdi_19_network
-    size: 19
-    bpp: 4
-    glyphs: !include ../../../common/assets/network_status_glyphs.yaml
-
-  # Volume/climate modal: 96px on the 480px S3 reference scaled to this 600px short side
+  # Large modal numbers
   - file: "gfonts://Roboto@Thin"
-    id: font_roboto_thin_120_text
+    id: font_number_modal
     size: 120
     bpp: 4
-    glyphs: !include ../../../common/assets/text_glyphs.yaml
-    extras:
-      - file: "gfonts://Heebo@Light"
-        glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
-
-  # Volume/climate modal labels: 22px on the 480px S3 reference scaled to this 600px short side
-  - file: "gfonts://Roboto"
-    id: font_roboto_regular_28_basic
-    size: 28
-    bpp: 4
     glyphs:
-      - " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/°"
+      - "0123456789.-°/%"
+      - ":"
+

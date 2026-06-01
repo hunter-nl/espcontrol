@@ -12,20 +12,20 @@ substitutions:
   screen_width: "1280"
   screen_height: "800"
   content_width: "760"
-  setup_icon_font_id: font_mdi_56_icons
-  setup_title_font_id: font_roboto_light_46_text
-  setup_body_font_id: font_roboto_regular_24_text
+  setup_icon_font_id: font_icon_main
+  setup_title_font_id: font_text_title
+  setup_body_font_id: font_text_body
   setup_pad_row: "20"
   setup_loading_pad_row: "40"
   setup_action_button_width: "200"
   setup_action_button_height: "56"
   setup_action_button_radius: "12"
-  icon_font: font_mdi_56_icons
-  subpage_chevron_font: font_mdi_21_network
-  label_font: font_roboto_regular_24_text
-  media_title_font: font_roboto_light_46_text
-  unit_font: font_roboto_regular_24_text
-  sensor_value_font: font_roboto_light_52_digits
+  icon_font: font_icon_main
+  subpage_chevron_font: font_icon_status
+  label_font: font_text_body
+  media_title_font: font_text_title
+  unit_font: font_text_body
+  sensor_value_font: font_number_value
   padding: 18px
   radius: 11px
   main_page_pad_top: "42"
@@ -40,7 +40,6 @@ packages:
   # ---------------------------------------------------------------------------
   entity_names:    !include ../../common/config/entity_names.yaml
   device:          !include device/device.yaml
-  fonts:           !include ../../common/assets/fonts.yaml
   icons:           !include ../../common/assets/icons.yaml
   fonts_device:    !include device/fonts.yaml
   button_theme:    !include ../../common/theme/button.yaml

@@ -9,7 +9,7 @@
 
 font:
   - file: "gfonts://Roboto@Thin"
-    id: font_roboto_thin_clock_digits
+    id: font_number_clock
     size: ${clock_font_size}
     bpp: 4
     glyphs: " 0123456789:"
@@ -35,7 +35,7 @@ lvgl:
           widgets:
             - label:
                 id: clock_label
-                text_font: font_roboto_thin_clock_digits
+                text_font: font_number_clock
                 text_color: 0xFFFFFF
                 text: "00:00"
       - obj:

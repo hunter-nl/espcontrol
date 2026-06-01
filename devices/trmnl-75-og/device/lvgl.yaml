@@ -8,7 +8,7 @@ lvgl:
       - label:
           text: "-°C / -°C"
           id: temperatures
-          text_font: font_trmnl_header_20
+          text_font: font_text_title
           align: top_left
           x: 12
           y: 8
@@ -17,7 +17,7 @@ lvgl:
       - label:
           text: "--:--"
           id: display_time
-          text_font: font_trmnl_header_20
+          text_font: font_text_title
           align: top_mid
           y: 8
           text_align: center
@@ -38,7 +38,7 @@ lvgl:
             - label:
                 id: network_status_icon_label
                 text: "\U000F0928"
-                text_font: font_trmnl_mdi_topbar_18_icons
+                text_font: font_icon_main
                 align: center
                 text_align: center
                 text_color: 0x000000
@@ -84,28 +84,28 @@ lvgl:
             widgets:
               - label:
                   text: "WiFi Setup"
-                  text_font: font_trmnl_value_32
+                  text_font: font_number_value
                   text_color: 0x000000
                   text_align: center
               - label:
                   text: "Connect to the setup hotspot"
-                  text_font: font_trmnl_header_20
+                  text_font: font_text_title
                   text_color: 0x000000
                   text_align: center
               - label:
                   text: "ESP setup hotspot"
                   id: trmnl_wifi_setup_ssid
-                  text_font: font_trmnl_label_14
+                  text_font: font_text_body
                   text_color: 0x000000
                   text_align: center
               - label:
                   text: "Then open 192.168.4.1"
-                  text_font: font_trmnl_value_32
+                  text_font: font_number_value
                   text_color: 0x000000
                   text_align: center
               - label:
                   text: "After WiFi setup, add this device in Home Assistant."
-                  text_font: font_trmnl_label_14
+                  text_font: font_text_body
                   text_color: 0x000000
                   text_align: center
               # Hidden widgets ensure LVGL compiles dynamic controls used by

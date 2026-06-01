@@ -14,7 +14,7 @@ button:
     - label:
         id: button_${num}_icon_label
         text: "\U000F0493"
-        text_font: font_trmnl_mdi_26_icons
+        text_font: font_icon_main
         text_color: 0x000000
         align: top_left
     - obj:
@@ -37,19 +37,19 @@ button:
           - label:
               id: button_${num}_sensor_label
               text: ""
-              text_font: font_trmnl_value_32
+              text_font: font_number_value
               text_color: 0x000000
               long_mode: dot
           - label:
               id: button_${num}_unit_label
               text: ""
-              text_font: font_trmnl_label_14
+              text_font: font_text_body
               text_color: 0x000000
               pad_bottom: 0
     - label:
         id: button_${num}_text_label
         text: "Configure"
-        text_font: font_trmnl_label_14
+        text_font: font_text_body
         text_color: 0x000000
         align: bottom_left
         width: 100%
@@ -57,7 +57,7 @@ button:
     - label:
         id: button_${num}_subpage_label
         text: "\U000F0142"
-        text_font: font_trmnl_label_14
+        text_font: font_text_body
         text_color: 0x000000
         align: bottom_right
         hidden: true

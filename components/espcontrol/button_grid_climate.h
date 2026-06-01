@@ -18,6 +18,9 @@ constexpr int CLIMATE_MODAL_JC4880P443_ARC_SIZE_PERCENT = 96;
 constexpr lv_coord_t CLIMATE_MODAL_ARC_UP_REF_PX = 30;
 constexpr lv_coord_t CLIMATE_MODAL_SQUARE_ARC_UP_REF_PX = 24;
 constexpr lv_coord_t CLIMATE_MODAL_STEP_BUTTONS_UP_REF_PX = 42;
+constexpr lv_coord_t CLIMATE_MODAL_LARGE_LANDSCAPE_STEP_BUTTONS_UP_REF_PX = 18;
+constexpr lv_coord_t CLIMATE_MODAL_LARGE_LANDSCAPE_VALUE_DOWN_REF_PX = 12;
+constexpr lv_coord_t CLIMATE_MODAL_LARGE_LANDSCAPE_OPTION_CHIP_BOTTOM_PX = 4;
 constexpr lv_coord_t CLIMATE_MODAL_JC4880P443_STEP_BUTTONS_UP_REF_PX = 14;
 constexpr lv_coord_t CLIMATE_MODAL_SQUARE_STEP_BUTTONS_UP_REF_PX = 18;
 constexpr lv_coord_t CLIMATE_MODAL_4848_STEP_BUTTONS_UP_REF_PX = 18;
@@ -461,7 +464,13 @@ inline bool climate_control_uses_4848_modal_tuning(const ControlModalLayout &lay
   return control_modal_uses_4848_tuning(layout);
 }
 
+inline bool climate_control_uses_large_landscape_modal_tuning(const ControlModalLayout &layout) {
+  return (layout.sw == 1280 && layout.sh == 800) || (layout.sw == 800 && layout.sh == 1280);
+}
+
 inline lv_coord_t climate_control_step_buttons_up_ref(const ControlModalLayout &layout) {
+  if (climate_control_uses_large_landscape_modal_tuning(layout))
+    return CLIMATE_MODAL_LARGE_LANDSCAPE_STEP_BUTTONS_UP_REF_PX;
   if (control_modal_uses_compact_portrait_tuning(layout))
     return CLIMATE_MODAL_JC4880P443_STEP_BUTTONS_UP_REF_PX;
   if (climate_control_uses_4848_modal_tuning(layout))
@@ -471,7 +480,13 @@ inline lv_coord_t climate_control_step_buttons_up_ref(const ControlModalLayout &
   return CLIMATE_MODAL_STEP_BUTTONS_UP_REF_PX;
 }
 
+inline lv_coord_t climate_control_step_buttons_down_ref(const ControlModalLayout &layout) {
+  return 0;
+}
+
 inline lv_coord_t climate_control_labels_down_ref(const ControlModalLayout &layout) {
+  if (climate_control_uses_large_landscape_modal_tuning(layout))
+    return CLIMATE_MODAL_LARGE_LANDSCAPE_VALUE_DOWN_REF_PX;
   if (control_modal_uses_compact_portrait_tuning(layout))
     return CLIMATE_MODAL_JC4880P443_LABELS_DOWN_REF_PX;
   if (climate_control_uses_4848_modal_tuning(layout))
@@ -1317,6 +1332,8 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
   lv_coord_t step_buttons_up_ref = climate_control_step_buttons_up_ref(layout);
   lv_coord_t controls_center_y = layout.controls_center_y -
     control_modal_scaled_px(step_buttons_up_ref, layout.short_side);
+  lv_coord_t step_buttons_center_y = controls_center_y +
+    control_modal_scaled_px(climate_control_step_buttons_down_ref(layout), layout.short_side);
   lv_coord_t title_center_y = value_center_y -
     (value_h / 2 + layout.title_gap + title_h / 2);
   bool tune_4848 = climate_control_uses_4848_modal_tuning(layout);
@@ -1355,7 +1372,7 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
   if (controls_layout.btn_size < 48) controls_layout.btn_size = 48;
   controls_layout.controls_gap = control_modal_scaled_px(CLIMATE_MODAL_STEP_BUTTON_GAP_REF_PX, layout.short_side);
   if (controls_layout.controls_gap < 6) controls_layout.controls_gap = 6;
-  controls_layout.controls_center_y = controls_center_y;
+  controls_layout.controls_center_y = step_buttons_center_y;
   control_modal_apply_step_buttons_layout(ui.minus_btn, ui.plus_btn, controls_layout);
   lv_obj_align(ui.low_btn, LV_ALIGN_CENTER, -46, controls_center_y - layout.btn_size / 2 - 24);
   lv_obj_align(ui.high_btn, LV_ALIGN_CENTER, 46, controls_center_y - layout.btn_size / 2 - 24);
@@ -1393,8 +1410,10 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
     lv_obj_scroll_to_x(ui.chips, 0, LV_ANIM_OFF);
     lv_obj_set_style_flex_main_place(ui.chips, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   }
-  lv_obj_align(ui.chips, LV_ALIGN_BOTTOM_MID, 0,
-    roomy_landscape ? -CLIMATE_MODAL_WIDE_LANDSCAPE_OPTION_CHIP_BOTTOM_PX : -layout.inset);
+  lv_coord_t chip_bottom = climate_control_uses_large_landscape_modal_tuning(layout)
+    ? CLIMATE_MODAL_LARGE_LANDSCAPE_OPTION_CHIP_BOTTOM_PX
+    : (roomy_landscape ? CLIMATE_MODAL_WIDE_LANDSCAPE_OPTION_CHIP_BOTTOM_PX : layout.inset);
+  lv_obj_align(ui.chips, LV_ALIGN_BOTTOM_MID, 0, -chip_bottom);
   if (ui.menu_view) {
     lv_obj_set_size(ui.menu_view, layout.panel_w, layout.panel_h);
     lv_obj_set_pos(ui.menu_view, 0, 0);

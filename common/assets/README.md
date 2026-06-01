@@ -1,44 +1,51 @@
 # Assets
 
-This directory contains internal firmware assets for fonts, icons, and glyph
-sets. It is repository documentation for maintainers and is not part of the
-public docs site.
+This directory contains internal firmware assets for icons and glyph sets. It is
+repository documentation for maintainers and is not part of the public docs site.
 
-## Font naming and ramp
+## Font style names
 
-Font component IDs should describe the font itself, not the UI place where it is
-used. Use this pattern:
+Device fonts use functional style IDs instead of physical names such as
+`font_roboto_regular_22_text` or `font_mdi_48_icons`. New firmware features
+should reference the style IDs directly so the same feature YAML can render at
+the right size on every device.
 
-```text
-font_<source>_<weight-or-set>_<size>[_glyphset]
-```
+| Style ID | Intended use |
+| --- | --- |
+| `font_icon_main` | Main action icons and setup icons |
+| `font_icon_card` | Smaller card-level icons |
+| `font_icon_status` | Status, network, and subpage indicator icons |
+| `font_text_body` | Labels, setup body copy, and normal UI text |
+| `font_text_small` | Compact supporting text on small displays, only where needed |
+| `font_text_title` | Headings and media titles |
+| `font_text_large` | Larger supporting labels, only where needed |
+| `font_number_value` | Normal sensor/statistic values |
+| `font_number_value_large` | Large sensor/statistic values |
+| `font_number_modal` | Large modal numeric values |
+| `font_number_clock` | Screensaver clock digits |
 
-Examples:
+Do not add alias fonts just to keep an old role name working. If two roles are
+intended to look the same, point them at the same style ID.
 
-- `font_roboto_regular_22_text`
-- `font_roboto_light_55_digits`
-- `font_mdi_41_icons`
-- `font_mdi_19_network`
-
-The current type ramp is not encoded as a shared generator or token file. It is
-implemented by the sizes in `common/assets/fonts.yaml`, `common/assets/icons.yaml`,
-and each `devices/*/device/fonts.yaml`, then assigned to UI roles in
-`devices/manifest.json` and the device `packages.yaml` files.
+The old shared common font package was removed from normal device builds. Each
+device defines the style IDs it needs in `devices/*/device/fonts.yaml`, using
+device-specific sizes behind the same generic names. This avoids loading setup
+fonts that duplicate fonts already available on the device.
 
 ### Shared ratios
 
 There are repeated ratios that should be preserved when adding or adjusting a
-device:
+device unless the layout clearly needs an exception:
 
 | Relationship | Current rule |
 | --- | --- |
-| Large sensor numbers | `2.5x` the normal sensor value font |
-| Climate card icons | About `75%` of the main card icon font |
+| Large sensor numbers | About `2.5x` the normal sensor value font |
+| Card icons | About `75%` of the main card icon font |
 | 720x720 square panel | Mostly `1.5x` the 480x480 square panel |
 
 Examples of the current ratios:
 
-| Device class | Main icon | Climate icon | Sensor | Large sensor |
+| Device class | Main icon | Card icon | Sensor | Large sensor |
 | --- | ---: | ---: | ---: | ---: |
 | 480x480 square | 44 | 33 | 44 | 110 |
 | 720x720 square | 66 | 50 | 66 | 165 |
@@ -46,25 +53,26 @@ Examples of the current ratios:
 | 480x800 portrait | 62 | 47 | 62 | 155 |
 | 1280x800 landscape | 56 | 42 | 52 | 130 |
 
-### Current role assignments
+### Role assignments
 
-The firmware role names in `devices/manifest.json` are intentionally still
-usage-based. They map the standard font IDs to UI roles:
+The firmware role names in `devices/manifest.json` remain usage-based because
+they describe generated UI wiring. They should map to the generic style IDs:
 
-| Role | Purpose |
+| Role | Typical style ID |
 | --- | --- |
-| `icon` | Main card icon |
-| `climateCardIcon` | Smaller climate card icon |
-| `sensor` | Normal sensor/statistic value |
-| `largeSensor` | Large-number sensor card value |
-| `mediaTitle` | Media card title text |
-| `volumeNumber` | Large modal numeric value |
-| `volumeLabel` | Modal label text |
-| `climateOptionTitle` | Climate option chip title |
-| `climateOptionValue` | Climate option chip value |
+| `icon` | `font_icon_main` |
+| `climateCardIcon` | `font_icon_card` |
+| `subpageChevron` | `font_icon_status` |
+| `sensor` | `font_number_value` |
+| `largeSensor` | `font_number_value_large` |
+| `mediaTitle` | `font_text_title` |
+| `volumeNumber` | `font_number_modal` |
+| `volumeLabel` | `font_text_body` or `font_text_large` |
+| `climateOptionTitle` | `font_text_body` |
+| `climateOptionValue` | `font_text_body` or `font_text_small` |
 
-When changing the ramp, update the font component IDs and the manifest together,
-then run:
+When changing the ramp, update the device font file and manifest together, then
+run:
 
 ```sh
 python3 scripts/generate_device_slots.py

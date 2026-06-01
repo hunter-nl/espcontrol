@@ -1,39 +1,24 @@
 # =============================================================================
-# FONTS - TRMNL 7.5 OG monochrome e-paper dashboard
+# FONTS - Generic style IDs for the TRMNL 7.5 OG monochrome e-paper dashboard
 # =============================================================================
 
 font:
   - file: "gfonts://Inter@700"
-    id: font_trmnl_header_20
+    id: font_text_title
     size: 20
     glyphs: " !\"%()+,-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
 
   - file: "gfonts://Inter@600"
-    id: font_trmnl_label_14
+    id: font_text_body
     size: 16
     glyphs: " !\"%()+,-./0123456789:°ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
 
   - file: "gfonts://Inter@700"
-    id: font_trmnl_value_32
-    size: 32
+    id: font_number_value
+    size: 30
     glyphs: " !\"%()+,-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
 
-  - file: "gfonts://Inter@700"
-    id: font_trmnl_value_large_80
-    size: 80
-    glyphs: " -./0123456789:"
-
   - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
-    id: font_trmnl_mdi_26_icons
+    id: font_icon_main
     size: 32
     glyphs: !include ../../../common/assets/icon_glyphs.yaml
-
-  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
-    id: font_trmnl_mdi_topbar_18_icons
-    size: 18
-    glyphs:
-      - "\U000F0200"
-      - "\U000F091F"
-      - "\U000F0922"
-      - "\U000F0925"
-      - "\U000F0928"

@@ -113,7 +113,6 @@ def package_file_text(device: dict) -> str:
         )
     lines.extend(
         [
-            include_line("fonts", "!include ../../common/assets/fonts.yaml"),
             include_line("icons", "!include ../../common/assets/icons.yaml"),
             include_line(
                 package.get("deviceFontPackageKey", "fonts_device"),

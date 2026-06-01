@@ -165,8 +165,8 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
                 assert "cfg.timezone = id(timezone_select).current_option();" in sensors, (
                     f"{slug}: automatic temperature units must use the configured timezone"
                 )
-                assert "id(font_trmnl_value_large_80)->get_lv_font()" in sensors, (
-                    f"{slug}: weather large-number cards must use the TRMNL web preview large-number font"
+                assert "id(font_number_value)->get_lv_font()" in sensors, (
+                    f"{slug}: weather large-number cards must use the generic TRMNL number font"
                 )
                 assert "cfg.label_lines = 2;" in sensors and "cfg.label_lines_tall = 3;" in sensors, (
                     f"{slug}: TRMNL card labels must clamp to the generated web preview line counts"
@@ -212,30 +212,29 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
                     and "refs[i] = WeatherForecastCardRef();" in reset_match.group(0)
                     and "weather_forecast_card_count() = 0;" in reset_match.group(0)
                 ), f"{slug}: weather forecast card rebuilds must clear stale object refs and values"
-                assert "id(font_trmnl_value_32)->get_lv_font()" in sensors, (
-                    f"{slug}: normal weather cards must use the TRMNL web preview value font"
+                assert "id(font_number_value)->get_lv_font()" in sensors, (
+                    f"{slug}: normal weather cards must use the generic TRMNL value font"
                 )
-                assert "id: font_trmnl_value_32\n    size: 32" in fonts_path.read_text(encoding="utf-8"), (
-                    f"{slug}: normal weather value font must match the TRMNL web preview metric"
+                assert "id: font_number_value\n    size: 30" in fonts_path.read_text(encoding="utf-8"), (
+                    f"{slug}: normal weather value font must use the generic TRMNL metric"
                 )
-                assert "id: font_trmnl_value_large_80\n    size: 80" in fonts_path.read_text(encoding="utf-8"), (
-                    f"{slug}: large-number font must match the TRMNL web preview metric"
+                assert "id: font_number_value\n    size: 30" in fonts_path.read_text(encoding="utf-8"), (
+                    f"{slug}: large-number font must use the generic TRMNL metric"
                 )
                 trmnl_fonts = fonts_path.read_text(encoding="utf-8")
-                assert "id: font_trmnl_label_14\n    size: 16\n    glyphs: \" !\\\"%()+,-./0123456789:°" in trmnl_fonts, (
+                assert "id: font_text_body\n    size: 16\n    glyphs: \" !\\\"%()+,-./0123456789:°" in trmnl_fonts, (
                     f"{slug}: weather forecast unit font must include the degree symbol"
                 )
                 assert (
-                    "id: font_trmnl_mdi_topbar_18_icons\n    size: 18" in trmnl_fonts
-                    and '- "\\U000F0200"' in trmnl_fonts
-                    and '- "\\U000F0928"' in trmnl_fonts
+                    "id: font_icon_main\n    size: 32" in trmnl_fonts
+                    and "glyphs: !include ../../../common/assets/icon_glyphs.yaml" in trmnl_fonts
                     and "id: network_status_button\n          align: top_right\n          x: -8\n          y: 0\n          width: 24\n          height: 60" in lvgl
-                    and "id: network_status_icon_label\n                text: \"\\U000F0928\"\n                text_font: font_trmnl_mdi_topbar_18_icons" in lvgl
+                    and "id: network_status_icon_label\n                text: \"\\U000F0928\"\n                text_font: font_icon_main" in lvgl
                 ), f"{slug}: top bar network icon must match the generated web preview scale"
                 tile = tile_path.read_text(encoding="utf-8")
                 assert (
                     "flex_flow: row\n          flex_align_cross: end\n          pad_column: 0" in tile
-                    and "id: button_${num}_unit_label\n              text: \"\"\n              text_font: font_trmnl_label_14\n              text_color: 0x000000\n              pad_bottom: 0" in tile
+                    and "id: button_${num}_unit_label\n              text: \"\"\n              text_font: font_text_body\n              text_color: 0x000000\n              pad_bottom: 0" in tile
                 ), (
                     f"{slug}: weather forecast unit label must align like the web preview"
                 )
