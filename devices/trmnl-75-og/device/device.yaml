@@ -168,6 +168,18 @@ time:
   - platform: sntp
     id: trmnl_time
 
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          weather_forecast_cancel_stale_requests();
+          weather_forecast_send_next_queued();
+
+  - interval: 1h
+    then:
+      - lambda: |-
+          refresh_weather_forecast_cards();
+
 spi:
   clk_pin: GPIO7
   mosi_pin: GPIO9

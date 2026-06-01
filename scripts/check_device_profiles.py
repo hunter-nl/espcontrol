@@ -189,6 +189,19 @@ def test_temperature_unit_changes_refresh_weather_cards() -> None:
     )
 
 
+def test_trmnl_weather_forecast_queue_drains() -> None:
+    device = (ROOT / "devices" / "trmnl-75-og" / "device" / "device.yaml").read_text(encoding="utf-8")
+    assert "weather_forecast_cancel_stale_requests();" in device, (
+        "TRMNL must cancel stale Home Assistant forecast requests"
+    )
+    assert "weather_forecast_send_next_queued();" in device, (
+        "TRMNL must send queued forecast requests after Home Assistant actions become ready"
+    )
+    assert "refresh_weather_forecast_cards();" in device, (
+        "TRMNL must periodically refresh dynamic weather forecast card values"
+    )
+
+
 def test_firmware_matrices(profile_slugs: list[str]) -> None:
     profiles = load_device_profiles()
     release = device_matrix.release_matrix(profiles)
@@ -215,6 +228,7 @@ def main() -> int:
     test_weather_card_device_badges()
     test_weather_card_mode_visibility_reset()
     test_temperature_unit_changes_refresh_weather_cards()
+    test_trmnl_weather_forecast_queue_drains()
     test_firmware_matrices(profile_slugs)
     test_public_firmware_slugs(profile_slugs)
     print("Device profile cross-checks passed.")
