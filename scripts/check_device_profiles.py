@@ -152,6 +152,9 @@ def test_weather_card_device_badges() -> None:
     assert 'set_weather_card_badge(s, "Weather Cloudy")' in cards, (
         "current weather device card should render the same weather badge as the web preview"
     )
+    assert 'lv_label_set_text(s.text_lbl, "Cloudy")' in cards, (
+        "current weather device card should render the same label as the web preview"
+    )
     assert 'set_weather_card_badge(s, "Weather Partly Cloudy")' in cards, (
         "forecast weather device card should render the same forecast badge as the web preview"
     )
