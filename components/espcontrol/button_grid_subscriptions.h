@@ -203,6 +203,7 @@ inline void subscribe_weather_state(lv_obj_t *icon_lbl, lv_obj_t *text_lbl, cons
       ESP_LOGI("weather", "Current weather state for %s: %s", entity_id.c_str(), state_text.c_str());
       lv_label_set_text(icon_lbl, weather_icon_for_state(state_text));
       lv_label_set_text(text_lbl, weather_label_for_state(state_text).c_str());
+      notify_dashboard_content_changed();
     })
   );
 }

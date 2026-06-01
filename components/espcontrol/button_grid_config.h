@@ -33,6 +33,20 @@ static_assert(correct_display_color(0x123456, 100, 0, 100) == 0x120056,
               "green correction must only adjust the green channel");
 static_assert(correct_display_color(0x123456, 100, 100, 0) == 0x123400,
               "blue correction must only adjust the blue channel");
+
+inline std::function<void()> &dashboard_content_changed_callback() {
+  static std::function<void()> callback;
+  return callback;
+}
+
+inline void set_dashboard_content_changed_callback(std::function<void()> callback) {
+  dashboard_content_changed_callback() = std::move(callback);
+}
+
+inline void notify_dashboard_content_changed() {
+  auto &callback = dashboard_content_changed_callback();
+  if (callback) callback();
+}
 static_assert(correct_display_color(0xF0F0F0, 200, 200, 200) == 0xFFFFFF,
               "colour correction must clamp channels at 255");
 
@@ -1193,6 +1207,7 @@ inline void apply_weather_forecast_to_entity(const std::string &entity_id,
       refs[i].source_unit = unit;
       refs[i].status_label = "";
       apply_weather_forecast_card_text(refs[i], valid, high, low, unit);
+      notify_dashboard_content_changed();
     }
   }
 }
@@ -1209,6 +1224,7 @@ inline void apply_weather_forecast_unavailable_for_entity(const std::string &ent
       refs[i].source_unit = "";
       refs[i].status_label = "";
       apply_weather_forecast_card_text(refs[i], false, 0, 0, "");
+      notify_dashboard_content_changed();
     }
   }
 }
@@ -1227,6 +1243,7 @@ inline void apply_weather_forecast_actions_required_for_entity(const std::string
       refs[i].source_unit = "";
       refs[i].status_label = "HA Actions";
       apply_weather_forecast_card_text(refs[i], false, 0, 0, "");
+      notify_dashboard_content_changed();
     }
   }
 }

@@ -109,6 +109,10 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
                 assert 'name: "Refresh Display"' in device, f"{slug}: web UI should expose a manual e-paper refresh"
                 assert "Finished e-paper refresh" in sensors, f"{slug}: display refresh completion log is missing"
                 assert "trmnl_dashboard_config_changed" in sensors, f"{slug}: card config changes must refresh e-paper"
+                assert "trmnl_dashboard_content_changed" in sensors, f"{slug}: HA card content changes must refresh e-paper"
+                assert "set_dashboard_content_changed_callback" in sensors, (
+                    f"{slug}: shared weather/card updates must be wired to e-paper refreshes"
+                )
         else:
             assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
 
