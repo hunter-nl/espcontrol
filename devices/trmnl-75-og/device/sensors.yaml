@@ -33,6 +33,25 @@ script:
           }
           lv_label_set_text(id(network_status_icon_label), "\U000F0928");
 
+  - id: trmnl_start_display_refreshes
+    mode: restart
+    then:
+      - delay: 75s
+      - lambda: |-
+          id(trmnl_display_refresh_enabled) = true;
+      - script.execute: trmnl_refresh_display_full
+
+  - id: trmnl_refresh_display_when_ready
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: "return id(trmnl_display_refresh_enabled);"
+          then:
+            - script.execute: trmnl_refresh_display_full
+          else:
+            - script.execute: trmnl_start_display_refreshes
+
   - id: trmnl_refresh_display
     mode: restart
     then:
@@ -96,13 +115,17 @@ script:
 interval:
   - interval: 1min
     then:
-      - script.execute: trmnl_refresh_display_partial
+      - if:
+          condition:
+            lambda: "return id(trmnl_display_refresh_enabled);"
+          then:
+            - script.execute: trmnl_refresh_display_partial
 
   - interval: 45s
     then:
       - if:
           condition:
-            lambda: "return espcontrol::epaper_dashboard_is_dirty();"
+            lambda: "return id(trmnl_display_refresh_enabled) && espcontrol::epaper_dashboard_is_dirty();"
           then:
             - script.execute: trmnl_refresh_display_partial
 
@@ -110,10 +133,14 @@ interval:
     then:
       - if:
           condition:
-            lambda: "return espcontrol::epaper_dashboard_dark_theme() != (id(screen_theme).current_option() == \"Dark\");"
+            lambda: "return id(trmnl_display_refresh_enabled) && espcontrol::epaper_dashboard_dark_theme() != (id(screen_theme).current_option() == \"Dark\");"
           then:
             - script.execute: trmnl_refresh_display_full
 
   - interval: 30min
     then:
-      - script.execute: trmnl_refresh_display_full
+      - if:
+          condition:
+            lambda: "return id(trmnl_display_refresh_enabled);"
+          then:
+            - script.execute: trmnl_refresh_display_full

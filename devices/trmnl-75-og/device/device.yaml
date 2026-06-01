@@ -53,7 +53,7 @@ esphome:
               - lvgl.page.show: trmnl_wifi_setup_page
             else:
               - lvgl.page.show: main_page
-              - script.execute: trmnl_refresh_display_full
+        - script.execute: trmnl_start_display_refreshes
 
 logger:
 
@@ -64,7 +64,7 @@ wifi:
     ap_timeout: 90s
   on_connect:
     - lvgl.page.show: main_page
-    - script.execute: trmnl_refresh_display_full
+    - script.execute: trmnl_start_display_refreshes
   on_disconnect:
     - delay: 90s
     - if:
@@ -85,7 +85,7 @@ api:
   on_client_connected:
     - delay: 2s
     - script.execute: trmnl_sync_dashboard_config
-    - script.execute: trmnl_refresh_display_full
+    - script.execute: trmnl_refresh_display_when_ready
 
 ota:
   - platform: esphome
@@ -135,6 +135,10 @@ globals:
     restore_value: true
     initial_value: "0"
   - id: trmnl_force_full_refresh
+    type: bool
+    restore_value: false
+    initial_value: "false"
+  - id: trmnl_display_refresh_enabled
     type: bool
     restore_value: false
     initial_value: "false"

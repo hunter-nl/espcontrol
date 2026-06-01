@@ -98,6 +98,11 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
             display_block = device.split("display:", 1)[1].split("\nlvgl:", 1)[0]
             assert "lambda: |-" not in display_block, f"{slug}: e-paper display still uses direct drawing lambda"
             assert "epaper_dashboard_render" not in device, f"{slug}: device.yaml still references direct renderer"
+            if slug == "trmnl-75-og":
+                assert "model: 7.50inv2p\n" in display_block, f"{slug}: display model must support partial refresh"
+                assert "trmnl_start_display_refreshes" in device, f"{slug}: boot must defer the first e-paper refresh"
+                assert "trmnl_display_refresh_enabled" in device, f"{slug}: display refresh gate is missing"
+                assert "delay: 75s" in sensors, f"{slug}: first e-paper refresh should wait until services have started"
         else:
             assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
 
