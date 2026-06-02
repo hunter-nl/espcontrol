@@ -32,8 +32,8 @@ substitutions:
   button_border_width: "1"
   padding: 9px
   radius: 2px
-  main_page_pad_top: "72"
-  main_page_compact_pad_top: "22"
+  main_page_pad_top: "50"
+  main_page_compact_pad_top: "0"
   main_page_pad_edge: "22"
 
 packages:
