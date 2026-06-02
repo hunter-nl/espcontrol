@@ -158,19 +158,17 @@ inline void apply_card_descendant_text_color(lv_obj_t *obj, lv_color_t color) {
   }
 }
 
-inline void sync_card_checked_text_color(lv_obj_t *btn, bool checked) {
+inline void sync_card_checked_text_color(lv_obj_t *btn) {
   if (!btn) return;
-  lv_style_selector_t selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-    static_cast<lv_style_selector_t>(checked ? LV_STATE_CHECKED : LV_STATE_DEFAULT);
   apply_card_descendant_text_color(
-    btn, lv_obj_get_style_text_color(btn, selector));
+    btn, lv_obj_get_style_text_color(btn, LV_PART_MAIN));
 }
 
 inline void set_card_checked_state(lv_obj_t *btn, bool checked) {
   if (!btn) return;
   if (checked) lv_obj_add_state(btn, LV_STATE_CHECKED);
   else lv_obj_clear_state(btn, LV_STATE_CHECKED);
-  sync_card_checked_text_color(btn, checked);
+  sync_card_checked_text_color(btn);
 }
 
 // Match the main-page button widget label behavior so longer titles wrap
