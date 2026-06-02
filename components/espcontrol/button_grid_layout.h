@@ -160,8 +160,13 @@ inline void apply_card_descendant_text_color(lv_obj_t *obj, lv_color_t color) {
 
 inline void sync_card_checked_text_color(lv_obj_t *btn) {
   if (!btn) return;
+  lv_style_selector_t selector = LV_PART_MAIN;
+  if (lv_obj_has_state(btn, LV_STATE_CHECKED)) {
+    selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+               static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
+  }
   apply_card_descendant_text_color(
-    btn, lv_obj_get_style_text_color(btn, LV_PART_MAIN));
+    btn, lv_obj_get_style_text_color(btn, selector));
 }
 
 inline void set_card_checked_state(lv_obj_t *btn, bool checked) {
