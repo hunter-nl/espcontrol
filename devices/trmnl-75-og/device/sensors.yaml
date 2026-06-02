@@ -351,9 +351,9 @@ script:
     then:
       - lambda: |-
           bool dark = id(screen_theme).current_option() == "Dark";
-          lv_color_t background = lv_color_hex(dark ? 0x000000 : 0xFFFFFF);
-          lv_color_t foreground = lv_color_hex(dark ? 0xFFFFFF : 0x000000);
-          lv_color_t checked_text = lv_color_hex(dark ? 0x000000 : 0xFFFFFF);
+          lv_color_t background = lv_color_hex(dark ? 0xFFFFFF : 0x000000);
+          lv_color_t foreground = lv_color_hex(dark ? 0x000000 : 0xFFFFFF);
+          lv_color_t checked_text = lv_color_hex(dark ? 0xFFFFFF : 0x000000);
 
           lv_obj_set_style_bg_color(id(main_page)->obj, background, LV_PART_MAIN);
           lv_obj_set_style_text_color(id(main_page)->obj, foreground, LV_PART_MAIN);
