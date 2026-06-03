@@ -767,7 +767,10 @@ function eventStreamEnabled() {
 }
 
 function cardStateEntities() {
-  return entityStateItems(ENTITY_CATALOG.groups.card)
+  var cardEntities = ENTITY_CATALOG.groups.card.filter(function (key) {
+    return key !== "screen_theme" || isEpaperPreview();
+  });
+  return entityStateItems(cardEntities)
     .concat(entityStateItemsForSlots(ENTITY_CATALOG.groups.card_slot));
 }
 

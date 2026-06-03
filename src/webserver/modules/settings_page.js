@@ -32,27 +32,27 @@ function buildSettingsPage(parent) {
 
   var appearBody = document.createElement("div");
 
-  var themeField = document.createElement("div");
-  themeField.className = "sp-field";
-  themeField.appendChild(fieldLabel("Theme", "sp-set-theme"));
-  var themeSelect = document.createElement("select");
-  themeSelect.className = "sp-select";
-  themeSelect.id = "sp-set-theme";
-  state.themeOptions.forEach(function (opt) {
-    var o = document.createElement("option");
-    o.value = opt;
-    o.textContent = opt;
-    themeSelect.appendChild(o);
-  });
-  themeSelect.value = normalizeTheme(state.theme);
-  themeSelect.addEventListener("change", function () {
-    applyThemePreset(this.value, true);
-  });
-  themeField.appendChild(themeSelect);
-  appearBody.appendChild(themeField);
-  els.setTheme = themeSelect;
-
-  if (!isEpaperPreview()) {
+  if (isEpaperPreview()) {
+    var themeField = document.createElement("div");
+    themeField.className = "sp-field";
+    themeField.appendChild(fieldLabel("Theme", "sp-set-theme"));
+    var themeSelect = document.createElement("select");
+    themeSelect.className = "sp-select";
+    themeSelect.id = "sp-set-theme";
+    state.themeOptions.forEach(function (opt) {
+      var o = document.createElement("option");
+      o.value = opt;
+      o.textContent = opt;
+      themeSelect.appendChild(o);
+    });
+    themeSelect.value = normalizeTheme(state.theme);
+    themeSelect.addEventListener("change", function () {
+      applyThemePreset(this.value, true);
+    });
+    themeField.appendChild(themeSelect);
+    appearBody.appendChild(themeField);
+    els.setTheme = themeSelect;
+  } else {
     appearBody.appendChild(fieldLabel("Primary"));
     var onColor = colorField("sp-set-on-color", "0073FF", function (hex) {
       postText(entityName("button_on_color"), hex);

@@ -46,6 +46,8 @@ function casesFromManifest() {
       name: `${orientation}-${slug}`,
       slug,
       viewport: viewportFor(aspect.ratio),
+      isEpaper: device.web && device.web.previewTheme === "epaper",
+      minVisibleCards: device.web && device.web.infoOnly ? 1 : 4,
       exerciseInteractions: slug === "guition-esp32-p4-jc8012p4a1",
     };
   });
@@ -171,14 +173,15 @@ function seededEvents() {
   return events;
 }
 
-function assertNoLayoutBreaks(result, label) {
+function assertNoLayoutBreaks(result, label, options = {}) {
+  const minVisibleCards = options.minVisibleCards || BUTTON_FIXTURES.length;
   assert(result.appVisible, `${label}: #sp-app should be visible`);
   assert(result.screenVisible, `${label}: .sp-screen should be visible`);
   assert(result.mainVisible, `${label}: .sp-main should be visible`);
   assert(result.applyVisible, `${label}: apply controls should be visible`);
   assert(result.gridChildren > 0, `${label}: grid should render cells`);
   assert(result.visibleGridChildren > 0, `${label}: grid cells should have visible size`);
-  assert(result.visibleCards >= BUTTON_FIXTURES.length, `${label}: seeded cards should render`);
+  assert(result.visibleCards >= minVisibleCards, `${label}: seeded cards should render`);
   assert.strictEqual(result.outsideGrid.length, 0, `${label}: grid children overflowed the preview: ${result.outsideGrid.join(", ")}`);
   assert.strictEqual(result.overlaps.length, 0, `${label}: grid children overlapped: ${result.overlaps.join(", ")}`);
   assert(
@@ -263,8 +266,8 @@ async function assertSettingsPage(page, label, options = {}) {
   const onColorVisible = await page.locator("#sp-set-on-color").isVisible();
   assert(settingsVisible, `${label}: settings page should be visible`);
   assert(appearanceVisible, `${label}: settings content should render`);
-  assert(themeVisible, `${label}: theme selector should render`);
-  assert(onColorVisible, `${label}: appearance controls should render`);
+  assert.strictEqual(themeVisible, !!options.isEpaper, `${label}: theme selector visibility should match display type`);
+  assert.strictEqual(onColorVisible, !options.isEpaper, `${label}: color controls visibility should match display type`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert(!overflow, `${label}: settings page has horizontal overflow`);
   await page.getByRole("tab", { name: "Screen" }).click();
@@ -272,7 +275,7 @@ async function assertSettingsPage(page, label, options = {}) {
 }
 
 async function assertEmptyCellSettings(page, label) {
-  const emptyCell = page.locator(".sp-empty-cell").first();
+  const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
   if ((await emptyCell.count()) === 0) return;
   await emptyCell.click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
@@ -573,9 +576,9 @@ async function runCase(browser, testCase) {
     await page.waitForTimeout(100);
 
     assert.deepStrictEqual(errors, [], `${testCase.name}: browser errors were reported`);
-    assertNoLayoutBreaks(await measureCoreLayout(page), testCase.name);
+    assertNoLayoutBreaks(await measureCoreLayout(page), testCase.name, testCase);
     await assertSettingsPage(page, testCase.name, testCase);
-    assertNoLayoutBreaks(await measureCoreLayout(page), `${testCase.name} after settings`);
+    assertNoLayoutBreaks(await measureCoreLayout(page), `${testCase.name} after settings`, testCase);
     await assertEmptyCellSettings(page, testCase.name);
     if (testCase.exerciseInteractions) {
       await assertBackupImportSmoke(page, posts, testCase.slug);

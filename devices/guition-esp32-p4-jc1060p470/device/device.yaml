@@ -122,10 +122,6 @@ esphome:
             if (id(button_on_color).state == "000000" &&
                 id(button_off_color).state == "FFFFFF" &&
                 id(sensor_card_color).state == "FFFFFF") {
-              auto theme = id(screen_theme).make_call();
-              theme.set_option("Dark");
-              theme.perform();
-
               auto on = id(button_on_color).make_call();
               on.set_value("FF8C00");
               on.perform();
@@ -138,7 +134,7 @@ esphome:
               sensor.set_value("212121");
               sensor.perform();
 
-              ESP_LOGI("jc1060p470", "Reset e-paper color defaults to color display theme");
+              ESP_LOGI("jc1060p470", "Reset e-paper color defaults to color display colors");
             }
 
 # ---------------------------------------------------------------------------

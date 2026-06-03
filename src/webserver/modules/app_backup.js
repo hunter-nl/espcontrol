@@ -197,7 +197,7 @@ function importConfig() {
         var importedMonthNames = importedSettings.monthNames;
         if (s.timezone) postSelect(entityName("screen_timezone"), importedTimezone);
         if (s.language) postSelect(entityName("screen_language"), importedLanguage);
-        if (s.theme) postSelect(entityName("screen_theme"), importedTheme);
+        if (s.theme && isEpaperPreview()) postSelect(entityName("screen_theme"), importedTheme);
         postSelect(entityName("screen_temperature_unit"), importedTemperatureUnit);
         if (s.clock_format) postSelect(entityName("screen_clock_format"), importedClockFormat);
         if (hasNtpServer1) {

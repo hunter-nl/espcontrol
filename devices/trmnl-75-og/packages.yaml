@@ -49,6 +49,7 @@ packages:
   fonts_device:    !include device/fonts.yaml
   button_theme:    !include ../../common/theme/button.yaml
   colors:          !include ../../common/config/colors.yaml
+  theme:           !include ../../common/config/theme.yaml
   button_order:    !include ../../common/config/button_order.yaml
   btn_1:           !include { file: ../../common/config/button_template.yaml, vars: { num: "1" } }
   btn_2:           !include { file: ../../common/config/button_template.yaml, vars: { num: "2" } }
