@@ -28,8 +28,9 @@ script:
     then:
       - lambda: |-
           bool enabled = id(clock_bar_enabled).state;
-          bool cover_art_active = id(cover_art_screensaver_active);
-          bool visible = enabled && !cover_art_active;
+          bool fullscreen_screensaver_active =
+              id(is_clock_showing) || id(cover_art_screensaver_active);
+          bool visible = enabled && !fullscreen_screensaver_active;
           bool show_network = visible && id(network_status_enabled).state;
           lv_obj_set_style_pad_top(
             id(main_page)->obj,
@@ -105,14 +106,18 @@ switch:
     on_turn_on:
       - lambda: |-
           refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                    id(clock_bar_enabled).state,
+                                    id(clock_bar_enabled).state &&
+                                      !id(is_clock_showing) &&
+                                      !id(cover_art_screensaver_active),
                                     id(indoor_temp_enable).state,
                                     id(outdoor_temp_enable).state,
                                     id(indoor_temp), id(outdoor_temp));
     on_turn_off:
       - lambda: |-
           refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                    id(clock_bar_enabled).state,
+                                    id(clock_bar_enabled).state &&
+                                      !id(is_clock_showing) &&
+                                      !id(cover_art_screensaver_active),
                                     id(indoor_temp_enable).state,
                                     id(outdoor_temp_enable).state,
                                     id(indoor_temp), id(outdoor_temp));
@@ -130,14 +135,18 @@ switch:
     on_turn_on:
       - lambda: |-
           refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                    id(clock_bar_enabled).state,
+                                    id(clock_bar_enabled).state &&
+                                      !id(is_clock_showing) &&
+                                      !id(cover_art_screensaver_active),
                                     id(indoor_temp_enable).state,
                                     id(outdoor_temp_enable).state,
                                     id(indoor_temp), id(outdoor_temp));
     on_turn_off:
       - lambda: |-
           refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                    id(clock_bar_enabled).state,
+                                    id(clock_bar_enabled).state &&
+                                      !id(is_clock_showing) &&
+                                      !id(cover_art_screensaver_active),
                                     id(indoor_temp_enable).state,
                                     id(outdoor_temp_enable).state,
                                     id(indoor_temp), id(outdoor_temp));
@@ -156,7 +165,9 @@ switch:
       - lambda: |-
           set_display_temperature_degree_symbol(true);
           refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                    id(clock_bar_enabled).state,
+                                    id(clock_bar_enabled).state &&
+                                      !id(is_clock_showing) &&
+                                      !id(cover_art_screensaver_active),
                                     id(indoor_temp_enable).state,
                                     id(outdoor_temp_enable).state,
                                     id(indoor_temp), id(outdoor_temp));
@@ -164,7 +175,9 @@ switch:
       - lambda: |-
           set_display_temperature_degree_symbol(false);
           refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                    id(clock_bar_enabled).state,
+                                    id(clock_bar_enabled).state &&
+                                      !id(is_clock_showing) &&
+                                      !id(cover_art_screensaver_active),
                                     id(indoor_temp_enable).state,
                                     id(outdoor_temp_enable).state,
                                     id(indoor_temp), id(outdoor_temp));
@@ -331,7 +344,9 @@ select:
                                          id(timezone_select).current_option());
             refresh_temperature_unit_labels();
             refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                      id(clock_bar_enabled).state,
+                                      id(clock_bar_enabled).state &&
+                                        !id(is_clock_showing) &&
+                                        !id(cover_art_screensaver_active),
                                       id(indoor_temp_enable).state,
                                       id(outdoor_temp_enable).state,
                                       id(indoor_temp), id(outdoor_temp));

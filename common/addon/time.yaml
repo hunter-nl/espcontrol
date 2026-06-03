@@ -187,7 +187,9 @@ select:
                                          id(timezone_select).current_option());
             refresh_temperature_unit_labels();
             refresh_temp_label_values(id(temperatures), id(main_page)->obj,
-                                      id(clock_bar_enabled).state,
+                                      id(clock_bar_enabled).state &&
+                                        !id(is_clock_showing) &&
+                                        !id(cover_art_screensaver_active),
                                       id(indoor_temp_enable).state,
                                       id(outdoor_temp_enable).state,
                                       id(indoor_temp), id(outdoor_temp));
