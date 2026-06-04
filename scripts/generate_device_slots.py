@@ -585,6 +585,9 @@ def phase2_block(device: dict) -> str:
 
 
 def script_block(device: dict) -> str:
+    after_refresh = []
+    if device["slug"] == "esp32-p4-86":
+        after_refresh.append("      - script.execute: clock_bar_apply")
     return "\n".join(
         [
             "script:",
@@ -595,6 +598,7 @@ def script_block(device: dict) -> str:
             "          grid_refresh_layout(slots, cfg,",
             "            id(button_order).state,",
             "            id(main_page)->obj);",
+            *after_refresh,
             "",
         ]
     )
@@ -629,6 +633,7 @@ def replace_script_block(text: str, device: dict) -> str:
         r"^            id\(sensor_card_color\)\.state,\n"
         r"))?"
         r"^            id\(main_page\)->obj\);\n"
+        r"(?:^      - script\.execute: clock_bar_apply\n)*"
         r"^\n?"
     )
     if marker.search(text):

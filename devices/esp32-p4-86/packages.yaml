@@ -28,7 +28,7 @@ substitutions:
   sensor_value_font: font_number_value
   padding: 21px
   radius: 12px
-  main_page_pad_top: "70"
+  main_page_pad_top: "60"
   main_page_compact_pad_top: "6"
   clock_font_size: "224"
   clock_cx: "360"

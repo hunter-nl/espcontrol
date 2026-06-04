@@ -84,6 +84,7 @@ script:
           grid_refresh_layout(slots, cfg,
             id(button_order).state,
             id(main_page)->obj);
+      - script.execute: clock_bar_apply
 esphome:
   on_boot:
     - priority: -100
@@ -288,6 +289,7 @@ esphome:
               id(button_off_color).state,
               id(sensor_card_color).state,
               id(main_page)->obj);
+        - script.execute: clock_bar_apply
         - script.execute: time_update
         - delay: 100ms
 

@@ -441,7 +441,7 @@
           "fontSize": 3.75
         },
         "grid": {
-          "top": 9.72,
+          "top": 8.33,
           "compactTop": 0.83,
           "left": 1.04,
           "right": 1.04,
@@ -516,7 +516,7 @@
             "sensor_value_font": "font_number_value",
             "padding": "21px",
             "radius": "12px",
-            "main_page_pad_top": "\"70\"",
+            "main_page_pad_top": "\"60\"",
             "main_page_compact_pad_top": "\"6\"",
             "clock_font_size": "\"224\"",
             "clock_cx": "\"360\"",

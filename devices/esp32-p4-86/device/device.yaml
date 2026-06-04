@@ -107,6 +107,7 @@ esphome:
       then:
         - lambda: 'id(screen_rotation_ready) = true;'
         - script.execute: apply_screen_rotation
+        - script.execute: clock_bar_apply
 
 # ---------------------------------------------------------------------------
 # PSRAM (video frame buffer memory)
@@ -345,3 +346,4 @@ select:
               lambda: 'return id(screen_rotation_ready);'
             then:
               - script.execute: apply_screen_rotation
+              - script.execute: clock_bar_apply
