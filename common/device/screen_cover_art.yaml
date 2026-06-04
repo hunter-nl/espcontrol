@@ -868,8 +868,8 @@ script:
           condition:
             lambda: 'return id(cover_art_transition_from_ui);'
           then:
-            - script.execute: backlight_fade_current_ui_to_black_300ms
-            - script.wait: backlight_fade_current_ui_to_black_300ms
+            - script.execute: backlight_fade_current_ui_to_black_for_mode_switch
+            - script.wait: backlight_fade_current_ui_to_black_for_mode_switch
       - globals.set:
           id: display_asleep
           value: 'true'
@@ -925,8 +925,8 @@ script:
           condition:
             lambda: 'return id(cover_art_transition_from_ui);'
           then:
-            - script.execute: backlight_fade_saved_level_from_black_300ms
-            - script.wait: backlight_fade_saved_level_from_black_300ms
+            - script.execute: backlight_fade_saved_level_from_black_for_mode_switch
+            - script.wait: backlight_fade_saved_level_from_black_for_mode_switch
             - globals.set:
                 id: cover_art_transition_from_ui
                 value: 'false'
