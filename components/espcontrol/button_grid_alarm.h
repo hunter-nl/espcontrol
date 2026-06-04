@@ -124,7 +124,7 @@ inline const char *alarm_card_icon(const ParsedCfg &p) {
 
 inline void setup_alarm_card(BtnSlot &s, const ParsedCfg &p) {
   lv_label_set_text(s.icon_lbl, alarm_card_icon(p));
-  lv_label_set_text(s.text_lbl, p.label.empty() ? "Alarm" : p.label.c_str());
+  lv_label_set_text(s.text_lbl, p.label.empty() ? espcontrol_i18n("Alarm") : p.label.c_str());
 }
 
 inline bool alarm_pin_arm_required(const std::string &options) {
@@ -162,10 +162,10 @@ inline bool alarm_action_requires_pin(const std::string &options, const std::str
 }
 
 inline const char *alarm_action_label(const std::string &mode) {
-  if (mode == "away") return "Arm Away";
-  if (mode == "home") return "Arm Home";
-  if (mode == "disarm") return "Disarm";
-  return "Alarm";
+  if (mode == "away") return espcontrol_i18n("Arm Away");
+  if (mode == "home") return espcontrol_i18n("Arm Home");
+  if (mode == "disarm") return espcontrol_i18n("Disarm");
+  return espcontrol_i18n("Alarm");
 }
 
 inline const char *alarm_action_icon(const std::string &mode) {
@@ -186,24 +186,24 @@ inline const char *alarm_action_service(const std::string &mode) {
 }
 
 inline const char *alarm_control_button_label(const std::string &mode) {
-  if (mode == "home") return "Home";
-  if (mode == "away") return "Away";
-  if (mode == "disarm") return "Disarmed";
+  if (mode == "home") return espcontrol_i18n("Home");
+  if (mode == "away") return espcontrol_i18n("Away");
+  if (mode == "disarm") return espcontrol_i18n("Disarmed");
   return alarm_action_label(mode);
 }
 
 inline std::string alarm_state_label(const std::string &state) {
-  if (state.empty()) return "Unavailable";
-  if (state == "disarmed") return "Disarmed";
-  if (state == "armed_away") return "Armed Away";
-  if (state == "armed_home") return "Armed Home";
-  if (state == "armed_night") return "Armed Night";
-  if (state == "armed_custom_bypass") return "Armed Custom";
-  if (state == "arming") return "Arming";
-  if (state == "pending") return "Pending";
-  if (state == "triggered") return "Triggered";
-  if (state == "unavailable") return "Unavailable";
-  if (state == "unknown") return "Unknown";
+  if (state.empty()) return espcontrol_i18n(std::string("Unavailable"));
+  if (state == "disarmed") return espcontrol_i18n(std::string("Disarmed"));
+  if (state == "armed_away") return espcontrol_i18n(std::string("Armed Away"));
+  if (state == "armed_home") return espcontrol_i18n(std::string("Armed Home"));
+  if (state == "armed_night") return espcontrol_i18n(std::string("Armed Night"));
+  if (state == "armed_custom_bypass") return espcontrol_i18n(std::string("Armed Custom"));
+  if (state == "arming") return espcontrol_i18n(std::string("Arming"));
+  if (state == "pending") return espcontrol_i18n(std::string("Pending"));
+  if (state == "triggered") return espcontrol_i18n(std::string("Triggered"));
+  if (state == "unavailable") return espcontrol_i18n(std::string("Unavailable"));
+  if (state == "unknown") return espcontrol_i18n(std::string("Unknown"));
   return sentence_cap_text(state);
 }
 
@@ -426,8 +426,7 @@ inline void alarm_apply_home_state(AlarmCardCtx *ctx, const std::string &state) 
   bool triggered = state == "triggered";
   bool active = alarm_state_is_active(state) || triggered;
   alarm_set_card_state_colors(ctx, triggered ? ALARM_TRIGGERED_COLOR : ctx->on_color);
-  if (active) lv_obj_add_state(ctx->btn, LV_STATE_CHECKED);
-  else lv_obj_clear_state(ctx->btn, LV_STATE_CHECKED);
+  set_card_checked_state(ctx->btn, active);
 
   alarm_apply_card_status_icon(ctx);
   transient_status_label_show_if_changed(
@@ -494,8 +493,7 @@ inline void alarm_apply_action_state(AlarmCardCtx *ctx, const std::string &mode,
   ctx->state = state;
   bool unavailable = state.empty() || state == "unavailable" || state == "unknown";
   bool active = !unavailable && alarm_action_state_matches(mode, state, ctx->arm_mode);
-  if (active) lv_obj_add_state(ctx->btn, LV_STATE_CHECKED);
-  else lv_obj_clear_state(ctx->btn, LV_STATE_CHECKED);
+  set_card_checked_state(ctx->btn, active);
   alarm_clear_pending_action_if_progressed(ctx);
 }
 
@@ -505,8 +503,7 @@ inline void alarm_apply_action_arm_mode(AlarmCardCtx *ctx, const std::string &mo
   ctx->arm_mode = arm_mode;
   bool unavailable = ctx->state.empty() || ctx->state == "unavailable" || ctx->state == "unknown";
   bool active = !unavailable && alarm_action_state_matches(mode, ctx->state, ctx->arm_mode);
-  if (active) lv_obj_add_state(ctx->btn, LV_STATE_CHECKED);
-  else lv_obj_clear_state(ctx->btn, LV_STATE_CHECKED);
+  set_card_checked_state(ctx->btn, active);
   alarm_clear_pending_action_if_progressed(ctx);
 }
 
@@ -589,7 +586,7 @@ inline void alarm_show_failure(AlarmCardCtx *ctx, const std::string &message) {
   ui.box = shell.box;
 
   lv_obj_t *label = lv_label_create(ui.box);
-  lv_label_set_text(label, message.empty() ? "Alarm action failed" : message.c_str());
+  lv_label_set_text(label, message.empty() ? espcontrol_i18n("Alarm action failed") : espcontrol_i18n(message).c_str());
   if (ctx && ctx->label_font) lv_obj_set_style_text_font(label, ctx->label_font, LV_PART_MAIN);
   lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
@@ -781,7 +778,7 @@ inline void alarm_pin_update_display() {
   AlarmPinModalUi &ui = alarm_pin_modal_ui();
   if (!ui.pin_lbl) return;
   if (ui.pin.empty()) {
-    lv_label_set_text(ui.pin_lbl, "Enter Pin");
+    lv_label_set_text(ui.pin_lbl, espcontrol_i18n("Enter Pin"));
     return;
   }
   std::string masked(ui.pin.size(), '*');
@@ -1063,7 +1060,7 @@ inline void alarm_control_create_arming_view(AlarmControlModalUi &ui,
   }
 
   ui.arming_title = lv_label_create(ui.arming_view);
-  lv_label_set_text(ui.arming_title, "Arming");
+  lv_label_set_text(ui.arming_title, espcontrol_i18n("Arming"));
   lv_obj_set_style_text_color(ui.arming_title, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
   lv_obj_set_style_text_align(ui.arming_title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (title_font) lv_obj_set_style_text_font(ui.arming_title, title_font, LV_PART_MAIN);
@@ -1087,7 +1084,7 @@ inline void alarm_control_create_arming_view(AlarmControlModalUi &ui,
   if (disarm_h < 44) disarm_h = 44;
   if (disarm_h > layout.panel_h / 8) disarm_h = layout.panel_h / 8;
   ui.arming_disarm_btn = control_modal_create_round_button(
-    ui.arming_view, disarm_h, "Disarm", label_font,
+    ui.arming_view, disarm_h, espcontrol_i18n("Disarm"), label_font,
     ctx ? ctx->on_color : DEFAULT_SLIDER_COLOR,
     ctx ? ctx->on_color : DEFAULT_SLIDER_COLOR,
     ctx ? ctx->width_compensation_percent : 100);
@@ -1226,7 +1223,7 @@ inline AlarmCardCtx *create_alarm_card_context(
     bool build_default_page = false) {
   AlarmCardCtx *ctx = new AlarmCardCtx();
   ctx->entity_id = p.entity;
-  ctx->label = p.label.empty() ? "Alarm" : p.label;
+  ctx->label = p.label.empty() ? espcontrol_i18n(std::string("Alarm")) : p.label;
   ctx->options = p.options;
   ctx->btn = slot.btn;
   ctx->icon_lbl = slot.icon_lbl;
@@ -1276,7 +1273,7 @@ inline AlarmCardCtx *create_alarm_card_context(
   apply_width_compensation(back_slot.icon_lbl, width_compensation_percent);
   apply_slot_text_width_compensation(back_slot, width_compensation_percent);
   lv_label_set_text(back_slot.icon_lbl, "\U000F0141");
-  lv_label_set_text(back_slot.text_lbl, "Back");
+  lv_label_set_text(back_slot.text_lbl, espcontrol_i18n("Back"));
   lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
     lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_user_data(e));
     if (target) lv_scr_load_anim(target, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);

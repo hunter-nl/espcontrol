@@ -38,6 +38,35 @@ substitutions:
   network_package_suffix: ${ "_ethernet" if network_transport == "ethernet" else "" }
   firmware_update_package_suffix: ${ "_disabled" if disable_updates == "true" else "" }
   backlight_pwm_frequency: ${ "20000Hz" if network_transport == "ethernet" else "100Hz" }
+  cover_art_size: "720"
+  cover_art_x: "0"
+  cover_art_y: "0"
+  cover_art_accent_x: "0"
+  cover_art_accent_y: "0"
+  cover_art_accent_width: "720"
+  cover_art_accent_height: "720"
+  cover_art_accent_bg_opa: "80%"
+  cover_art_accent_opa: "80%"
+  cover_art_panel_x: "0"
+  cover_art_panel_y: "0"
+  cover_art_panel_width: "720"
+  cover_art_panel_height: "720"
+  cover_art_panel_pad_top: "36"
+  cover_art_panel_pad_bottom: "24"
+  cover_art_panel_pad_left: "36"
+  cover_art_panel_pad_right: "36"
+  cover_art_panel_pad_row: "0"
+  cover_art_title_font: "font_cover_art_title"
+  cover_art_title_max_height: "495"
+  cover_art_title_line_space: "0"
+  cover_art_artist_font: "font_cover_art_artist"
+  cover_art_artist_pad_top: "9"
+  cover_art_artist_long_mode: "dot"
+  cover_art_time_font: "font_cover_art_time"
+  cover_art_time_pad_top: "18"
+  cover_art_progress_width: "720"
+  cover_art_text_color: "0xFFFFFF"
+  cover_art_square_overlay: "true"
 
 packages:
   # ---------------------------------------------------------------------------
@@ -89,6 +118,7 @@ packages:
   screen_ha_act:   !include ../../common/device/screen_ha_actions.yaml
   screen_setup:    !include ../../common/device/screen_button_setup.yaml
   screen_clock:    !include ../../common/device/screen_clock.yaml
+  screen_art:      !include ../../common/device/screen_cover_art.yaml
   # ---------------------------------------------------------------------------
   # Main page and dynamic sensor subscriptions (after setup screens)
   # ---------------------------------------------------------------------------

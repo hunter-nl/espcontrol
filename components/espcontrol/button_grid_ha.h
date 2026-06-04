@@ -98,11 +98,28 @@ inline bool ha_subscribe_state(const std::string &entity_id,
   return true;
 }
 
+inline bool ha_get_state(const std::string &entity_id,
+                         HomeAssistantStateCallback callback) {
+  if (!ha_api_available() || entity_id.empty()) return false;
+  esphome::api::global_api_server->get_home_assistant_state(
+    entity_id, {}, std::move(callback));
+  return true;
+}
+
 inline bool ha_subscribe_attribute(const std::string &entity_id,
                                    const std::string &attribute,
                                    HomeAssistantStateCallback callback) {
   if (!ha_api_available() || entity_id.empty()) return false;
   esphome::api::global_api_server->subscribe_home_assistant_state(
+    entity_id, attribute, std::move(callback));
+  return true;
+}
+
+inline bool ha_get_attribute(const std::string &entity_id,
+                             const std::string &attribute,
+                             HomeAssistantStateCallback callback) {
+  if (!ha_api_available() || entity_id.empty()) return false;
+  esphome::api::global_api_server->get_home_assistant_state(
     entity_id, attribute, std::move(callback));
   return true;
 }

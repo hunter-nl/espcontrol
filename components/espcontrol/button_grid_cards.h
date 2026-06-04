@@ -101,7 +101,7 @@ inline const char *calendar_month_name(int month) {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   };
-  if (month < 1 || month > 12) return "Date";
+  if (month < 1 || month > 12) return espcontrol_i18n("Date");
   const std::string &custom = calendar_custom_month_names()[month - 1];
   if (!custom.empty()) return custom.c_str();
   return months[month - 1];
@@ -113,7 +113,7 @@ inline void apply_calendar_card_text(const CalendarCardRef &ref,
   char label_buf[32];
   const char *value_text = "--";
   const char *unit_text = "";
-  const char *label_text = "Date";
+  const char *label_text = espcontrol_i18n("Date");
 
   if (ref.show_time) {
     if (state.time_valid &&
@@ -295,14 +295,14 @@ inline void reset_timezone_cards() {
 
 inline std::string timezone_city_label(const std::string &tz_option) {
   std::string tz_id = timezone_id_from_option(tz_option);
-  if (tz_id.empty()) return "World Clock";
+  if (tz_id.empty()) return espcontrol_i18n("World Clock");
   if (tz_id == "UTC") return "UTC";
   size_t slash = tz_id.rfind('/');
   std::string city = slash == std::string::npos ? tz_id : tz_id.substr(slash + 1);
   for (char &ch : city) {
     if (ch == '_') ch = ' ';
   }
-  return city.empty() ? std::string("World Clock") : city;
+  return city.empty() ? espcontrol_i18n(std::string("World Clock")) : city;
 }
 
 inline void set_posix_timezone_for_epoch(const std::string &tz_option, time_t epoch) {
@@ -395,7 +395,7 @@ inline void setup_calendar_card(BtnSlot &s, const ParsedCfg &p,
   lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(s.sensor_lbl, "--");
   lv_label_set_text(s.unit_lbl, "");
-  lv_label_set_text(s.text_lbl, "Date");
+  lv_label_set_text(s.text_lbl, espcontrol_i18n("Date"));
   register_calendar_card(s.sensor_lbl, s.unit_lbl, s.text_lbl, calendar_card_shows_time(p));
 }
 
@@ -441,7 +441,7 @@ inline void setup_weather_card(BtnSlot &s, bool has_sensor_color, uint32_t senso
   lv_label_set_text(s.icon_lbl, find_icon("Weather Cloudy"));
   lv_label_set_text(s.sensor_lbl, "");
   lv_label_set_text(s.unit_lbl, "");
-  lv_label_set_text(s.text_lbl, "Cloudy");
+  lv_label_set_text(s.text_lbl, espcontrol_i18n("Cloudy"));
 }
 
 inline bool weather_card_shows_forecast(const ParsedCfg &p) {
@@ -467,7 +467,7 @@ inline void setup_weather_forecast_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_text(s.unit_lbl, display_temperature_unit_symbol());
   std::string day = weather_card_forecast_day(p);
   std::string label = p.label.empty()
-    ? (day == "today" ? "Today" : "Tomorrow")
+    ? (day == "today" ? espcontrol_i18n(std::string("Today")) : espcontrol_i18n(std::string("Tomorrow")))
     : p.label;
   lv_label_set_text(s.text_lbl, label.c_str());
   apply_width_compensation(s.sensor_container, width_compensation_percent);
@@ -560,13 +560,16 @@ inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
       apply_push_button_transition(s.btn);
     }
     if (p.type == "push" && p.label.empty()) {
-      lv_label_set_text(s.text_lbl, "Push");
+      lv_label_set_text(s.text_lbl, espcontrol_i18n("Push"));
     }
   }
 }
 
 inline void setup_action_card(BtnSlot &s, const ParsedCfg &p) {
-  lv_label_set_text(s.text_lbl, p.label.empty() ? (p.entity.empty() ? "Action" : p.entity.c_str()) : p.label.c_str());
+  std::string action_label = p.label.empty()
+    ? (p.entity.empty() ? espcontrol_i18n(std::string("Action")) : p.entity)
+    : p.label;
+  lv_label_set_text(s.text_lbl, action_label.c_str());
   const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Flash") : find_icon(p.icon.c_str());
   lv_label_set_text(s.icon_lbl, icon_cp);
   if (action_card_state_icon_mode(p) || action_card_state_text_mode(p)) {
@@ -616,7 +619,9 @@ inline void setup_door_window_card(BtnSlot &s, const ParsedCfg &p,
   lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(s.icon_lbl, door_window_closed_icon(p));
   std::string label = p.label.empty()
-    ? (normalize_door_window_subtype(p.precision) == "window" ? "Window" : "Door")
+    ? (normalize_door_window_subtype(p.precision) == "window"
+        ? espcontrol_i18n(std::string("Window"))
+        : espcontrol_i18n(std::string("Door")))
     : p.label;
   lv_label_set_text(s.text_lbl, label.c_str());
 }
@@ -641,7 +646,7 @@ inline void setup_presence_card(BtnSlot &s, const ParsedCfg &p,
   lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(s.icon_lbl, presence_clear_icon(p));
-  std::string label = p.label.empty() ? "Presence" : p.label;
+  std::string label = p.label.empty() ? espcontrol_i18n(std::string("Presence")) : p.label;
   lv_label_set_text(s.text_lbl, label.c_str());
 }
 
@@ -685,7 +690,8 @@ inline void setup_subpage_parent_state_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_text(s.sensor_lbl, "--");
   std::string unit = trim_display_unit(p.unit);
   lv_label_set_text(s.unit_lbl, unit.c_str());
-  lv_label_set_text(s.text_lbl, p.label.empty() ? "Subpage" : p.label.c_str());
+  std::string subpage_label = p.label.empty() ? espcontrol_i18n(std::string("Subpage")) : p.label;
+  lv_label_set_text(s.text_lbl, subpage_label.c_str());
   set_subpage_chevron_visible(
     s, subpage_chevron_enabled, subpage_chevron_x, subpage_chevron_y,
     subpage_chevron_text_width_percent);

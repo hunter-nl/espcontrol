@@ -96,8 +96,11 @@
 
     r.setProperty("--btn-r", scaledCqw(btn.radius, scale));
     r.setProperty("--btn-pad", scaledCqw(btn.padding, scale));
+    if (btn.borderWidth != null) r.setProperty("--btn-border", scaledCqw(btn.borderWidth, scale));
+    else r.removeProperty("--btn-border");
     r.setProperty("--btn-icon", scaledCqw(btn.iconSize, scale));
     r.setProperty("--btn-label", scaledCqw(btn.labelSize, scale));
+    r.setProperty("--btn-label-weight", String(btn.labelWeight || 400));
     r.setProperty("--btn-lines", String(btn.labelLines || 1));
     r.setProperty("--btn-lines-dbl", String(btn.labelLinesDouble || btn.labelLines || 1));
 

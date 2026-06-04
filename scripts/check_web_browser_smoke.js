@@ -46,6 +46,8 @@ function casesFromManifest() {
       name: `${orientation}-${slug}`,
       slug,
       viewport: viewportFor(aspect.ratio),
+      isEpaper: device.web && device.web.previewTheme === "epaper",
+      minVisibleCards: device.web && device.web.infoOnly ? 1 : 4,
       exerciseInteractions: slug === "guition-esp32-p4-jc8012p4a1",
     };
   });
@@ -156,8 +158,16 @@ function seededEvents() {
     { id: "text-sensor_card_color", state: "DEDEDE" },
     { id: "select-screen__theme", state: "Light", value: "Light", option: ["Light", "Dark"] },
     { id: "switch-screen__clock_bar", state: "ON", value: true },
+    { id: "switch-screen__clock_bar_time", state: "ON", value: true },
     { id: "switch-screen__network_status_icon", state: "ON", value: true },
+    { id: "switch-indoor_temp_enable", state: "ON", value: true },
+    { id: "switch-outdoor_temp_enable", state: "ON", value: true },
+    { id: "text-indoor_temp_entity", state: "sensor.indoor_temperature" },
+    { id: "text-outdoor_temp_entity", state: "sensor.outdoor_temperature" },
+    { id: "select-screen__temperature_unit", state: "Auto", value: "Auto", option: ["Auto", "°C", "°F"] },
+    { id: "switch-screen__temperature_degree_symbol", state: "ON", value: true },
     { id: "select-screen__timezone", state: "Europe/London (GMT+0)", value: "Europe/London (GMT+0)", option: ["Europe/London (GMT+0)", "America/New_York (GMT-5)"] },
+    { id: "select-screen__language", state: "en", value: "en", option: ["en"] },
     { id: "select-screen__clock_format", state: "24h", value: "24h", option: ["12h", "24h"] },
     { id: "select-screen__rotation", state: "0", value: "0", option: ["0", "90", "180", "270"] },
     { id: "number-screensaver_timeout", state: "300", value: 300, min: 10, max: 3600 },
@@ -170,14 +180,15 @@ function seededEvents() {
   return events;
 }
 
-function assertNoLayoutBreaks(result, label) {
+function assertNoLayoutBreaks(result, label, options = {}) {
+  const minVisibleCards = options.minVisibleCards || BUTTON_FIXTURES.length;
   assert(result.appVisible, `${label}: #sp-app should be visible`);
   assert(result.screenVisible, `${label}: .sp-screen should be visible`);
   assert(result.mainVisible, `${label}: .sp-main should be visible`);
   assert(result.applyVisible, `${label}: apply controls should be visible`);
   assert(result.gridChildren > 0, `${label}: grid should render cells`);
   assert(result.visibleGridChildren > 0, `${label}: grid cells should have visible size`);
-  assert(result.visibleCards >= BUTTON_FIXTURES.length, `${label}: seeded cards should render`);
+  assert(result.visibleCards >= minVisibleCards, `${label}: seeded cards should render`);
   assert.strictEqual(result.outsideGrid.length, 0, `${label}: grid children overflowed the preview: ${result.outsideGrid.join(", ")}`);
   assert.strictEqual(result.overlaps.length, 0, `${label}: grid children overlapped: ${result.overlaps.join(", ")}`);
   assert(
@@ -262,8 +273,8 @@ async function assertSettingsPage(page, label, options = {}) {
   const onColorVisible = await page.locator("#sp-set-on-color").isVisible();
   assert(settingsVisible, `${label}: settings page should be visible`);
   assert(appearanceVisible, `${label}: settings content should render`);
-  assert(themeVisible, `${label}: theme selector should render`);
-  assert(onColorVisible, `${label}: appearance controls should render`);
+  assert.strictEqual(themeVisible, !!options.isEpaper, `${label}: theme selector visibility should match display type`);
+  assert.strictEqual(onColorVisible, !options.isEpaper, `${label}: color controls visibility should match display type`);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert(!overflow, `${label}: settings page has horizontal overflow`);
   await page.getByRole("tab", { name: "Screen" }).click();
@@ -271,7 +282,7 @@ async function assertSettingsPage(page, label, options = {}) {
 }
 
 async function assertEmptyCellSettings(page, label) {
-  const emptyCell = page.locator(".sp-empty-cell").first();
+  const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
   if ((await emptyCell.count()) === 0) return;
   await emptyCell.click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
@@ -360,9 +371,11 @@ function backupFixture(device, slots) {
       outdoor_temp_entity: "sensor.outdoor_temperature",
       temperature_unit: "°C",
       clock_bar: true,
+      clock_bar_time: true,
       network_status_icon: true,
       temperature_degree_symbol: true,
       timezone: "Europe/London (GMT+0)",
+      language: "en",
       clock_format: "24h",
       ntp_server_1: "pool.ntp.org",
       ntp_server_2: "time.nist.gov",
@@ -461,12 +474,14 @@ async function assertBackupImportSmoke(page, posts, slug) {
   await importBackup(page, backupFixture(slug, 20), "same-device-backup");
   await page.waitForSelector(".sp-banner.sp-success");
   assert((await page.locator(".sp-banner").textContent()).includes("Configuration imported successfully"), "same-device import succeeds");
-  await waitForPost(posts, { domain: "text", name: "Button On Color", action: "set", value: "AA5500" }, "backup color import", before);
-  await waitForPost(posts, { domain: "text", name: "Button 3 Config", action: "set" }, "backup subpage button config", before);
+  await waitForPost(posts, { domain: "text", name: "button_on_color", action: "set", value: "AA5500" }, "backup color import", before);
+  await waitForPost(posts, { domain: "text", name: "button_3_config", action: "set" }, "backup subpage button config", before);
   await waitForPost(posts, { domain: "text", name: "Subpage 3 Config", action: "set" }, "backup subpage config", before);
-  await waitForPost(posts, { domain: "select", name: "Screen: Timezone", action: "set", option: "Europe/London (GMT+0)" }, "backup timezone import", before);
+  await waitForPost(posts, { domain: "select", name: "screen__timezone", action: "set", option: "Europe/London (GMT+0)" }, "backup timezone import", before);
+  await waitForPost(posts, { domain: "select", name: "screen__language", action: "set", option: "en" }, "backup language import", before);
+  await waitForPost(posts, { domain: "switch", name: "screen__clock_bar_time", action: "turn_on" }, "backup clock bar time import", before);
   await waitForPost(posts, { domain: "number", name: "Screen: Daytime Brightness", action: "set", value: "88" }, "backup brightness import", before);
-  await waitForPost(posts, { domain: "select", name: "Screen: Rotation", action: "set", option: "90" }, "backup rotation import", before);
+  await waitForPost(posts, { domain: "select", name: "screen__rotation", action: "set", option: "90" }, "backup rotation import", before);
 
   await importBackup(page, "{", "invalid-backup");
   await page.waitForSelector(".sp-banner.sp-error");
@@ -497,7 +512,7 @@ async function assertEditAndApplySmoke(page, posts, errors) {
   await page.waitForSelector("#sp-screen.sp-page.active");
 
   await page.locator('.sp-main [data-slot="1"]').click();
-  await page.getByRole("button", { name: /Edit/ }).click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
   const switchSuggestions = await entitySuggestionValues(page, "#sp-inp-entity");
   assert(switchSuggestions.includes("light.kitchen"), "switch card suggestions include a recently used light");
   assert(!switchSuggestions.includes("sensor.energy"), "switch card suggestions exclude recently used sensors");
@@ -507,29 +522,29 @@ async function assertEditAndApplySmoke(page, posts, errors) {
   await page.getByRole("button", { name: "Save" }).click();
   await waitForPost(posts, {
     domain: "text",
-    name: "Button 1 Config",
+    name: "button_1_config",
     action: "set",
     value: "switch.kitchen_main;Kitchen Main;Lightbulb;Lightbulb",
   }, "switch card edit", before);
 
   await page.locator('.sp-main [data-slot="2"]').click();
-  await page.getByRole("button", { name: /Edit/ }).click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.locator("#sp-inp-label").fill("Energy Usage");
   await page.getByRole("button", { name: "Save" }).click();
   await waitForPost(posts, {
     domain: "text",
-    name: "Button 2 Config",
+    name: "button_2_config",
     action: "set",
     value: "sensor.energy;Energy Usage;Gauge;Auto;sensor.energy;W;sensor;0",
   }, "sensor card edit", before);
 
   await page.locator('.sp-main [data-slot="4"]').click();
-  await page.getByRole("button", { name: /Edit/ }).click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.locator("#sp-inp-label").fill("Living Media");
   await page.getByRole("button", { name: "Save" }).click();
   await waitForPost(posts, {
     domain: "text",
-    name: "Button 4 Config",
+    name: "button_4_config",
     action: "set",
   }, "media card edit", before);
 
@@ -540,6 +555,64 @@ async function assertEditAndApplySmoke(page, posts, errors) {
     action: "press",
   }, "apply configuration", before);
   assert.deepStrictEqual(errors, [], "browser errors were reported during edit interactions");
+}
+
+async function assertClockBarEditorSmoke(page, posts, label) {
+  await page.getByRole("tab", { name: "Screen" }).click();
+  await page.waitForSelector("#sp-screen.sp-page.active");
+
+  let before = posts.length;
+  await page.locator('[data-clockbar-item="time"]').click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  await page.locator("#sp-clockbar-clock-format").waitFor({ state: "visible" });
+  assert(await page.locator(".sp-section-title", { hasText: "Time" }).isVisible(), `${label}: time editor opens`);
+  await page.getByRole("button", { name: "Delete" }).click();
+  await waitForPost(posts, { domain: "switch", name: "screen__clock_bar_time", action: "turn_off" }, `${label}: delete time`, before);
+  await page.locator('[data-clockbar-item="time"].sp-clockbar-inactive').waitFor({ state: "visible" });
+  before = posts.length;
+  await page.locator('[data-clockbar-item="time"]').click();
+  await waitForPost(posts, { domain: "switch", name: "screen__clock_bar_time", action: "turn_on" }, `${label}: add time`, before);
+  await page.locator("#sp-clockbar-clock-format").waitFor({ state: "visible" });
+  await page.locator(".sp-settings-close").click();
+
+  before = posts.length;
+  await page.locator('[data-clockbar-item="network"]').click();
+  await page.getByText("Show Network Status Icon", { exact: true }).waitFor({ state: "visible" });
+  assert(await page.locator(".sp-section-title", { hasText: "Network Status" }).isVisible(), `${label}: network editor opens`);
+  await page.getByRole("button", { name: "Delete" }).click();
+  await waitForPost(posts, { domain: "switch", name: "screen__network_status_icon", action: "turn_off" }, `${label}: delete network`, before);
+  await page.locator('[data-clockbar-item="network"].sp-clockbar-inactive').waitFor({ state: "visible" });
+  before = posts.length;
+  await page.locator('[data-clockbar-item="network"]').click();
+  await waitForPost(posts, { domain: "switch", name: "screen__network_status_icon", action: "turn_on" }, `${label}: add network`, before);
+  await page.getByText("Show Network Status Icon", { exact: true }).waitFor({ state: "visible" });
+  await page.locator(".sp-settings-close").click();
+
+  before = posts.length;
+  await page.locator('[data-clockbar-item="temperature"]').click();
+  await page.locator("#sp-clockbar-temperature-unit").waitFor({ state: "visible" });
+  assert(await page.locator(".sp-section-title", { hasText: "Temperature" }).isVisible(), `${label}: temperature editor opens`);
+  await page.getByRole("button", { name: "Delete" }).click();
+  await waitForPost(posts, { domain: "switch", name: "indoor_temp_enable", action: "turn_off" }, `${label}: delete indoor temperature`, before);
+  await waitForPost(posts, { domain: "switch", name: "outdoor_temp_enable", action: "turn_off" }, `${label}: delete outdoor temperature`, before);
+  await page.locator('[data-clockbar-item="temperature"].sp-clockbar-inactive').waitFor({ state: "visible" });
+  before = posts.length;
+  await page.locator('[data-clockbar-item="temperature"]').click();
+  await waitForPost(posts, { domain: "switch", name: "indoor_temp_enable", action: "turn_on" }, `${label}: add indoor temperature`, before);
+  await waitForPost(posts, { domain: "switch", name: "outdoor_temp_enable", action: "turn_on" }, `${label}: add outdoor temperature`, before);
+  await page.locator("#sp-clockbar-temperature-unit").waitFor({ state: "visible" });
+  await page.locator(".sp-settings-close").click();
+
+  await page.getByRole("tab", { name: "Settings" }).click();
+  await page.waitForSelector("#sp-settings.sp-page.active");
+  const clockBarCard = page.locator("#sp-settings .card").filter({ hasText: "Clock Bar" }).first();
+  const clockBarText = await clockBarCard.textContent();
+  assert(clockBarText.includes("Show Clock Bar"), `${label}: clock bar settings keep the master toggle`);
+  assert(!clockBarText.includes("Show Network Status Icon"), `${label}: network toggle moved out of clock bar settings`);
+  assert(!clockBarText.includes("Outdoor Temperature"), `${label}: outdoor controls moved out of clock bar settings`);
+  assert(!clockBarText.includes("Indoor Temperature"), `${label}: indoor controls moved out of clock bar settings`);
+  assert(!clockBarText.includes("Show Degree Symbol"), `${label}: degree-symbol control moved out of clock bar settings`);
+  await page.getByRole("tab", { name: "Screen" }).click();
 }
 
 async function runCase(browser, testCase) {
@@ -570,11 +643,12 @@ async function runCase(browser, testCase) {
     await page.waitForTimeout(100);
 
     assert.deepStrictEqual(errors, [], `${testCase.name}: browser errors were reported`);
-    assertNoLayoutBreaks(await measureCoreLayout(page), testCase.name);
+    assertNoLayoutBreaks(await measureCoreLayout(page), testCase.name, testCase);
     await assertSettingsPage(page, testCase.name, testCase);
-    assertNoLayoutBreaks(await measureCoreLayout(page), `${testCase.name} after settings`);
+    assertNoLayoutBreaks(await measureCoreLayout(page), `${testCase.name} after settings`, testCase);
     await assertEmptyCellSettings(page, testCase.name);
     if (testCase.exerciseInteractions) {
+      await assertClockBarEditorSmoke(page, posts, testCase.name);
       await assertBackupImportSmoke(page, posts, testCase.slug);
       await assertEditAndApplySmoke(page, posts, errors);
     }

@@ -8,11 +8,14 @@
 #include <string>
 #include "esphome/components/network/ip_address.h"
 #include "esphome/components/network/util.h"
+#include "i18n_generated.h"
 
+constexpr const char *NETWORK_ICON_WIFI_OUTLINE = "\U000F092F";
 constexpr const char *NETWORK_ICON_WIFI_1 = "\U000F091F";
 constexpr const char *NETWORK_ICON_WIFI_2 = "\U000F0922";
 constexpr const char *NETWORK_ICON_WIFI_3 = "\U000F0925";
 constexpr const char *NETWORK_ICON_WIFI_4 = "\U000F0928";
+constexpr const char *NETWORK_ICON_WIFI_OFF_OUTLINE = "\U000F092E";
 constexpr const char *NETWORK_ICON_ETHERNET = "\U000F0200";
 
 struct NetworkStatusModalUi {
@@ -31,14 +34,19 @@ inline NetworkStatusModalUi &network_status_modal_ui() {
 }
 
 inline const char *network_status_wifi_icon(float pct) {
-  if (!std::isfinite(pct) || pct < 25.0f) return NETWORK_ICON_WIFI_1;
+  if (!std::isfinite(pct) || pct <= 0.0f) return NETWORK_ICON_WIFI_OUTLINE;
+  if (pct < 25.0f) return NETWORK_ICON_WIFI_1;
   if (pct < 50.0f) return NETWORK_ICON_WIFI_2;
   if (pct < 75.0f) return NETWORK_ICON_WIFI_3;
   return NETWORK_ICON_WIFI_4;
 }
 
-inline void network_status_set_wifi_icon(lv_obj_t *label, float pct) {
+inline void network_status_set_wifi_icon(lv_obj_t *label, float pct, bool connected) {
   if (!label) return;
+  if (!connected) {
+    lv_label_set_text(label, NETWORK_ICON_WIFI_OFF_OUTLINE);
+    return;
+  }
   lv_label_set_text(label, network_status_wifi_icon(pct));
 }
 
@@ -65,7 +73,7 @@ inline std::string network_status_ip_address() {
     ips[0].str_to(ip_buf);
     return ip_buf;
   }
-  return "Not available";
+  return espcontrol_i18n(std::string("Not available"));
 }
 
 inline std::string network_status_trim_copy(const std::string &value) {
@@ -77,8 +85,8 @@ inline std::string network_status_trim_copy(const std::string &value) {
 
 inline std::string network_status_firmware_label(const std::string &version) {
   std::string trimmed = network_status_trim_copy(version);
-  if (trimmed.empty()) return "Version unknown";
-  if (trimmed == "dev" || trimmed == "Dev" || trimmed == "0.0.0") return "Dev build";
+  if (trimmed.empty()) return espcontrol_i18n(std::string("Version unknown"));
+  if (trimmed == "dev" || trimmed == "Dev" || trimmed == "0.0.0") return espcontrol_i18n(std::string("Dev build"));
   return trimmed;
 }
 
@@ -149,13 +157,13 @@ inline void network_status_open_modal(const std::string &device_name,
 
   ui.device_name_lbl = network_status_add_center_label(
     ui.content,
-    device_name.empty() ? "Not available" : device_name.c_str(),
+    device_name.empty() ? espcontrol_i18n("Not available") : device_name.c_str(),
     text_font,
     content_w,
     DARK_TEXT_PRIMARY);
   ui.ip_lbl = network_status_add_center_label(
     ui.content,
-    ip_address.empty() ? "Not available" : ip_address.c_str(),
+    ip_address.empty() ? espcontrol_i18n("Not available") : ip_address.c_str(),
     text_font,
     content_w,
     DARK_TEXT_MUTED);

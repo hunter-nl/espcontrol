@@ -7,6 +7,7 @@ var SENSOR_STATE_INPUT_2_OPTION = "state_input_2";
 var SENSOR_STATE_OUTPUT_2_OPTION = "state_output_2";
 var SENSOR_STATE_LOW_LABEL_OPTION = "state_low_label";
 var SENSOR_STATE_HIGH_LABEL_OPTION = "state_high_label";
+var CARD_ON_PATTERN_OPTION = "on_pattern";
 
 function normalizeButtonConfig(b) {
   if (b) b.options = b.options || "";
@@ -394,6 +395,26 @@ function switchConfirmationModeStorage() {
     : [SWITCH_CONFIRM_OFF_OPTION, SWITCH_CONFIRM_ON_OPTION];
 }
 
+function normalizeCardOnPattern(value) {
+  value = String(value || "").trim();
+  return value === "stripes" ? "stripes" : "";
+}
+
+function cardOnPattern(b) {
+  return normalizeCardOnPattern(configOptionValue(b && b.options, CARD_ON_PATTERN_OPTION));
+}
+
+function setCardOnPattern(b, pattern) {
+  if (!b) return "";
+  b.options = setConfigOptionValue(
+    b.options,
+    CARD_ON_PATTERN_OPTION,
+    normalizeCardOnPattern(pattern)
+  );
+  if (!b.type) b.options = normalizeSwitchConfirmationOptions(b.options);
+  return b.options;
+}
+
 function cardLargeNumbersSupported(b) {
   if (!b) return false;
   if (typeof BUTTON_TYPES !== "undefined") {
@@ -613,6 +634,8 @@ function normalizeSwitchConfirmationOptions(options) {
   if (configOptionEnabled(options, SENSOR_LARGE_NUMBERS_OPTION)) {
     out = setConfigOption(out, SENSOR_LARGE_NUMBERS_OPTION, true);
   }
+  var onPattern = normalizeCardOnPattern(configOptionValue(options, CARD_ON_PATTERN_OPTION));
+  if (onPattern) out = setConfigOptionValue(out, CARD_ON_PATTERN_OPTION, onPattern);
   if (!mode) return out;
   var storage = switchConfirmationModeStorage();
   out = setConfigOption(out, storage[0], mode === "off" || mode === "both");

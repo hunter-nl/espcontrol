@@ -23,6 +23,7 @@
 #include "esphome/components/http_request/http_request.h"
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "esphome/core/string_ref.h"
+#include "i18n_generated.h"
 #include "icons.h"
 #include "backlight.h"
 

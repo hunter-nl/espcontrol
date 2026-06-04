@@ -34,6 +34,12 @@ globals:
   - id: screensaver_dimmed_active
     type: bool
     initial_value: 'false'
+  - id: screensaver_wake_touch_guard_active
+    type: bool
+    initial_value: 'false'
+  - id: screensaver_wake_touch_guard_skip_once
+    type: bool
+    initial_value: 'false'
   - id: home_screen_idle_suspended
     type: bool
     initial_value: 'false'
@@ -141,7 +147,9 @@ script:
                 return (int)(val * 1000);
             - if:
                 condition:
-                  lambda: 'return id(media_player_sleep_prevention_enabled).state && id(media_player_playing);'
+                  lambda: |-
+                    return (id(media_player_sleep_prevention_enabled).state && id(media_player_playing)) ||
+                           (id(cover_art_screensaver_enabled).state && id(cover_art_media_playing));
                 then:
                   - script.execute: screensaver_idle_check
                 else:
@@ -164,6 +172,7 @@ script:
           switch_confirmation_hide_modal();
           alarm_pin_hide_modal();
           network_status_hide_modal();
+      - script.execute: hide_cover_art_view
       - if:
           condition:
             lambda: 'return screensaver_action_clock_mode(id(screensaver_action).current_option());'
@@ -314,8 +323,12 @@ script:
       - globals.set:
           id: screensaver_dimmed_active
           value: 'false'
+      - globals.set:
+          id: cover_art_screensaver_active
+          value: 'false'
       - lvgl.resume:
       - script.execute: hide_clock_view
+      - script.execute: hide_cover_art_view
       - lvgl.widget.hide: dim_screensaver_touch_guard
       - lvgl.page.show: screen_off_page
       - delay: 50ms
@@ -427,6 +440,9 @@ script:
       - script.stop: clock_screensaver_refresh_brightness
       - script.stop: show_dimmed_view
       - script.stop: screensaver_dimmed_refresh_brightness
+      - script.stop: show_cover_art_view
+      - script.stop: cover_art_delay_timer
+      - script.stop: cover_art_show_track_overlay
       - lambda: |-
           id(backlight_manual_off) = false;
           if (id(schedule_enabled).state) {
@@ -450,9 +466,25 @@ script:
             - script.stop: screen_schedule_wake_timeout_check
       - if:
           condition:
-            lambda: 'return id(display_asleep) || id(screen_schedule_asleep) || id(screensaver_display_off_active) || id(screensaver_dimmed_active);'
+            lambda: 'return id(display_asleep) || id(screen_schedule_asleep) || id(screensaver_display_off_active) || id(screensaver_dimmed_active) || id(cover_art_screensaver_active);'
           then:
             - script.stop: screensaver_idle_check
+            - if:
+                condition:
+                  lambda: |-
+                    if (!id(screensaver_wake_touch_guard_skip_once)) return true;
+                    id(screensaver_wake_touch_guard_skip_once) = false;
+                    return false;
+                then:
+                  - globals.set:
+                      id: screensaver_wake_touch_guard_active
+                      value: 'true'
+                  - script.execute: screensaver_wake_touch_guard_clear
+                else:
+                  - script.stop: screensaver_wake_touch_guard_clear
+                  - globals.set:
+                      id: screensaver_wake_touch_guard_active
+                      value: 'false'
             - globals.set:
                 id: screensaver_display_off_active
                 value: 'false'
@@ -460,10 +492,14 @@ script:
                 id: screensaver_dimmed_active
                 value: 'false'
             - globals.set:
+                id: cover_art_screensaver_active
+                value: 'false'
+            - globals.set:
                 id: screen_schedule_asleep
                 value: 'false'
             - lvgl.resume:
             - lvgl.widget.hide: dim_screensaver_touch_guard
+            - script.execute: hide_cover_art_view
             - if:
                 condition:
                   lambda: 'return id(is_clock_showing);'
@@ -494,6 +530,19 @@ script:
                   - script.execute: backlight_apply_brightness
       - script.execute: screensaver_idle_check
       - script.execute: home_screen_idle_check
+      - if:
+          condition:
+            lambda: 'return id(cover_art_media_playing) && id(cover_art_screensaver_enabled).state;'
+          then:
+            - script.execute: cover_art_delay_timer
+
+  - id: screensaver_wake_touch_guard_clear
+    mode: restart
+    then:
+      - delay: 5s
+      - globals.set:
+          id: screensaver_wake_touch_guard_active
+          value: 'false'
 
   # Choose and apply the brightness for the dimmed-screen screensaver.
   - id: screensaver_dimmed_refresh_brightness

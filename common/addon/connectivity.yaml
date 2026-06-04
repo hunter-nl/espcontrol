@@ -37,6 +37,7 @@ wifi:
     # Start the setup hotspot only after short WiFi outages have had time to recover.
     ap_timeout: 90s
   on_connect:
+    - script.execute: network_status_refresh
     - script.stop: wifi_reconnect_flow
     - script.stop: setup_screen_dim
     - lambda: |-
@@ -58,6 +59,7 @@ wifi:
               else:
                 - script.execute: navigate_after_api
   on_disconnect:
+    - script.execute: network_status_refresh
     - if:
         condition:
           lambda: 'return !id(boot_grace_period);'
@@ -147,45 +149,7 @@ script:
             lambda: 'return !id(button_order).state.empty();'
           then:
             - lvgl.page.show: main_page
-            - if:
-                condition:
-                  switch.is_on: clock_bar_enabled
-                then:
-                  - if:
-                      condition:
-                        or:
-                          - switch.is_on: indoor_temp_enable
-                          - switch.is_on: outdoor_temp_enable
-                      then:
-                        - lvgl.widget.update:
-                            id: temperatures
-                            hidden: false
-                  - lvgl.widget.update:
-                      id: display_time
-                      hidden: false
-                  - if:
-                      condition:
-                        switch.is_on: network_status_enabled
-                      then:
-                        - lvgl.widget.update:
-                            id: network_status_button
-                            hidden: false
-                        - script.execute: network_status_refresh
-                      else:
-                        - lvgl.widget.update:
-                            id: network_status_button
-                            hidden: true
-                        - lambda: 'network_status_hide_modal();'
-                else:
-                  - lvgl.widget.update:
-                      id: temperatures
-                      hidden: true
-                  - lvgl.widget.update:
-                      id: display_time
-                      hidden: true
-                  - lvgl.widget.update:
-                      id: network_status_button
-                      hidden: true
+            - script.execute: clock_bar_apply
             - script.execute: screensaver_idle_check
           else:
             - lambda: |-

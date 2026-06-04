@@ -18,6 +18,7 @@ struct GridConfig {
   int cols;
   bool width_compensation_vertical = false;
   bool wrap_tall_labels;
+  bool info_only = false;
   bool subpage_chevrons_enabled = true;
   int width_compensation_percent = 100;
   int volume_width_compensation_percent = 100;
@@ -164,9 +165,6 @@ inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
   if (lines <= 0) return;
   lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
   lv_obj_set_width(label, lv_pct(100));
-  const lv_font_t *font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
-  lv_coord_t line_height = font && font->line_height > 0 ? font->line_height : 16;
-  lv_obj_set_height(label, line_height * lines);
   lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 }
 
@@ -177,7 +175,9 @@ inline bool card_slot_static_child(const BtnSlot &s, lv_obj_t *child) {
 
 inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   if (!s.btn) return;
+  lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
   lv_obj_clear_state(s.btn, LV_STATE_CHECKED);
+  sync_card_checked_text_color(s.btn);
   lv_obj_clear_state(s.btn, LV_STATE_DISABLED);
   lv_obj_set_style_opa(s.btn, LV_OPA_COVER, LV_PART_MAIN);
   if (s.sensor_container) lv_obj_set_user_data(s.sensor_container, nullptr);
@@ -189,6 +189,16 @@ inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   }
 }
 
+inline bool info_only_hidden_card_type(const ParsedCfg &p) {
+  if (p.type == "sensor" || p.type == "text_sensor" ||
+      p.type == "door_window" || p.type == "presence" ||
+      p.type == "calendar" || p.type == "clock" || p.type == "timezone" ||
+      p.type == "weather" || p.type == "weather_forecast") {
+    return false;
+  }
+  return true;
+}
+
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const GridConfig &cfg,
                               const CardPalette &palette,
@@ -198,6 +208,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   reset_card_slot_dynamic_children(s);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
+  apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
   if (s.sensor_lbl && display_sensor_font(display)) {
     lv_obj_set_style_text_font(s.sensor_lbl, display_sensor_font(display), LV_PART_MAIN);
   }
@@ -211,6 +222,12 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     s, p.type == "subpage" && cfg.subpage_chevrons_enabled,
     cfg.subpage_chevron_x, cfg.subpage_chevron_y,
     cfg.subpage_chevron_text_width_percent);
+
+  if (cfg.info_only && info_only_hidden_card_type(p)) {
+    lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    return;
+  }
 
   if (is_text_sensor_card(p)) {
     setup_text_sensor_card(s, p, palette.has_sensor_color, palette.sensor_val);
@@ -446,8 +463,9 @@ inline bool bind_garage_status_card(BtnSlot &s, const ParsedCfg &p) {
     return false;
   }
   bool show_status = garage_card_show_status(p);
+  std::string fallback_label = p.label.empty() ? espcontrol_i18n(std::string("Garage Door")) : p.label;
   TransientStatusLabel *status_label = create_transient_status_label(
-    s.text_lbl, show_status ? "--" : (p.label.empty() ? "Garage Door" : p.label));
+    s.text_lbl, show_status ? "--" : fallback_label);
   subscribe_garage_state(s.btn, s.icon_lbl, status_label,
     garage_closed_icon(p.icon), garage_open_icon(p.icon_on), p.entity, show_status);
   if (!show_status && p.label.empty())
@@ -462,8 +480,9 @@ inline LockCardCtx *bind_lock_status_card(BtnSlot &s, const ParsedCfg &p) {
   LockCardCtx *ctx = new LockCardCtx();
   ctx->entity_id = p.entity;
   lv_obj_set_user_data(s.btn, ctx);
+  std::string fallback_label = p.label.empty() ? espcontrol_i18n(std::string("Lock")) : p.label;
   TransientStatusLabel *status_label = create_transient_status_label(
-    s.text_lbl, p.label.empty() ? "Lock" : p.label);
+    s.text_lbl, fallback_label);
   subscribe_lock_state(s.btn, s.icon_lbl, status_label,
     lock_locked_icon(p.icon), lock_unlocked_icon(p.icon_on), ctx);
   if (p.label.empty())
@@ -795,6 +814,7 @@ inline void grid_phase2(
     int row_span = order.row_span[idx - 1] > 0 ? order.row_span[idx - 1] : 1;
     int col_span = order.col_span[idx - 1] > 0 ? order.col_span[idx - 1] : 1;
     bool is_1x1_card = row_span == 1 && col_span == 1;
+    if (cfg.info_only && info_only_hidden_card_type(p)) continue;
     if (p.type == "push") {
       register_ha_control_availability(s.btn, s.btn);
       continue;
@@ -934,7 +954,7 @@ inline void grid_phase2(
     if (p.type == "cover" && cover_toggle_mode(p.sensor)) {
       if (!p.entity.empty()) {
         TransientStatusLabel *status_label = create_transient_status_label(
-          s.text_lbl, p.label.empty() ? "Cover" : p.label);
+          s.text_lbl, p.label.empty() ? espcontrol_i18n(std::string("Cover")) : p.label);
         subscribe_cover_toggle_state(s.btn, s.icon_lbl, status_label,
           slider_icon_off(p.type, p.entity, p.icon), slider_icon_on(p.type, p.entity, p.icon, p.icon_on), p.entity);
         if (p.label.empty())
@@ -1147,6 +1167,8 @@ inline void grid_phase2(
     }
   }
 
+  if (cfg.info_only) return;
+
   // --- Subpage creation ---
   // Heap-allocated grid descriptors (never freed -- display lifetime)
   lv_coord_t *sp_col_dsc = new lv_coord_t[COLS + 1];
@@ -1219,7 +1241,10 @@ inline void grid_phase2(
         break;
       }
     }
-    navigation_register_subpage(si + 1, display_order, p.label, sub_scr);
+    navigation_register_subpage(
+      si + 1, display_order,
+      normalize_subpage_kind(cfg_option_value(p.options, "subpage_kind")),
+      p.label, sub_scr);
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(sub_scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_layout(sub_scr, LV_LAYOUT_GRID);
@@ -1277,7 +1302,7 @@ inline void grid_phase2(
       if (set_checked) {
         lv_obj_add_event_cb(btn, [](lv_event_t *e) {
           lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(e));
-          lv_obj_add_state(target, LV_STATE_CHECKED);
+          set_card_checked_state(target, true);
           std::string *en = (std::string *)lv_event_get_user_data(e);
           if (en && !en->empty()) send_toggle_action(*en);
         }, LV_EVENT_CLICKED, &sp_entity_ids[eid_idx]);
@@ -1328,7 +1353,7 @@ inline void grid_phase2(
       if (sb_cfg.type == "cover" && cover_toggle_mode(sb_cfg.sensor)) {
         if (!sb_cfg.entity.empty()) {
           TransientStatusLabel *status_label = create_transient_status_label(
-            sub_slot.text_lbl, sb_cfg.label.empty() ? "Cover" : sb_cfg.label);
+            sub_slot.text_lbl, sb_cfg.label.empty() ? espcontrol_i18n(std::string("Cover")) : sb_cfg.label);
           subscribe_cover_toggle_state(sub_slot.btn, sub_slot.icon_lbl, status_label,
             slider_icon_off(sb_cfg.type, sb_cfg.entity, sb_cfg.icon),
             slider_icon_on(sb_cfg.type, sb_cfg.entity, sb_cfg.icon, sb_cfg.icon_on),
@@ -1468,7 +1493,7 @@ inline void grid_phase2(
       }
       if (sb_cfg.type == "push") {
         register_ha_control_availability(sb_btn, sb_btn);
-        std::string push_label = sb_cfg.label.empty() ? "Push" : sb_cfg.label;
+        std::string push_label = sb_cfg.label.empty() ? espcontrol_i18n(std::string("Push")) : sb_cfg.label;
         std::string *label = new std::string(push_label);
         lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
           std::string *label = (std::string *)lv_event_get_user_data(e);
@@ -1567,9 +1592,11 @@ inline void grid_phase2(
             ParsedCfg *ctx = new ParsedCfg(sb_cfg);
             ctx->sensor = mode;
             lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
+              lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(e));
+              if (target && lv_obj_has_state(target, LV_STATE_DISABLED)) return;
               ParsedCfg *c = (ParsedCfg *)lv_event_get_user_data(e);
               if (c) send_media_playback_action(c->entity, media_card_mode(c->sensor));
-            }, LV_EVENT_CLICKED, ctx);
+            }, media_fast_press_mode(mode) ? LV_EVENT_PRESSED : LV_EVENT_CLICKED, ctx);
             if (mode == "play_pause")
               subscribe_media_state(sub_slot.btn,
                 media_play_pause_show_state(sb_cfg) ? sub_slot.text_lbl : nullptr,

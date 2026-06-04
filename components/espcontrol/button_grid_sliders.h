@@ -307,12 +307,12 @@ inline const char *slider_icon_on(const std::string &type, const std::string &en
 
 inline void setup_cover_toggle_card(BtnSlot &s, const ParsedCfg &p) {
   lv_label_set_text(s.icon_lbl, slider_icon_off(p.type, p.entity, p.icon));
-  lv_label_set_text(s.text_lbl, p.label.empty() ? "Cover" : p.label.c_str());
+  lv_label_set_text(s.text_lbl, p.label.empty() ? espcontrol_i18n("Cover") : p.label.c_str());
 }
 
 inline void setup_cover_command_card(BtnSlot &s, const ParsedCfg &p) {
   lv_label_set_text(s.icon_lbl, slider_icon_off(p.type, p.entity, p.icon));
-  lv_label_set_text(s.text_lbl, p.label.empty() ? "Cover" : p.label.c_str());
+  lv_label_set_text(s.text_lbl, p.label.empty() ? espcontrol_i18n("Cover") : p.label.c_str());
   apply_push_button_transition(s.btn);
 }
 
@@ -715,16 +715,16 @@ inline const char *media_default_icon(const std::string &mode,
 }
 
 inline std::string media_default_label(const std::string &mode) {
-  if (mode == "previous") return "Previous";
-  if (mode == "next") return "Next";
-  if (mode == "volume") return "Volume";
-  if (mode == "position") return "Position";
-  if (mode == "play_pause") return "Play/Pause";
-  return "Media";
+  if (mode == "previous") return espcontrol_i18n(std::string("Previous"));
+  if (mode == "next") return espcontrol_i18n(std::string("Next"));
+  if (mode == "volume") return espcontrol_i18n(std::string("Volume"));
+  if (mode == "position") return espcontrol_i18n(std::string("Position"));
+  if (mode == "play_pause") return espcontrol_i18n(std::string("Play/Pause"));
+  return espcontrol_i18n(std::string("Media"));
 }
 
 inline std::string media_label(const ParsedCfg &p) {
-  return p.label.empty() ? std::string("Volume") : p.label;
+  return p.label.empty() ? espcontrol_i18n(std::string("Volume")) : p.label;
 }
 
 inline std::string media_action_label(const ParsedCfg &p, const std::string &mode) {
@@ -940,7 +940,7 @@ inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
   }, LV_EVENT_VALUE_CHANGED, nullptr);
 
   ui.title_lbl = lv_label_create(ui.panel);
-  lv_label_set_text(ui.title_lbl, "Volume");
+  lv_label_set_text(ui.title_lbl, espcontrol_i18n("Volume"));
   lv_obj_set_style_text_color(ui.title_lbl, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
   lv_obj_set_style_text_align(ui.title_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (ctx->label_font) lv_obj_set_style_text_font(ui.title_lbl, ctx->label_font, LV_PART_MAIN);

@@ -147,6 +147,59 @@ inline void apply_button_colors(lv_obj_t *btn, bool has_on, uint32_t on_val,
   }
 }
 
+inline uint32_t card_pattern_highlight_color(uint32_t color) {
+  uint8_t r = (color >> 16) & 0xFF;
+  uint8_t g = (color >> 8) & 0xFF;
+  uint8_t b = color & 0xFF;
+  r = static_cast<uint8_t>(r + ((255 - r) * 35 / 100));
+  g = static_cast<uint8_t>(g + ((255 - g) * 35 / 100));
+  b = static_cast<uint8_t>(b + ((255 - b) * 35 / 100));
+  return (static_cast<uint32_t>(r) << 16) |
+         (static_cast<uint32_t>(g) << 8) |
+         static_cast<uint32_t>(b);
+}
+
+inline void apply_button_on_pattern(lv_obj_t *btn, const std::string &options,
+                                    bool has_on, uint32_t on_val) {
+  if (!btn || !has_on) return;
+  if (normalize_card_on_pattern(cfg_option_value(options, "on_pattern")) != "stripes") return;
+  lv_style_selector_t checked =
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+    static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
+  lv_style_selector_t pressed =
+    static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+    static_cast<lv_style_selector_t>(LV_STATE_PRESSED);
+  lv_color_t highlight = lv_color_hex(card_pattern_highlight_color(on_val));
+  lv_obj_set_style_bg_grad_color(btn, highlight, checked);
+  lv_obj_set_style_bg_grad_dir(btn, LV_GRAD_DIR_HOR, checked);
+  lv_obj_set_style_bg_grad_color(btn, highlight, pressed);
+  lv_obj_set_style_bg_grad_dir(btn, LV_GRAD_DIR_HOR, pressed);
+}
+
+inline void apply_card_descendant_text_color(lv_obj_t *obj, lv_color_t color) {
+  if (!obj) return;
+  int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(obj));
+  for (int32_t i = 0; i < count; i++) {
+    lv_obj_t *child = lv_obj_get_child(obj, i);
+    if (!child) continue;
+    lv_obj_set_style_text_color(child, color, LV_PART_MAIN);
+    apply_card_descendant_text_color(child, color);
+  }
+}
+
+inline void sync_card_checked_text_color(lv_obj_t *btn) {
+  if (!btn) return;
+  apply_card_descendant_text_color(
+    btn, lv_obj_get_style_text_color(btn, LV_PART_MAIN));
+}
+
+inline void set_card_checked_state(lv_obj_t *btn, bool checked) {
+  if (!btn) return;
+  if (checked) lv_obj_add_state(btn, LV_STATE_CHECKED);
+  else lv_obj_clear_state(btn, LV_STATE_CHECKED);
+  sync_card_checked_text_color(btn);
+}
+
 // Match the main-page button widget label behavior so longer titles wrap
 // instead of running off the edge of the tile.
 inline void configure_button_label_wrap(lv_obj_t *label) {

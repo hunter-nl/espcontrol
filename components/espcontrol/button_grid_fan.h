@@ -74,11 +74,11 @@ inline const char *fan_card_icon_on_name(const ParsedCfg &p) {
 
 inline std::string fan_card_label(const ParsedCfg &p) {
   if (!p.label.empty()) return p.label;
-  if (p.type == "fan_switch") return "Fan";
-  if (p.type == "fan_oscillate") return "Oscillation";
-  if (p.type == "fan_direction") return "Direction";
-  if (p.type == "fan_preset") return "Preset";
-  return "Fan";
+  if (p.type == "fan_switch") return espcontrol_i18n(std::string("Fan"));
+  if (p.type == "fan_oscillate") return espcontrol_i18n(std::string("Oscillation"));
+  if (p.type == "fan_direction") return espcontrol_i18n(std::string("Direction"));
+  if (p.type == "fan_preset") return espcontrol_i18n(std::string("Preset"));
+  return espcontrol_i18n(std::string("Fan"));
 }
 
 inline void setup_fan_card(BtnSlot &s, const ParsedCfg &p) {
@@ -174,7 +174,7 @@ inline std::vector<std::string> fan_parse_options(esphome::StringRef value) {
 }
 
 inline std::string fan_option_label(const std::string &value) {
-  if (value.empty()) return "None";
+  if (value.empty()) return espcontrol_i18n(std::string("None"));
   return sentence_cap_text(value);
 }
 
@@ -202,8 +202,7 @@ inline void fan_apply_card_visual(FanCardCtx *ctx) {
   else if (ctx->type == "fan_direction") active = ctx->direction == "reverse";
   else if (ctx->type == "fan_preset") active = fan_preset_active(ctx->preset_mode);
 
-  if (active) lv_obj_add_state(ctx->btn, LV_STATE_CHECKED);
-  else lv_obj_clear_state(ctx->btn, LV_STATE_CHECKED);
+  set_card_checked_state(ctx->btn, active);
 
   if (ctx->icon_lbl) {
     if (ctx->type == "fan_switch" && active && ctx->icon_on_glyph) {
@@ -215,21 +214,23 @@ inline void fan_apply_card_visual(FanCardCtx *ctx) {
 }
 
 inline std::string fan_status_text(FanCardCtx *ctx) {
-  if (!ctx || !ctx->available) return "Unavailable";
-  if (ctx->type == "fan_switch") return ctx->on ? "On" : "Off";
+  if (!ctx || !ctx->available) return espcontrol_i18n(std::string("Unavailable"));
+  if (ctx->type == "fan_switch") {
+    return ctx->on ? espcontrol_i18n(std::string("On")) : espcontrol_i18n(std::string("Off"));
+  }
   if (ctx->type == "fan_oscillate") {
-    if (!ctx->oscillation_known) return "Unsupported";
-    return ctx->oscillating ? "Oscillating" : "Still";
+    if (!ctx->oscillation_known) return espcontrol_i18n(std::string("Unsupported"));
+    return ctx->oscillating ? espcontrol_i18n(std::string("Oscillating")) : espcontrol_i18n(std::string("Still"));
   }
   if (ctx->type == "fan_direction") {
-    if (!ctx->direction_known) return "Unsupported";
+    if (!ctx->direction_known) return espcontrol_i18n(std::string("Unsupported"));
     return fan_option_label(ctx->direction);
   }
   if (ctx->type == "fan_preset") {
-    if (ctx->preset_modes.empty()) return "Unsupported";
-    return fan_preset_active(ctx->preset_mode) ? fan_option_label(ctx->preset_mode) : "Preset";
+    if (ctx->preset_modes.empty()) return espcontrol_i18n(std::string("Unsupported"));
+    return fan_preset_active(ctx->preset_mode) ? fan_option_label(ctx->preset_mode) : espcontrol_i18n(std::string("Preset"));
   }
-  return "Fan";
+  return espcontrol_i18n(std::string("Fan"));
 }
 
 inline void fan_refresh_card(FanCardCtx *ctx) {
@@ -302,7 +303,7 @@ inline void fan_preset_open(FanCardCtx *ctx) {
   if (list_h < row_h) list_h = row_h;
 
   ui.title_lbl = control_modal_create_title(
-    ui.panel, "Preset", content_w - layout.back_size - gap,
+    ui.panel, espcontrol_i18n("Preset"), content_w - layout.back_size - gap,
     ctx->label_font, ctx->width_compensation_percent);
   lv_obj_align(ui.title_lbl, LV_ALIGN_TOP_MID, 0, title_y - layout.back_size / 2);
 
@@ -331,7 +332,7 @@ inline void fan_preset_open(FanCardCtx *ctx) {
 
   if (count == 0) {
     ui.empty_lbl = lv_label_create(ui.list);
-    lv_label_set_text(ui.empty_lbl, "No presets");
+    lv_label_set_text(ui.empty_lbl, espcontrol_i18n("No presets"));
     lv_label_set_long_mode(ui.empty_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(ui.empty_lbl, lv_pct(100));
     lv_obj_set_style_text_color(ui.empty_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);

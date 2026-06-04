@@ -15,6 +15,7 @@ function showBanner(msg, type) {
 function buildUI() {
   var root = document.createElement("div");
   root.id = "sp-app";
+  root.setAttribute("data-preview-theme", CFG.previewTheme || "default");
 
   var banner = document.createElement("div");
   banner.className = "sp-banner";
@@ -90,15 +91,21 @@ function buildScreenPage(parent) {
   wrap.innerHTML =
     '<div class="sp-screen">' +
     '<div class="sp-topbar">' +
-    '<span class="sp-temp"></span>' +
-    '<span class="sp-clock">--:--</span>' +
-    '<span class="sp-network-preview mdi mdi-wifi-strength-4"></span>' +
+    '<button type="button" class="sp-clockbar-item sp-clockbar-temp" data-clockbar-item="temperature" aria-label="Edit temperature">' +
+    '<span class="sp-temp">--</span><span class="sp-clockbar-add mdi mdi-plus"></span></button>' +
+    '<button type="button" class="sp-clockbar-item sp-clockbar-time" data-clockbar-item="time" aria-label="Edit time">' +
+    '<span class="sp-clock">--:--</span><span class="sp-clockbar-add mdi mdi-plus"></span></button>' +
+    '<button type="button" class="sp-clockbar-item sp-clockbar-network" data-clockbar-item="network" aria-label="Edit network status">' +
+    '<span class="sp-network-preview mdi mdi-wifi-strength-4"></span><span class="sp-clockbar-add mdi mdi-plus"></span></button>' +
     "</div>" +
     '<div class="sp-main"></div>' +
     "</div>";
   page.appendChild(wrap);
 
   els.topbar = wrap.querySelector(".sp-topbar");
+  els.clockBarTempItem = wrap.querySelector('[data-clockbar-item="temperature"]');
+  els.clockBarTimeItem = wrap.querySelector('[data-clockbar-item="time"]');
+  els.clockBarNetworkItem = wrap.querySelector('[data-clockbar-item="network"]');
   els.temp = wrap.querySelector(".sp-temp");
   els.clock = wrap.querySelector(".sp-clock");
   els.networkPreview = wrap.querySelector(".sp-network-preview");

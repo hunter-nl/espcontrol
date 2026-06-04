@@ -273,7 +273,7 @@ inline BtnSlot create_dynamic_card_slot(lv_obj_t *btn,
   slot.text_lbl = lv_label_create(btn);
   if (label_font) lv_obj_set_style_text_font(slot.text_lbl, label_font, LV_PART_MAIN);
   lv_obj_set_style_text_color(slot.text_lbl, text_color, LV_PART_MAIN);
-  lv_label_set_text(slot.text_lbl, "Configure");
+  lv_label_set_text(slot.text_lbl, espcontrol_i18n("Configure"));
   lv_obj_align(slot.text_lbl, LV_ALIGN_BOTTOM_LEFT, 0, 0);
   configure_button_label_wrap(slot.text_lbl);
 
@@ -348,13 +348,13 @@ inline std::string subpage_back_token_base(std::string token) {
 
 inline std::string subpage_back_label_from_order_token(const std::string &token) {
   size_t eq = token.find('=');
-  if (eq == std::string::npos) return "Back";
+  if (eq == std::string::npos) return espcontrol_i18n(std::string("Back"));
   std::string label = decode_compact_subpage_field(token.substr(eq + 1));
-  return label.empty() ? "Back" : label;
+  return label.empty() ? espcontrol_i18n(std::string("Back")) : label;
 }
 
 inline std::string get_subpage_back_label(const std::string &order_str) {
-  if (order_str.empty()) return "Back";
+  if (order_str.empty()) return espcontrol_i18n(std::string("Back"));
   size_t st = 0;
   while (st <= order_str.length()) {
     size_t cm = order_str.find(',', st);
@@ -369,7 +369,7 @@ inline std::string get_subpage_back_label(const std::string &order_str) {
     }
     st = cm + 1;
   }
-  return "Back";
+  return espcontrol_i18n(std::string("Back"));
 }
 
 // Subpage grid layout with support for a back button token ("B")
@@ -403,10 +403,10 @@ inline void subscribe_subpage_parent_indicator(
           *child_was_on = false;
         }
         if (sp_on_count[parent_idx] > 0) {
-          lv_obj_add_state(parent_btn, LV_STATE_CHECKED);
+          set_card_checked_state(parent_btn, true);
           if (has_alt_icon) lv_label_set_text(parent_icon, on_glyph);
         } else {
-          lv_obj_clear_state(parent_btn, LV_STATE_CHECKED);
+          set_card_checked_state(parent_btn, false);
           if (has_alt_icon) lv_label_set_text(parent_icon, off_glyph);
         }
       })

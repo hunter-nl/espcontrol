@@ -7,6 +7,7 @@
 struct NavigationSubpageEntry {
   int slot = 0;
   int display_order = 0;
+  std::string kind;
   std::string label;
   lv_obj_t *screen = nullptr;
 };
@@ -53,12 +54,14 @@ inline void navigation_clear_subpages() {
 }
 
 inline void navigation_register_subpage(int slot, int display_order,
+                                        const std::string &kind,
                                         const std::string &label,
                                         lv_obj_t *screen) {
   if (slot <= 0 || screen == nullptr) return;
   NavigationSubpageEntry entry;
   entry.slot = slot;
   entry.display_order = display_order;
+  entry.kind = navigation_lower(navigation_trim(kind));
   entry.label = navigation_trim(label);
   entry.screen = screen;
   navigation_subpages().push_back(entry);
@@ -105,6 +108,31 @@ inline NavigationSubpageEntry *navigation_find_slot_target(int slot) {
     if (entry.slot == slot && entry.screen != nullptr) return &entry;
   }
   return nullptr;
+}
+
+inline NavigationSubpageEntry *navigation_find_first_kind(const std::string &kind) {
+  std::string wanted = navigation_lower(navigation_trim(kind));
+  if (wanted.empty()) return nullptr;
+  NavigationSubpageEntry *best = nullptr;
+  for (auto &entry : navigation_subpages()) {
+    if (entry.screen == nullptr || entry.kind != wanted) continue;
+    if (best == nullptr || entry.display_order < best->display_order) {
+      best = &entry;
+    }
+  }
+  return best;
+}
+
+inline bool navigation_open_first_kind(const std::string &kind,
+                                       lv_obj_t *main_page_obj) {
+  navigation_hide_modals();
+  NavigationSubpageEntry *target = navigation_find_first_kind(kind);
+  if (target == nullptr) {
+    ESP_LOGW("navigation", "No subpage of kind '%s'", navigation_trim(kind).c_str());
+    return false;
+  }
+  lv_scr_load_anim(target->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  return true;
 }
 
 inline bool espcontrol_navigate(const std::string &target,

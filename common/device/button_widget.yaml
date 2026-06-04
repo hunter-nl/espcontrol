@@ -61,13 +61,45 @@ button:
         text: $icon_chevron_right
         hidden: true
   # Fire push event, navigate to subpage, or toggle the bound HA entity
+  on_press:
+    - if:
+        condition:
+          lambda: 'return id(screensaver_wake_touch_guard_active);'
+        then:
+          - lambda: 'lv_obj_clear_state(id(button_${num}), LV_STATE_PRESSED);'
+        else:
+          - if:
+              condition:
+                lambda: 'return !(id(display_asleep) || id(screen_schedule_asleep) || id(screensaver_display_off_active) || id(screensaver_dimmed_active) || id(cover_art_screensaver_active));'
+              then:
+                - lambda: 'handle_button_press(id(button_${num}_config).state, ${num}, id(button_${num}));'
   on_short_click:
     - if:
         condition:
-          lambda: 'return id(display_asleep) || id(screen_schedule_asleep) || id(screensaver_display_off_active) || id(screensaver_dimmed_active);'
+          lambda: 'return id(screensaver_wake_touch_guard_active);'
         then:
-          - script.execute: screensaver_wake
+          - script.stop: screensaver_wake_touch_guard_clear
+          - globals.set:
+              id: screensaver_wake_touch_guard_active
+              value: 'false'
+          - lambda: 'ESP_LOGD("screensaver", "Ignored button click after screensaver wake");'
         else:
-          - lambda: 'handle_button_click(id(button_${num}_config).state, ${num}, id(button_${num}));'
+          - if:
+              condition:
+                lambda: 'return id(display_asleep) || id(screen_schedule_asleep) || id(screensaver_display_off_active) || id(screensaver_dimmed_active) || id(cover_art_screensaver_active);'
+              then:
+                - script.execute: screensaver_wake
+              else:
+                - lambda: 'handle_button_click(id(button_${num}_config).state, ${num}, id(button_${num}));'
   on_long_press:
-    - script.execute: screen_schedule_manual_sleep
+    - if:
+        condition:
+          lambda: 'return id(screensaver_wake_touch_guard_active);'
+        then:
+          - script.stop: screensaver_wake_touch_guard_clear
+          - globals.set:
+              id: screensaver_wake_touch_guard_active
+              value: 'false'
+          - lambda: 'ESP_LOGD("screensaver", "Ignored button long press after screensaver wake");'
+        else:
+          - script.execute: screen_schedule_manual_sleep

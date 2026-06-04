@@ -54,6 +54,36 @@
       "comment": "Setup screens"
     },
     {
+      "name": "Wi-Fi Strength Outline",
+      "codepoint": "F092F",
+      "mdi": "wifi-strength-outline",
+      "comment": "Network status"
+    },
+    {
+      "name": "Wi-Fi Strength 1",
+      "codepoint": "F091F",
+      "mdi": "wifi-strength-1",
+      "comment": "Network status"
+    },
+    {
+      "name": "Wi-Fi Strength 2",
+      "codepoint": "F0922",
+      "mdi": "wifi-strength-2",
+      "comment": "Network status"
+    },
+    {
+      "name": "Wi-Fi Strength 3",
+      "codepoint": "F0925",
+      "mdi": "wifi-strength-3",
+      "comment": "Network status"
+    },
+    {
+      "name": "Wi-Fi Strength Off Outline",
+      "codepoint": "F092E",
+      "mdi": "wifi-strength-off-outline",
+      "comment": "Network status"
+    },
+    {
       "name": "Ethernet",
       "codepoint": "F0200",
       "mdi": "ethernet",

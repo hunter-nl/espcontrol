@@ -116,8 +116,7 @@ inline void subscribe_sensor_icon_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
       bool unavailable = ha_state_unavailable_ref(state);
       if (btn_ptr) {
         apply_control_availability(btn_ptr, btn_ptr, !unavailable, false);
-        if (!unavailable && is_entity_on_ref(state)) lv_obj_add_state(btn_ptr, LV_STATE_CHECKED);
-        else lv_obj_clear_state(btn_ptr, LV_STATE_CHECKED);
+        set_card_checked_state(btn_ptr, !unavailable && is_entity_on_ref(state));
       }
       lv_label_set_text(icon_lbl, (!unavailable && is_entity_on_ref(state)) ? icon_on : icon_off);
     })
@@ -227,8 +226,7 @@ inline void subscribe_garage_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
         bool unavailable = ha_state_unavailable_ref(state);
         apply_control_availability(btn_ptr, btn_ptr, !unavailable);
         bool active = garage_state_is_active(state_text);
-        if (active) lv_obj_add_state(btn_ptr, LV_STATE_CHECKED);
-        else lv_obj_clear_state(btn_ptr, LV_STATE_CHECKED);
+        set_card_checked_state(btn_ptr, active);
         lv_label_set_text(icon_lbl, garage_state_uses_open_icon(state_text) ? open_icon : closed_icon);
         transient_status_label_show_if_changed(
           status_label, garage_state_label(state_text),
@@ -250,8 +248,7 @@ inline void subscribe_cover_toggle_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
         bool unavailable = ha_state_unavailable_ref(state);
         apply_control_availability(btn_ptr, btn_ptr, !unavailable);
         bool active = cover_toggle_state_is_active(state_text);
-        if (active) lv_obj_add_state(btn_ptr, LV_STATE_CHECKED);
-        else lv_obj_clear_state(btn_ptr, LV_STATE_CHECKED);
+        set_card_checked_state(btn_ptr, active);
         lv_label_set_text(icon_lbl, garage_state_uses_open_icon(state_text) ? open_icon : closed_icon);
         transient_status_label_show_if_changed(
           status_label, garage_state_label(state_text), garage_state_releases_label(state_text));
@@ -274,8 +271,7 @@ inline void subscribe_lock_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
         apply_control_availability(btn_ptr, btn_ptr, !unavailable);
         ctx->state = state_text;
         bool active = lock_state_is_active(state_text);
-        if (active) lv_obj_add_state(btn_ptr, LV_STATE_CHECKED);
-        else lv_obj_clear_state(btn_ptr, LV_STATE_CHECKED);
+        set_card_checked_state(btn_ptr, active);
         lv_label_set_text(icon_lbl,
           lock_state_uses_unlocked_icon(state_text) ? unlocked_icon : locked_icon);
         transient_status_label_show_if_changed(
@@ -311,7 +307,7 @@ inline void subscribe_friendly_name(lv_obj_t *text_lbl, const std::string &entit
   ha_subscribe_attribute(
     entity_id, std::string("friendly_name"),
     std::function<void(esphome::StringRef)>([text_lbl](esphome::StringRef name) {
-      lv_label_set_text_limited(text_lbl, name, HA_FRIENDLY_NAME_MAX_LEN);
+      set_wrapped_button_label_text(text_lbl, string_ref_limited(name, HA_FRIENDLY_NAME_MAX_LEN));
     })
   );
 }
@@ -335,8 +331,7 @@ inline void subscribe_toggle_state(lv_obj_t *btn_ptr, lv_obj_t *icon_lbl,
         bool unavailable = ha_state_unavailable_ref(state);
         apply_control_availability(btn_ptr, btn_ptr, !unavailable, disable_interaction);
         bool on = is_entity_on_ref(state);
-        if (on) lv_obj_add_state(btn_ptr, LV_STATE_CHECKED);
-        else lv_obj_clear_state(btn_ptr, LV_STATE_CHECKED);
+        set_card_checked_state(btn_ptr, on);
 
         if (text_sensor_ctx) {
           text_sensor_ctx->on = on;
@@ -458,8 +453,7 @@ inline void subscribe_action_card_display_state(ActionCardStateCtx *ctx,
     std::function<void(esphome::StringRef)>([ctx, entity_id](esphome::StringRef state) {
       bool unavailable = ha_entity_state_unavailable_ref(entity_id, state);
       ctx->state_available = !unavailable;
-      if (!unavailable && is_entity_on_ref(state)) lv_obj_add_state(ctx->btn, LV_STATE_CHECKED);
-      else lv_obj_clear_state(ctx->btn, LV_STATE_CHECKED);
+      set_card_checked_state(ctx->btn, !unavailable && is_entity_on_ref(state));
       apply_action_card_display_value(ctx, state, unavailable);
       apply_action_card_availability(ctx);
     })

@@ -5,6 +5,10 @@ var MONTH_NAME_DEFAULTS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
+var LANGUAGE_LABELS = {
+  en: "English",
+  it: "Italiano"
+};
 var THEME_PRESETS = {
   Light: { on: "0073FF", off: "CECECE", sensor: "DEDEDE" },
   Dark: { on: "FF8C00", off: "313131", sensor: "212121" },
@@ -12,6 +16,14 @@ var THEME_PRESETS = {
 
 function defaultTheme() {
   return "Dark";
+}
+
+function isEpaperPreview() {
+  return CFG && CFG.previewTheme === "epaper";
+}
+
+function epaperPreviewFillColor() {
+  return normalizeTheme(state.theme) === "Light" ? "FFFFFF" : "000000";
 }
 
 function defaultTimezoneOptions() {
@@ -44,6 +56,7 @@ var state = {
   outdoorEntity: "",
   temperatureUnit: "Auto",
   clockBarOn: false,
+  clockBarTimeOn: true,
   networkStatusOn: true,
   networkTransport: "wifi",
   wifiStrengthPercent: 100,
@@ -52,6 +65,14 @@ var state = {
   presenceEntity: "",
   mediaPlayerSleepPreventionOn: false,
   mediaPlayerSleepPreventionEntity: "",
+  coverArtScreensaverOn: false,
+  coverArtMediaPlayerEntity: "",
+  coverArtHomeAssistantUrl: "",
+  coverArtDelay: 10,
+  coverArtTrackOverlayDuration: 5,
+  coverArtProgressBarOn: true,
+  coverArtOpenMediaSubpageOn: false,
+  coverArtMediaSubpageTarget: "",
   screensaverMode: "disabled",
   _screensaverModeReceived: false,
   screensaverAction: "off",
@@ -80,6 +101,8 @@ var state = {
   scheduleClockTextColor: "FFFFFF",
   timezone: "UTC (GMT+0)",
   timezoneOptions: defaultTimezoneOptions(),
+  language: "en",
+  languageOptions: ["en", "it"],
   clockFormat: "24h",
   clockFormatOptions: ["12h", "24h"],
   customNtpServers: false,
@@ -113,6 +136,9 @@ var state = {
   developerExperimentalFeatures: false,
   configLocked: false,
   configLockReason: "",
+  clockBarSelectedItem: "",
+  clockBarTempRestoreIndoor: false,
+  clockBarTempRestoreOutdoor: true,
   subpages: {},
   subpageRaw: {},
   subpageSavePending: {},
@@ -195,6 +221,40 @@ function sortScreenRotationOptions(options) {
 
 function normalizeTemperatureUnit(value) {
   return EspControlModel.normalizeTemperatureUnit(value);
+}
+
+function normalizeLanguage(value) {
+  var language = String(value == null ? "" : value).trim().toLowerCase();
+  return language || "en";
+}
+
+function languageLabel(value) {
+  value = normalizeLanguage(value);
+  return LANGUAGE_LABELS[value] || value;
+}
+
+function languageOptionsWithFallback(options, selected) {
+  var list = uniqueOptions((options && options.length ? options : ["en"]).map(normalizeLanguage));
+  selected = normalizeLanguage(selected);
+  if (list.indexOf(selected) === -1) list.unshift(selected);
+  return list;
+}
+
+function appendLanguageOption(select, opt) {
+  var o = document.createElement("option");
+  o.value = normalizeLanguage(opt);
+  o.textContent = languageLabel(opt);
+  select.appendChild(o);
+}
+
+function syncLanguageSelect() {
+  if (!els.setLanguage) return;
+  state.languageOptions = languageOptionsWithFallback(state.languageOptions, state.language);
+  els.setLanguage.innerHTML = "";
+  state.languageOptions.forEach(function (opt) {
+    appendLanguageOption(els.setLanguage, opt);
+  });
+  els.setLanguage.value = normalizeLanguage(state.language);
 }
 
 function timezonePrefersFahrenheit(timezone) {
@@ -546,9 +606,11 @@ function applyThemePreset(theme, postChanges) {
   renderPreview();
   if (postChanges) {
     postSelect(entityName("screen_theme"), state.theme);
-    postText(entityName("button_on_color"), state.onColor);
-    postText(entityName("button_off_color"), state.offColor);
-    postText(entityName("sensor_card_color"), state.sensorColor);
+    if (!isEpaperPreview()) {
+      postText(entityName("button_on_color"), state.onColor);
+      postText(entityName("button_off_color"), state.offColor);
+      postText(entityName("sensor_card_color"), state.sensorColor);
+    }
   }
 }
 
@@ -568,6 +630,7 @@ function syncClockBarUi() {
   syncPreviewGridTop();
   if (els.topbar) els.topbar.className = "sp-topbar" + (state.clockBarOn ? "" : " sp-hidden");
   if (els.setClockBarToggle) els.setClockBarToggle.checked = !!state.clockBarOn;
+  if (els.setClockBarTimeToggle) els.setClockBarTimeToggle.checked = !!state.clockBarTimeOn;
   if (els.setNetworkStatusToggle) {
     els.setNetworkStatusToggle.checked = !!state.networkStatusOn;
   }
@@ -580,6 +643,7 @@ function syncClockBarUi() {
   if (els.setSubpageChevronToggle) {
     els.setSubpageChevronToggle.checked = !!state.subpageChevronsOn;
   }
+  updateClockBarItemUi();
   updateNetworkPreview();
   updateTempPreview();
 }

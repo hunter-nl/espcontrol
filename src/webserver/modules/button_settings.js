@@ -69,16 +69,20 @@ function closeSettings() {
   hideSettingsOverlay();
   _settingsDeferred = false;
   state.settingsDraft = null;
+  state.clockBarSelectedItem = "";
   ctx().setSelected([]);
+  updateClockBarItemUi();
   renderPreview();
 }
 
 function clearCardSelection() {
   var c = ctx();
-  if (!c.selected.length && c.getLastClicked() < 0) return;
+  if (!c.selected.length && c.getLastClicked() < 0 && !state.clockBarSelectedItem) return;
   c.setSelected([]);
   c.setLastClicked(-1);
+  state.clockBarSelectedItem = "";
   hideSettingsOverlay();
+  updateClockBarItemUi();
   renderPreview();
   renderButtonSettings();
 }
@@ -86,6 +90,7 @@ function clearCardSelection() {
 function isSelectionControlTarget(target) {
   return !!(
     (els.previewMain && els.previewMain.contains(target)) ||
+    (els.topbar && els.topbar.contains(target)) ||
     (els.selectionBar && els.selectionBar.contains(target)) ||
     (els.settingsOverlay && els.settingsOverlay.contains(target)) ||
     (ctxMenu && ctxMenu.contains(target)) ||
@@ -101,9 +106,187 @@ function handleDocumentSelectionMouseDown(e) {
 
 function openSelectedCardSettings() {
   if (isConfigLocked()) return;
+  if (state.clockBarSelectedItem) {
+    renderButtonSettings(true);
+    return;
+  }
   var c = ctx();
   if (c.selected.length !== 1) return;
   renderButtonSettings(true);
+}
+
+function fieldWithControl(labelText, inputId, control) {
+  var field = document.createElement("div");
+  field.className = "sp-field";
+  field.appendChild(fieldLabel(labelText, inputId));
+  if (control) field.appendChild(control);
+  return field;
+}
+
+function clockBarSelectField(labelText, inputId, options, value, onChange) {
+  var select = document.createElement("select");
+  select.className = "sp-select";
+  if (inputId) select.id = inputId;
+  options.forEach(function (entry) {
+    var option = document.createElement("option");
+    option.value = entry[0];
+    option.textContent = entry[1];
+    select.appendChild(option);
+  });
+  select.value = value;
+  if (onChange) select.addEventListener("change", onChange);
+  return fieldWithControl(labelText, inputId, select);
+}
+
+function renderClockBarEntityControls(panel, kind, label, enabled, entityValue, entityKey, placeholder) {
+  var toggle = toggleRow(label, "sp-clockbar-" + kind + "-toggle", enabled);
+  panel.appendChild(toggle.row);
+
+  var field = condField();
+  var inputId = "sp-clockbar-" + kind + "-entity";
+  field.appendChild(fieldLabel(label + " Entity", inputId));
+  var input = entityInput(inputId, entityValue, placeholder, ["sensor"]);
+  field.appendChild(input);
+  panel.appendChild(field);
+  if (kind === "indoor") {
+    els.setIndoorToggle = toggle.input;
+    els.setIndoorField = field;
+    els.setIndoorEntity = input;
+  } else {
+    els.setOutdoorToggle = toggle.input;
+    els.setOutdoorField = field;
+    els.setOutdoorEntity = input;
+  }
+
+  function syncField() {
+    field.className = "sp-cond-field" + (toggle.input.checked ? " sp-visible" : "");
+  }
+
+  toggle.input.addEventListener("change", function () {
+    if (kind === "indoor") state._indoorOn = this.checked;
+    else state._outdoorOn = this.checked;
+    postSwitch(entityName(kind + "_temp_enable"), this.checked);
+    syncField();
+    syncTemperatureUi();
+    updateTempPreview();
+    updateClockBarItemUi();
+  });
+  bindTextPost(input, entityName(entityKey), {
+    onBlur: function (value) {
+      if (kind === "indoor") state.indoorEntity = value;
+      else state.outdoorEntity = value;
+    },
+  });
+  syncField();
+}
+
+function renderClockBarSettings(forceOpen) {
+  if (!state.clockBarSelectedItem) return false;
+  if (!forceOpen && !isSettingsOpen()) return true;
+  if (els.settingsOverlay) els.settingsOverlay.classList.add("sp-visible");
+
+  var item = state.clockBarSelectedItem;
+  var container = els.buttonSettings;
+  var title = document.createElement("div");
+  title.className = "sp-section-title";
+  title.textContent = clockBarItemLabel(item);
+  container.appendChild(title);
+
+  var panel = document.createElement("div");
+  panel.className = "sp-panel";
+
+  if (item === "temperature") {
+    renderClockBarEntityControls(panel, "outdoor", "Outdoor Temperature", state._outdoorOn,
+      state.outdoorEntity, "outdoor_temp_entity", "sensor.outdoor_temperature");
+    renderClockBarEntityControls(panel, "indoor", "Indoor Temperature", state._indoorOn,
+      state.indoorEntity, "indoor_temp_entity", "sensor.indoor_temperature");
+    panel.appendChild(clockBarSelectField("Temperature Unit", "sp-clockbar-temperature-unit", [
+      ["Auto", "Auto (from timezone)"],
+      ["\u00B0C", "Centigrade (\u00B0C)"],
+      ["\u00B0F", "Fahrenheit (\u00B0F)"],
+    ], normalizeTemperatureUnit(state.temperatureUnit), function () {
+      state.temperatureUnit = normalizeTemperatureUnit(this.value);
+      postSelect(entityName("screen_temperature_unit"), state.temperatureUnit);
+      if (els.setTemperatureUnit) els.setTemperatureUnit.value = state.temperatureUnit;
+      updateTempPreview();
+      renderPreview();
+    }));
+    var degreeSymbol = toggleRow("Show Degree Symbol", "sp-clockbar-degree-symbol", state.temperatureDegreeSymbolOn);
+    panel.appendChild(degreeSymbol.row);
+    degreeSymbol.input.addEventListener("change", function () {
+      state.temperatureDegreeSymbolOn = this.checked;
+      syncClockBarUi();
+      postTemperatureDegreeSymbol(state.temperatureDegreeSymbolOn);
+    });
+  } else if (item === "time") {
+    var timeToggle = toggleRow("Show Time", "sp-clockbar-time-toggle", state.clockBarTimeOn);
+    panel.appendChild(timeToggle.row);
+    els.setClockBarTimeToggle = timeToggle.input;
+    timeToggle.input.addEventListener("change", function () {
+      state.clockBarTimeOn = this.checked;
+      syncClockBarUi();
+      postClockBarTime(state.clockBarTimeOn);
+    });
+
+    var timezoneSelect = document.createElement("select");
+    timezoneSelect.className = "sp-select";
+    timezoneSelect.id = "sp-clockbar-timezone";
+    timezoneOptionsWithFallback(state.timezoneOptions, state.timezone).forEach(function (opt) {
+      appendTimezoneOption(timezoneSelect, opt);
+    });
+    timezoneSelect.value = state.timezone;
+    timezoneSelect.addEventListener("change", function () {
+      state.timezone = this.value;
+      postSelect(entityName("screen_timezone"), state.timezone);
+      if (els.setTimezone) els.setTimezone.value = state.timezone;
+      if (normalizeTemperatureUnit(state.temperatureUnit) === "Auto") updateTempPreview();
+      updateClock();
+      renderPreview();
+    });
+    panel.appendChild(fieldWithControl("Timezone", "sp-clockbar-timezone", timezoneSelect));
+
+    panel.appendChild(clockBarSelectField("Clock Format", "sp-clockbar-clock-format", [
+      ["24h", "24-hour"],
+      ["12h", "12-hour"],
+    ], state.clockFormat, function () {
+      state.clockFormat = this.value;
+      postSelect(entityName("screen_clock_format"), state.clockFormat);
+      if (els.setClockFormat) els.setClockFormat.value = state.clockFormat;
+      updateClock();
+      renderPreview();
+    }));
+  } else if (item === "network") {
+    var networkStatus = toggleRow("Show Network Status Icon", "sp-clockbar-network-status-icon", state.networkStatusOn);
+    panel.appendChild(networkStatus.row);
+    els.setNetworkStatusToggle = networkStatus.input;
+    networkStatus.input.addEventListener("change", function () {
+      state.networkStatusOn = this.checked;
+      syncClockBarUi();
+      postNetworkStatusIcon(state.networkStatusOn);
+    });
+  }
+
+  var row = document.createElement("div");
+  row.className = "sp-btn-row sp-btn-row--save sp-has-delete";
+  var delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "sp-action-btn sp-delete-btn";
+  delBtn.innerHTML = '<span class="mdi mdi-delete-outline"></span>Delete';
+  delBtn.addEventListener("click", function () {
+    deleteClockBarItem(item);
+    renderButtonSettings();
+  });
+  row.appendChild(delBtn);
+  var doneBtn = document.createElement("button");
+  doneBtn.type = "button";
+  doneBtn.className = "sp-action-btn sp-save-btn";
+  doneBtn.textContent = "Done";
+  doneBtn.addEventListener("click", closeSettings);
+  row.appendChild(doneBtn);
+  panel.appendChild(row);
+
+  container.appendChild(panel);
+  return true;
 }
 
 function openCardSettings(slot) {
@@ -174,6 +357,8 @@ function renderButtonSettings(forceOpen) {
     hideSettingsOverlay();
     return;
   }
+
+  if (renderClockBarSettings(forceOpen)) return;
 
   if (c.selected.length === 0) {
     hideSettingsOverlay();
@@ -724,6 +909,16 @@ function renderButtonSettings(forceOpen) {
         saveField("icon_on", "Auto");
       }
     });
+
+    var patternField = selectField("On State Pattern", idPrefix + "on-pattern", [
+      ["", "Solid"],
+      ["stripes", "Stripes"],
+    ], cardOnPattern(b), function () {
+      setCardOnPattern(b, this.value);
+      saveField("options", b.options);
+      renderPreview();
+    });
+    panel.appendChild(patternField.field);
   }
 
   var saveRow = document.createElement("div");

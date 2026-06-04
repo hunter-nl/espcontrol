@@ -430,6 +430,35 @@ inline void send_media_playback_action(const std::string &entity_id,
   send_media_player_action(entity_id, media_service_for_mode(mode));
 }
 
+inline bool media_fast_press_mode(const std::string &mode) {
+  return mode == "previous" || mode == "next";
+}
+
+inline bool *media_fast_press_slots() {
+  static bool slots[MAX_GRID_SLOTS + 1] = {};
+  return slots;
+}
+
+inline bool media_fast_press_consume(int slot_num) {
+  if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return false;
+  bool *slots = media_fast_press_slots();
+  bool sent = slots[slot_num];
+  slots[slot_num] = false;
+  return sent;
+}
+
+inline void handle_button_press(const std::string &cfg, int slot_num,
+                                lv_obj_t *btn_obj) {
+  if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
+  if (btn_obj && lv_obj_has_state(btn_obj, LV_STATE_DISABLED)) return;
+  ParsedCfg p = parse_cfg(cfg);
+  if (p.type != "media") return;
+  std::string mode = media_card_mode(p.sensor);
+  if (!media_fast_press_mode(mode) || p.entity.empty()) return;
+  media_fast_press_slots()[slot_num] = true;
+  send_media_playback_action(p.entity, mode);
+}
+
 // ── Button click dispatch ─────────────────────────────────────────────
 
 struct MediaVolumeCtx;
@@ -456,6 +485,7 @@ inline void fan_card_handle_click(FanCardCtx *ctx);
 // slider toggle, or entity toggle based on the config string.
 inline void handle_button_click(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
+  if (media_fast_press_consume(slot_num)) return;
   if (btn_obj && lv_obj_has_state(btn_obj, LV_STATE_DISABLED)) return;
   ParsedCfg p = parse_cfg(cfg);
   if (p.type == "sensor" || p.type == "text_sensor" ||
@@ -496,7 +526,7 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
     } else if (garage_command_mode(p.sensor)) {
       send_cover_command_action(p);
     } else if (!p.entity.empty()) {
-      lv_obj_add_state(btn_obj, LV_STATE_CHECKED);
+      set_card_checked_state(btn_obj, true);
       send_toggle_action(p.entity);
     }
   } else if (p.type == "lock") {
@@ -511,7 +541,7 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
     send_cover_command_action(p);
   } else if (p.type == "cover" && cover_toggle_mode(p.sensor)) {
     if (!p.entity.empty()) {
-      lv_obj_add_state(btn_obj, LV_STATE_CHECKED);
+      set_card_checked_state(btn_obj, true);
       send_toggle_action(p.entity);
     }
   } else if (p.type == "internal") {

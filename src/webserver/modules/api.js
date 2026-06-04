@@ -131,6 +131,7 @@ function rememberConfiguredEntities() {
   rememberEntityName(state.outdoorEntity, "Outdoor Temperature");
   rememberEntityName(state.presenceEntity, "Presence Sensor");
   rememberEntityName(state.mediaPlayerSleepPreventionEntity, "Media Player");
+  rememberEntityName(state.coverArtMediaPlayerEntity, "Cover Art Media Player");
 }
 
 function optionLabelForEntity(entityId) {
@@ -285,13 +286,13 @@ function hasRememberedPostPath(domain, name, objectIds) {
 
 function entityPostUrls(domain, name, objectIds, action) {
   var urls = [];
-  uniquePush(urls, "/" + domain + "/" + encodeURIComponent(name) + "/" + action);
   rememberedPostUrls(domain, name, objectIds || [], action).forEach(function (url) {
     uniquePush(urls, url);
   });
   (objectIds || []).forEach(function (objectId) {
     uniquePush(urls, "/" + domain + "/" + encodeURIComponent(objectId) + "/" + action);
   });
+  uniquePush(urls, "/" + domain + "/" + encodeURIComponent(name) + "/" + action);
   uniquePush(urls, "/" + domain + "/" + encodeURIComponent(esphomeObjectId(name)) + "/" + action);
   return urls;
 }
@@ -587,6 +588,18 @@ function postClockBar(on) {
   postSwitchWithObjectIds(entityName("screen_clock_bar"), entityObjectIds("screen_clock_bar"), on, CLOCK_BAR_UNAVAILABLE);
 }
 
+var CLOCK_BAR_TIME_UNAVAILABLE =
+  "Clock bar time setting is not available on this firmware. Update the device firmware, then reload this page.";
+
+function postClockBarTime(on) {
+  postSwitchWithObjectIds(
+    entityName("screen_clock_bar_time"),
+    entityObjectIds("screen_clock_bar_time"),
+    on,
+    CLOCK_BAR_TIME_UNAVAILABLE
+  );
+}
+
 var NETWORK_STATUS_ICON_UNAVAILABLE =
   "Network status icon setting is not available on this firmware. Update the device firmware, then reload this page.";
 
@@ -766,7 +779,10 @@ function eventStreamEnabled() {
 }
 
 function cardStateEntities() {
-  return entityStateItems(ENTITY_CATALOG.groups.card)
+  var cardEntities = ENTITY_CATALOG.groups.card.filter(function (key) {
+    return key !== "screen_theme" || isEpaperPreview();
+  });
+  return entityStateItems(cardEntities)
     .concat(entityStateItemsForSlots(ENTITY_CATALOG.groups.card_slot));
 }
 

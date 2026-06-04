@@ -10,6 +10,11 @@ export function normalizeTemperatureUnit(value: unknown): string {
   return "Auto";
 }
 
+export function normalizeLanguage(value: unknown): string {
+  const language = String(value == null ? "" : value).trim().toLowerCase();
+  return language || "en";
+}
+
 export function normalizeHour(value: unknown, fallback: number): number {
   const n = parseInt(String(value), 10);
   if (!Number.isFinite(n)) return fallback;
@@ -187,6 +192,7 @@ export function normalizeBackupScreenSettings(
 
 export interface BackupPanelSettingsCurrent {
   timezone: string;
+  language: string;
   clockFormat: string;
   clockFormatOptions: readonly string[];
   developerExperimentalFeatures: boolean;
@@ -204,11 +210,13 @@ export interface BackupPanelSettingsState {
   indoorTempEntity: string;
   outdoorTempEntity: string;
   clockBar: boolean;
+  clockBarTime: boolean;
   networkStatusIcon: boolean;
   temperatureDegreeSymbol: boolean;
   subpageChevron: boolean;
   timezone: string;
   temperatureUnit: string;
+  language: string;
   clockFormat: string;
   hasNtpServer1: boolean;
   hasNtpServer2: boolean;
@@ -224,6 +232,14 @@ export interface BackupPanelSettingsState {
   presenceSensorEntity: string;
   mediaPlayerSleepPrevention: boolean;
   mediaPlayerSleepPreventionEntity: string;
+  coverArtScreensaver: boolean;
+  coverArtMediaPlayerEntity: string;
+  coverArtHomeAssistantUrl: string;
+  coverArtDelay: unknown;
+  coverArtTrackOverlayDuration: unknown;
+  coverArtProgressBar: boolean;
+  coverArtOpenMediaSubpage: boolean;
+  coverArtMediaSubpageTarget: string;
   screensaverAction: string;
   clockScreensaver: boolean;
   clockBrightnessDay: number;
@@ -275,6 +291,7 @@ export function normalizeBackupPanelSettings(
     indoorTempEntity: String(settings.indoor_temp_entity || ""),
     outdoorTempEntity: String(settings.outdoor_temp_entity || ""),
     clockBar: objectValue(settings, "clock_bar") != null ? !!settings.clock_bar : false,
+    clockBarTime: objectValue(settings, "clock_bar_time") != null ? !!settings.clock_bar_time : true,
     networkStatusIcon: objectValue(settings, "network_status_icon") != null ? !!settings.network_status_icon : true,
     temperatureDegreeSymbol: objectValue(settings, "temperature_degree_symbol") != null
       ? !!settings.temperature_degree_symbol
@@ -284,6 +301,7 @@ export function normalizeBackupPanelSettings(
       : true,
     timezone: String(settings.timezone || current.timezone),
     temperatureUnit: normalizeTemperatureUnit(settings.temperature_unit),
+    language: normalizeLanguage(settings.language || current.language),
     clockFormat,
     hasNtpServer1,
     hasNtpServer2,
@@ -307,6 +325,14 @@ export function normalizeBackupPanelSettings(
     presenceSensorEntity: String(settings.presence_sensor_entity || ""),
     mediaPlayerSleepPrevention: !!settings.media_player_sleep_prevention,
     mediaPlayerSleepPreventionEntity: String(settings.media_player_sleep_prevention_entity || ""),
+    coverArtScreensaver: !!settings.cover_art_screensaver,
+    coverArtMediaPlayerEntity: String(settings.cover_art_media_player_entity || ""),
+    coverArtHomeAssistantUrl: String(settings.cover_art_home_assistant_url || ""),
+    coverArtDelay: objectValue(settings, "cover_art_delay") != null ? settings.cover_art_delay : 10,
+    coverArtTrackOverlayDuration: objectValue(settings, "cover_art_track_overlay_duration") != null ? settings.cover_art_track_overlay_duration : 5,
+    coverArtProgressBar: objectValue(settings, "cover_art_progress_bar") != null ? !!settings.cover_art_progress_bar : true,
+    coverArtOpenMediaSubpage: !!settings.cover_art_open_media_subpage,
+    coverArtMediaSubpageTarget: String(settings.cover_art_media_subpage_target || ""),
     screensaverAction,
     clockScreensaver: screensaverAction === "clock",
     clockBrightnessDay,

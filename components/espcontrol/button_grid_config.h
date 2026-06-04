@@ -98,6 +98,8 @@ struct BtnSlot {
   lv_obj_t *subpage_lbl = nullptr;  // small chevron marker for subpage cards
 };
 
+inline void set_card_checked_state(lv_obj_t *btn, bool checked);
+
 // Extract the Nth semicolon-delimited field from a config string
 inline std::string cfg_field(const std::string &cfg, int idx) {
   size_t start = 0;
@@ -514,6 +516,58 @@ inline std::string webhook_card_options_normalized(const std::string &options) {
   return headers.empty() ? std::string() : "webhook_headers=" + encode_compact_field(headers);
 }
 
+inline std::string normalize_card_on_pattern(const std::string &value) {
+  return value == "stripes" ? std::string("stripes") : std::string();
+}
+
+inline std::string switch_card_options_normalized(const std::string &options) {
+  std::string out;
+  std::string pattern = normalize_card_on_pattern(cfg_option_value(options, "on_pattern"));
+  if (!pattern.empty()) out = "on_pattern=" + pattern;
+  if (cfg_option_token_present(options, "large_numbers")) {
+    if (!out.empty()) out += ",";
+    out += "large_numbers";
+  }
+  if (cfg_option_token_present(options, "confirm_off")) {
+    if (!out.empty()) out += ",";
+    out += "confirm_off";
+  }
+  if (cfg_option_token_present(options, "confirm_on")) {
+    if (!out.empty()) out += ",";
+    out += "confirm_on";
+  }
+  std::string mode;
+  if (cfg_option_token_present(options, "confirm_off") &&
+      cfg_option_token_present(options, "confirm_on")) {
+    mode = "both";
+  } else if (cfg_option_token_present(options, "confirm_on")) {
+    mode = "on";
+  } else if (cfg_option_token_present(options, "confirm_off")) {
+    mode = "off";
+  }
+  if (!mode.empty()) {
+    std::string message = cfg_option_value(options, "confirm_message");
+    std::string yes = cfg_option_value(options, "confirm_yes");
+    std::string no = cfg_option_value(options, "confirm_no");
+    std::string default_message = mode == "on" ? "Turn on this device?"
+      : mode == "both" ? "Toggle this device?"
+      : "Turn off this device?";
+    if (!message.empty() && message != default_message) {
+      if (!out.empty()) out += ",";
+      out += "confirm_message=" + encode_compact_field(message);
+    }
+    if (!yes.empty() && yes != "Yes") {
+      if (!out.empty()) out += ",";
+      out += "confirm_yes=" + encode_compact_field(yes);
+    }
+    if (!no.empty() && no != "No") {
+      if (!out.empty()) out += ",";
+      out += "confirm_no=" + encode_compact_field(no);
+    }
+  }
+  return out;
+}
+
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   // Slider cards used to store "h" here for horizontal layout. Sliders are
   // now always vertical, so treat any saved slider sensor value as legacy.
@@ -635,6 +689,9 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.options.clear();
     p.icon_on.clear();
     if (p.icon.empty() || p.icon == "Auto" || p.icon == "Chevron Down") p.icon = "Flash";
+  }
+  if (p.type.empty()) {
+    p.options = switch_card_options_normalized(p.options);
   }
   if (p.type == "door_window") {
     p.entity.clear();
@@ -781,9 +838,9 @@ inline bool switch_confirmation_required(const ParsedCfg &p, bool currently_on) 
 inline std::string switch_confirmation_default_message(const ParsedCfg &p) {
   bool confirm_off = cfg_option_enabled(p.options, "confirm_off");
   bool confirm_on = cfg_option_enabled(p.options, "confirm_on");
-  if (confirm_off && confirm_on) return "Toggle this device?";
-  if (confirm_on) return "Turn on this device?";
-  return "Turn off this device?";
+  if (confirm_off && confirm_on) return espcontrol_i18n(std::string("Toggle this device?"));
+  if (confirm_on) return espcontrol_i18n(std::string("Turn on this device?"));
+  return espcontrol_i18n(std::string("Turn off this device?"));
 }
 
 inline std::string switch_confirmation_message(const ParsedCfg &p) {
@@ -793,7 +850,7 @@ inline std::string switch_confirmation_message(const ParsedCfg &p) {
 
 inline std::string switch_confirmation_yes_text(const ParsedCfg &p) {
   std::string value = cfg_option_value(p.options, "confirm_yes");
-  return value.empty() ? std::string("Yes") : value;
+  return value.empty() ? espcontrol_i18n(std::string("Yes")) : value;
 }
 
 inline std::string switch_confirmation_no_text(const ParsedCfg &p) {
@@ -1164,38 +1221,38 @@ inline const char* weather_icon_for_state(const std::string &state) {
 
 inline std::string weather_label_for_state(const std::string &state) {
   std::string normalized = normalize_weather_state(state);
-  if (normalized == "sunny") return "Sunny";
-  if (normalized == "clear-night") return "Clear Night";
-  if (normalized == "partlycloudy") return "Partly Cloudy";
-  if (normalized == "cloudy") return "Cloudy";
-  if (normalized == "cloudy-alert") return "Cloudy Alert";
-  if (normalized == "dust") return "Dust";
-  if (normalized == "fog") return "Fog";
-  if (normalized == "hail") return "Hail";
-  if (normalized == "hazy") return "Hazy";
-  if (normalized == "hurricane") return "Hurricane";
-  if (normalized == "lightning") return "Lightning";
-  if (normalized == "lightning-rainy") return "Lightning And Rain";
-  if (normalized == "night-partly-cloudy") return "Partly Cloudy Night";
-  if (normalized == "partly-lightning") return "Partly Lightning";
-  if (normalized == "partly-rainy") return "Partly Rainy";
-  if (normalized == "partly-snowy") return "Partly Snowy";
-  if (normalized == "partly-snowy-rainy") return "Partly Snow And Rain";
-  if (normalized == "pouring") return "Pouring";
-  if (normalized == "rainy") return "Rainy";
-  if (normalized == "snowy") return "Snowy";
-  if (normalized == "snowy-heavy") return "Heavy Snow";
-  if (normalized == "snowy-rainy") return "Snowy And Rain";
-  if (normalized == "sunny-alert") return "Sunny Alert";
-  if (normalized == "sunset") return "Sunset";
-  if (normalized == "sunset-down") return "Sunset Down";
-  if (normalized == "sunset-up") return "Sunset Up";
-  if (normalized == "tornado") return "Tornado";
-  if (normalized == "windy") return "Windy";
-  if (normalized == "windy-variant") return "Windy And Cloudy";
-  if (normalized == "exceptional") return "Exceptional";
-  if (normalized == "unknown") return "Unknown";
-  if (normalized == "unavailable" || normalized.empty()) return "Unavailable";
+  if (normalized == "sunny") return espcontrol_i18n(std::string("Sunny"));
+  if (normalized == "clear-night") return espcontrol_i18n(std::string("Clear Night"));
+  if (normalized == "partlycloudy") return espcontrol_i18n(std::string("Partly Cloudy"));
+  if (normalized == "cloudy") return espcontrol_i18n(std::string("Cloudy"));
+  if (normalized == "cloudy-alert") return espcontrol_i18n(std::string("Cloudy Alert"));
+  if (normalized == "dust") return espcontrol_i18n(std::string("Dust"));
+  if (normalized == "fog") return espcontrol_i18n(std::string("Fog"));
+  if (normalized == "hail") return espcontrol_i18n(std::string("Hail"));
+  if (normalized == "hazy") return espcontrol_i18n(std::string("Hazy"));
+  if (normalized == "hurricane") return espcontrol_i18n(std::string("Hurricane"));
+  if (normalized == "lightning") return espcontrol_i18n(std::string("Lightning"));
+  if (normalized == "lightning-rainy") return espcontrol_i18n(std::string("Lightning And Rain"));
+  if (normalized == "night-partly-cloudy") return espcontrol_i18n(std::string("Partly Cloudy Night"));
+  if (normalized == "partly-lightning") return espcontrol_i18n(std::string("Partly Lightning"));
+  if (normalized == "partly-rainy") return espcontrol_i18n(std::string("Partly Rainy"));
+  if (normalized == "partly-snowy") return espcontrol_i18n(std::string("Partly Snowy"));
+  if (normalized == "partly-snowy-rainy") return espcontrol_i18n(std::string("Partly Snow And Rain"));
+  if (normalized == "pouring") return espcontrol_i18n(std::string("Pouring"));
+  if (normalized == "rainy") return espcontrol_i18n(std::string("Rainy"));
+  if (normalized == "snowy") return espcontrol_i18n(std::string("Snowy"));
+  if (normalized == "snowy-heavy") return espcontrol_i18n(std::string("Heavy Snow"));
+  if (normalized == "snowy-rainy") return espcontrol_i18n(std::string("Snowy And Rain"));
+  if (normalized == "sunny-alert") return espcontrol_i18n(std::string("Sunny Alert"));
+  if (normalized == "sunset") return espcontrol_i18n(std::string("Sunset"));
+  if (normalized == "sunset-down") return espcontrol_i18n(std::string("Sunset Down"));
+  if (normalized == "sunset-up") return espcontrol_i18n(std::string("Sunset Up"));
+  if (normalized == "tornado") return espcontrol_i18n(std::string("Tornado"));
+  if (normalized == "windy") return espcontrol_i18n(std::string("Windy"));
+  if (normalized == "windy-variant") return espcontrol_i18n(std::string("Windy And Cloudy"));
+  if (normalized == "exceptional") return espcontrol_i18n(std::string("Exceptional"));
+  if (normalized == "unknown") return espcontrol_i18n(std::string("Unknown"));
+  if (normalized == "unavailable" || normalized.empty()) return espcontrol_i18n(std::string("Unavailable"));
 
   return sentence_cap_text(state);
 }
@@ -1274,7 +1331,7 @@ inline void apply_weather_forecast_card_text(const WeatherForecastCardRef &ref,
     std::string label = !ref.status_label.empty()
       ? ref.status_label
       : (ref.label.empty()
-          ? (ref.day == "today" ? "Today" : "Tomorrow")
+          ? (ref.day == "today" ? espcontrol_i18n(std::string("Today")) : espcontrol_i18n(std::string("Tomorrow")))
           : ref.label);
     lv_label_set_text(ref.label_lbl, label.c_str());
   }
@@ -1898,9 +1955,9 @@ inline const char *garage_command_icon(const ParsedCfg &p) {
 
 inline const char *garage_card_label(const ParsedCfg &p) {
   if (!p.label.empty()) return p.label.c_str();
-  if (p.sensor == "open") return "Open";
-  if (p.sensor == "close") return "Close";
-  return "Garage Door";
+  if (p.sensor == "open") return espcontrol_i18n("Open");
+  if (p.sensor == "close") return espcontrol_i18n("Close");
+  return espcontrol_i18n("Garage Door");
 }
 
 inline bool garage_card_show_status(const ParsedCfg &p) {
@@ -1935,9 +1992,9 @@ inline const char *lock_command_icon(const ParsedCfg &p) {
 
 inline const char *lock_card_label(const ParsedCfg &p) {
   if (!p.label.empty()) return p.label.c_str();
-  if (p.sensor == "lock") return "Lock";
-  if (p.sensor == "unlock") return "Unlock";
-  return "Lock";
+  if (p.sensor == "lock") return espcontrol_i18n("Lock");
+  if (p.sensor == "unlock") return espcontrol_i18n("Unlock");
+  return espcontrol_i18n("Lock");
 }
 
 // ── Internal relay controls ───────────────────────────────────────────
@@ -2034,7 +2091,7 @@ inline std::string internal_relay_label(const ParsedCfg &p) {
   if (!p.label.empty()) return p.label;
   InternalRelayControl *relay = find_internal_relay(p.entity);
   if (relay && !relay->label.empty()) return relay->label;
-  return p.entity.empty() ? std::string("Relay") : sentence_cap_text(p.entity);
+  return p.entity.empty() ? espcontrol_i18n(std::string("Relay")) : sentence_cap_text(p.entity);
 }
 
 inline const char *internal_relay_icon(const ParsedCfg &p, bool push_mode) {
@@ -2046,8 +2103,7 @@ inline void apply_internal_relay_state(lv_obj_t *btn, lv_obj_t *icon_lbl,
                                        bool on, bool has_icon_on,
                                        const char *icon_off, const char *icon_on) {
   if (btn) {
-    if (on) lv_obj_add_state(btn, LV_STATE_CHECKED);
-    else lv_obj_clear_state(btn, LV_STATE_CHECKED);
+    set_card_checked_state(btn, on);
   }
   if (icon_lbl && has_icon_on)
     lv_label_set_text(icon_lbl, on ? icon_on : icon_off);
@@ -2063,11 +2119,11 @@ inline void apply_internal_relay_parent_indicator(InternalRelayWatcher &w, bool 
     *w.child_was_on = false;
   }
   if (w.sp_on_count[w.parent_idx] > 0) {
-    lv_obj_add_state(w.parent_btn, LV_STATE_CHECKED);
+    set_card_checked_state(w.parent_btn, true);
     if (w.parent_has_alt_icon && w.parent_icon)
       lv_label_set_text(w.parent_icon, w.parent_on_glyph);
   } else {
-    lv_obj_clear_state(w.parent_btn, LV_STATE_CHECKED);
+    set_card_checked_state(w.parent_btn, false);
     if (w.parent_has_alt_icon && w.parent_icon)
       lv_label_set_text(w.parent_icon, w.parent_off_glyph);
   }

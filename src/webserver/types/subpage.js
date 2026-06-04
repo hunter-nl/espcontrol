@@ -370,7 +370,9 @@ registerButtonType("subpage", {
 function subpageBadgeLabelHtml(helpers, label) {
   return '<span class="sp-btn-label-row"><span class="sp-btn-label">' +
     helpers.escHtml(label) +
-  '</span></span>';
+  '</span><span class="sp-subpage-badge mdi mdi-' +
+    SUBPAGE_CARD_METADATA.preview.badge +
+  '"></span></span>';
 }
 
 function appendEditSubpageButton(panel, slot) {

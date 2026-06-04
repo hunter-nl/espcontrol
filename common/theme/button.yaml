@@ -11,8 +11,11 @@
 # ---------------------------------------------------------------------------
 substitutions:
   button_on_color: "0xFF8C00"
+  button_on_text_color: "0xFFFFFF"
   button_text_color: "0xFFFFFF"
   button_control_color: "0x313131"
+  button_border_color: "0x000000"
+  button_border_width: "0"
 
 lvgl:
   # ---------------------------------------------------------------------------
@@ -21,6 +24,8 @@ lvgl:
   style_definitions:
     - id: control
       bg_color: $button_control_color
+      border_color: $button_border_color
+      border_width: $button_border_width
 
   # ---------------------------------------------------------------------------
   # Theme: global button defaults and checked (on) state
@@ -33,8 +38,14 @@ lvgl:
       pad_all: $padding
       shadow_width: 0
       text_color: $button_text_color
+      border_color: $button_border_color
+      border_width: $button_border_width
       pressed:
         bg_color: $button_on_color
+        border_color: $button_border_color
+        border_width: $button_border_width
       checked:
         bg_color: $button_on_color
-        text_color: $button_text_color
+        text_color: $button_on_text_color
+        border_color: $button_border_color
+        border_width: $button_border_width

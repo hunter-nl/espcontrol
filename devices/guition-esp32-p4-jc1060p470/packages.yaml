@@ -21,6 +21,9 @@ substitutions:
   setup_action_button_width: "200"
   setup_action_button_height: "56"
   setup_action_button_radius: "12"
+  button_on_color_initial: "000000"
+  button_off_color_initial: "FFFFFF"
+  sensor_card_color_initial: "FFFFFF"
   icon_font: font_icon_main
   subpage_chevron_font: font_icon_status
   label_font: font_text_body
@@ -39,6 +42,35 @@ substitutions:
   network_package_suffix: ${ "_ethernet" if network_transport == "ethernet" else "" }
   firmware_update_package_suffix: ${ "_disabled" if disable_updates == "true" else "" }
   backlight_pwm_frequency: ${ "20000Hz" if network_transport == "ethernet" else "1000Hz" }
+  cover_art_size: "600"
+  cover_art_x: "0"
+  cover_art_y: "0"
+  cover_art_accent_x: "585"
+  cover_art_accent_y: "0"
+  cover_art_accent_width: "439"
+  cover_art_accent_height: "600"
+  cover_art_accent_bg_opa: "100%"
+  cover_art_accent_opa: "100%"
+  cover_art_panel_x: "615"
+  cover_art_panel_y: "34"
+  cover_art_panel_width: "377"
+  cover_art_panel_height: "430"
+  cover_art_panel_pad_top: "0"
+  cover_art_panel_pad_bottom: "0"
+  cover_art_panel_pad_left: "0"
+  cover_art_panel_pad_right: "0"
+  cover_art_panel_pad_row: "0"
+  cover_art_title_font: "font_cover_art_title"
+  cover_art_title_max_height: "260"
+  cover_art_title_line_space: "-8"
+  cover_art_artist_font: "font_cover_art_artist"
+  cover_art_artist_pad_top: "10"
+  cover_art_artist_long_mode: "dot"
+  cover_art_time_font: "font_cover_art_time"
+  cover_art_time_pad_top: "14"
+  cover_art_progress_width: "1024"
+  cover_art_text_color: "0xFFFFFF"
+  cover_art_square_overlay: "false"
 
 packages:
   # ---------------------------------------------------------------------------
@@ -95,6 +127,7 @@ packages:
   screen_ha_act:   !include ../../common/device/screen_ha_actions.yaml
   screen_setup:    !include ../../common/device/screen_button_setup.yaml
   screen_clock:    !include ../../common/device/screen_clock.yaml
+  screen_art:      !include ../../common/device/screen_cover_art.yaml
   # ---------------------------------------------------------------------------
   # Main page and dynamic sensor subscriptions (after setup screens)
   # ---------------------------------------------------------------------------

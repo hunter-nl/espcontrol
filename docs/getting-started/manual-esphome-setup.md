@@ -64,6 +64,35 @@ wifi:
   password: "Your WiFi Password"
 ```
 
+## Advanced: Password-Protect the Web Page
+
+EspControl's built-in web page can be protected with a username and password when you compile and install the firmware yourself. This is useful if other people can reach your local network and you do not want them opening the display setup page.
+
+First, add these entries to your ESPHome `secrets.yaml` file:
+
+```yaml
+espcontrol_web_username: "admin"
+espcontrol_web_password: "choose-a-strong-password"
+```
+
+Then add the `web_server_auth` package to your EspControl device YAML:
+
+```yaml
+packages:
+  setup:
+    url: https://github.com/jtenniswood/espcontrol/
+    file: devices/guition-esp32-p4-jc1060p470/packages.yaml
+    refresh: 1sec
+  web_server_auth:
+    url: https://github.com/jtenniswood/espcontrol/
+    file: common/addon/web_server_auth.yaml
+    refresh: 1sec
+```
+
+After saving, validate the device and install the firmware again. The next time you open the display address in a browser, it will ask for the username and password.
+
+Use a different password for each display. This protects the local web page, but it is not a replacement for normal network security, so do not expose the display directly to the internet.
+
 ## Advanced: Ethernet Options
 
 Some supported ESP32-P4 panels include wired Ethernet. ESPHome cannot run WiFi and Ethernet in the same firmware, so this option is Ethernet-only and is intended for manual installs.

@@ -81,6 +81,15 @@ var ENTITY_CATALOG = {
         "clock_bar_enabled"
       ]
     },
+    "screen_clock_bar_time": {
+      "domain": "switch",
+      "name": "Screen: Clock Bar Time",
+      "objectIds": [
+        "screen__clock_bar_time",
+        "screen_clock_bar_time",
+        "clock_bar_time_enabled"
+      ]
+    },
     "screen_network_status_icon": {
       "domain": "switch",
       "name": "Screen: Network Status Icon",
@@ -145,6 +154,78 @@ var ENTITY_CATALOG = {
       "domain": "text",
       "name": "Media Player Sleep Prevention Entity"
     },
+    "screen_saver_cover_art": {
+      "domain": "switch",
+      "name": "Screen Saver: Cover Art",
+      "objectIds": [
+        "screen_saver__cover_art",
+        "screen_saver_cover_art",
+        "screensaver_cover_art"
+      ]
+    },
+    "screen_saver_cover_art_entity": {
+      "domain": "text",
+      "name": "Screen Saver: Cover Art Entity",
+      "objectIds": [
+        "screen_saver__cover_art_entity",
+        "screen_saver_cover_art_entity",
+        "cover_art_media_player_entity"
+      ]
+    },
+    "screen_saver_cover_art_ha_url": {
+      "domain": "text",
+      "name": "Screen Saver: Home Assistant URL",
+      "objectIds": [
+        "screen_saver__home_assistant_url",
+        "screen_saver_cover_art_ha_url",
+        "cover_art_home_assistant_url"
+      ]
+    },
+    "screen_saver_cover_art_delay": {
+      "domain": "number",
+      "name": "Screen Saver: Cover Art Delay",
+      "objectIds": [
+        "screen_saver__cover_art_delay",
+        "screen_saver_cover_art_delay",
+        "cover_art_delay"
+      ]
+    },
+    "screen_saver_track_overlay_duration": {
+      "domain": "number",
+      "name": "Screen Saver: Show Track Overlay",
+      "objectIds": [
+        "screen_saver__track_overlay_duration",
+        "screen_saver_track_overlay_duration",
+        "track_overlay_duration"
+      ]
+    },
+    "screen_saver_cover_art_progress_bar": {
+      "domain": "switch",
+      "name": "Screen Saver: Cover Art Progress Bar",
+      "objectIds": [
+        "screen_saver__cover_art_progress_bar",
+        "screen_saver_cover_art_progress_bar",
+        "cover_art_progress_bar"
+      ]
+    },
+    "screen_saver_open_media_subpage": {
+      "domain": "switch",
+      "name": "Screen Saver: Open Media Subpage While Playing",
+      "objectIds": [
+        "screen_saver__open_media_subpage",
+        "screen_saver_open_media_subpage",
+        "open_media_subpage_while_playing"
+      ]
+    },
+    "screen_saver_media_subpage": {
+      "domain": "text",
+      "name": "Screen Saver: Media Subpage",
+      "objectIds": [
+        "screen_saver__media_subpage",
+        "screen_saver_media_subpage",
+        "cover_art_media_subpage"
+      ]
+    },
     "screen_saver_daytime_clock_brightness": {
       "domain": "number",
       "name": "Screen Saver: Daytime Clock Brightness",
@@ -192,6 +273,14 @@ var ENTITY_CATALOG = {
     "screen_timezone": {
       "domain": "select",
       "name": "Screen: Timezone"
+    },
+    "screen_language": {
+      "domain": "select",
+      "name": "Screen: Language",
+      "objectIds": [
+        "screen__language",
+        "screen_language"
+      ]
     },
     "screen_clock_format": {
       "domain": "select",
@@ -396,6 +485,7 @@ var ENTITY_CATALOG = {
       "indoor_temp_enable",
       "outdoor_temp_enable",
       "screen_clock_bar",
+      "screen_clock_bar_time",
       "screen_network_status_icon",
       "screen_temperature_degree_symbol",
       "screen_subpage_chevron",
@@ -407,6 +497,14 @@ var ENTITY_CATALOG = {
       "presence_sensor_entity",
       "screen_saver_media_player_sleep_prevention",
       "media_player_sleep_prevention_entity",
+      "screen_saver_cover_art",
+      "screen_saver_cover_art_entity",
+      "screen_saver_cover_art_ha_url",
+      "screen_saver_cover_art_delay",
+      "screen_saver_track_overlay_duration",
+      "screen_saver_cover_art_progress_bar",
+      "screen_saver_open_media_subpage",
+      "screen_saver_media_subpage",
       "screen_saver_daytime_clock_brightness",
       "screen_saver_nighttime_clock_brightness",
       "screen_saver_clock_brightness",
@@ -415,6 +513,7 @@ var ENTITY_CATALOG = {
       "home_screen_timeout",
       "screen_saver_clock",
       "screen_timezone",
+      "screen_language",
       "screen_clock_format",
       "screen_ntp_server_1",
       "screen_ntp_server_2",

@@ -396,6 +396,7 @@ export default defineConfig({
           { text: 'Setup', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Appearance', link: '/features/appearance' },
+          { text: 'Language', link: '/features/language' },
           { text: 'Temperature', link: '/features/temperature' },
           { text: 'Idle', link: '/features/idle' },
           { text: 'Time Settings', link: '/features/clock' },

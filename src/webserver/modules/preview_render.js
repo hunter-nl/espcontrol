@@ -18,8 +18,24 @@ function buttonTypeDisabledForDevice(key) {
   return disabled.indexOf(key || "") !== -1;
 }
 
+function buttonTypeInfoOnlyVisible(key) {
+  if (!CFG.infoOnly) return true;
+  return [
+    "sensor",
+    "calendar",
+    "clock",
+    "door_window",
+    "presence",
+    "timezone",
+    "weather",
+    "weather_forecast",
+  ].indexOf(key || "") !== -1;
+}
+
 function buttonTypePickerOptionList(isSub, selectedTypeKey) {
   var typeOpts = [];
+  var selectedUnsupported = null;
+  var hasSelectedType = selectedTypeKey !== null && selectedTypeKey !== undefined;
   var selectedHiddenExperimental = null;
   for (var k in BUTTON_TYPES) {
     var td = BUTTON_TYPES[k];
@@ -28,6 +44,12 @@ function buttonTypePickerOptionList(isSub, selectedTypeKey) {
     var experimental = buttonTypeRegistryValue(td, "experimental", "");
     var label = buttonTypeRegistryValue(td, "label", td.key || "Toggle");
     if (buttonTypeDisabledForDevice(td.key) || buttonTypeDisabledForDevice(pickerKey)) continue;
+    if (!buttonTypeInfoOnlyVisible(td.key) || (pickerKey && !buttonTypeInfoOnlyVisible(pickerKey))) {
+      if (hasSelectedType && (selectedTypeKey === td.key || (pickerKey && selectedTypeKey === pickerKey))) {
+        selectedUnsupported = { key: selectedTypeKey, label: label };
+      }
+      continue;
+    }
     if (pickerKey && pickerKey !== td.key) continue;
     if (isSub && !allowInSubpage) continue;
     if (td.isAvailable && !td.isAvailable({ isSub: isSub }) && selectedTypeKey !== td.key) continue;
@@ -47,6 +69,13 @@ function buttonTypePickerOptionList(isSub, selectedTypeKey) {
       disabled: true,
     });
   }
+  if (selectedUnsupported) {
+    typeOpts.push({
+      key: selectedUnsupported.key,
+      label: selectedUnsupported.label + " (not available)",
+      disabled: true,
+    });
+  }
   typeOpts.sort(function (a, b) {
     return a.label.localeCompare(b.label);
   });
@@ -54,13 +83,13 @@ function buttonTypePickerOptionList(isSub, selectedTypeKey) {
 }
 
 function buttonTypePickerKeys(isSub, selectedTypeKey) {
-  return buttonTypePickerOptionList(!!isSub, selectedTypeKey || "").map(function (opt) {
+  return buttonTypePickerOptionList(!!isSub, selectedTypeKey).map(function (opt) {
     return opt.key;
   });
 }
 
 function buttonTypeVisibleInPicker(key, isSub) {
-  return buttonTypePickerKeys(!!isSub, "").indexOf(key) >= 0;
+  return buttonTypePickerKeys(!!isSub, null).indexOf(key) >= 0;
 }
 
 function hiddenExperimentalButtonTypeDef(typeDef) {
@@ -99,7 +128,8 @@ function renderPreview() {
       backBtn.innerHTML =
         '<span class="sp-btn-icon sp-back-hit mdi mdi-chevron-left"></span>' +
         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
-      backBtn.style.backgroundColor = "#" + (state.offColor.length === 6 ? state.offColor : "CECECE");
+      var backColor = isEpaperPreview() ? epaperPreviewFillColor() : state.offColor;
+      backBtn.style.backgroundColor = "#" + (backColor.length === 6 ? backColor : "CECECE");
       backBtn.style.cursor = "pointer";
       backBtn.setAttribute("data-pos", pos);
       backBtn.draggable = !isConfigLocked();
@@ -114,9 +144,17 @@ function renderPreview() {
           (!c.isSub || state.settingsDraft.homeSlot === state.editingSubpage)) {
         b = state.settingsDraft.button;
       }
+      if (!buttonTypeInfoOnlyVisible(b.type || "")) {
+        var hidden = document.createElement("div");
+        hidden.className = "sp-empty-cell sp-info-only-hidden";
+        hidden.setAttribute("data-pos", pos);
+        main.appendChild(hidden);
+        continue;
+      }
       var iconName = resolveIcon(b);
       var label = b.label || b.entity || "Configure";
-      var color = (b.type === "sensor" || b.type === "door_window" || b.type === "presence" || b.type === "weather" || b.type === "weather_forecast" || b.type === "calendar" || b.type === "clock" || b.type === "timezone")
+      var color = isEpaperPreview() ? epaperPreviewFillColor() :
+        (b.type === "sensor" || b.type === "door_window" || b.type === "presence" || b.type === "weather" || b.type === "weather_forecast" || b.type === "calendar" || b.type === "clock" || b.type === "timezone")
         ? state.sensorColor : state.offColor;
       var previewTypeDef = BUTTON_TYPES[b.type || ""] || null;
       if (previewTypeDef && c.isSub && !buttonTypeRegistryValue(previewTypeDef, "allowInSubpage", false)) {
@@ -137,6 +175,12 @@ function renderPreview() {
       btn.setAttribute("data-pos", pos);
       btn.setAttribute("data-slot", slot);
       var hasWhenOn = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
+      if (!typePreview && hasWhenOn && typeof cardOnPattern === "function" && cardOnPattern(b) === "stripes" && !isEpaperPreview()) {
+        var onColor = state.onColor && state.onColor.length === 6 ? state.onColor : "FF8C00";
+        btn.style.backgroundImage =
+          "repeating-linear-gradient(135deg,#" + onColor + " 0,#" + onColor +
+          " 12px,rgba(255,255,255,.22) 12px,rgba(255,255,255,.22) 20px)";
+      }
       var badgeIcon = b.sensor ? "gauge" : "swap-horizontal";
       var sensorBadge = hasWhenOn
         ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'

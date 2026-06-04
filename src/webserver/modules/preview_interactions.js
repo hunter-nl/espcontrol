@@ -186,6 +186,24 @@ function setupPreviewEvents() {
   var container = els.previewMain;
   var pendingCellIdx = -1;
 
+  if (els.topbar) {
+    els.topbar.addEventListener("click", function (e) {
+      if (isConfigLocked()) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      var target = e.target.closest("[data-clockbar-item]");
+      if (!target || !els.topbar.contains(target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var item = target.getAttribute("data-clockbar-item");
+      if (!clockBarItemActive(item)) addClockBarItem(item);
+      setClockBarItemSelected(item, true);
+      clearTextSelection();
+    });
+  }
+
   function isBackExitTarget(e, target) {
     var icon = target.querySelector(".sp-back-hit");
     if (!icon) return false;
@@ -220,6 +238,10 @@ function setupPreviewEvents() {
     }
     var target = e.target.closest("[data-pos]");
     if (!target) return;
+    if (state.clockBarSelectedItem) {
+      state.clockBarSelectedItem = "";
+      updateClockBarItemUi();
+    }
     var pos = parseInt(target.getAttribute("data-pos"), 10);
     var c = ctx();
     var slot = c.grid[pos];

@@ -82,6 +82,109 @@ function updateClock() {
   setTimeout(updateClock, msToNext + 50);
 }
 
+function clockBarTemperatureActive() {
+  return !!(state._indoorOn || state._outdoorOn);
+}
+
+function clockBarItemActive(item) {
+  if (item === "temperature") return clockBarTemperatureActive();
+  if (item === "time") return !!state.clockBarTimeOn;
+  if (item === "network") return !!state.networkStatusOn;
+  return false;
+}
+
+function clockBarItemElement(item) {
+  if (item === "temperature") return els.clockBarTempItem;
+  if (item === "time") return els.clockBarTimeItem;
+  if (item === "network") return els.clockBarNetworkItem;
+  return null;
+}
+
+function clockBarItemLabel(item) {
+  if (item === "temperature") return "Temperature";
+  if (item === "time") return "Time";
+  if (item === "network") return "Network Status";
+  return "Clock Bar";
+}
+
+function syncClockBarItemElement(item) {
+  var el = clockBarItemElement(item);
+  if (!el) return;
+  var active = clockBarItemActive(item);
+  el.className = el.className
+    .replace(/\s?sp-clockbar-inactive/g, "")
+    .replace(/\s?sp-selected/g, "");
+  if (!active) el.className += " sp-clockbar-inactive";
+  if (state.clockBarSelectedItem === item) el.className += " sp-selected";
+  el.setAttribute("aria-pressed", state.clockBarSelectedItem === item ? "true" : "false");
+  el.setAttribute("title", active ? "Edit " + clockBarItemLabel(item) : "Add " + clockBarItemLabel(item));
+}
+
+function updateClockBarItemUi() {
+  syncClockBarItemElement("temperature");
+  syncClockBarItemElement("time");
+  syncClockBarItemElement("network");
+}
+
+function setClockBarItemSelected(item, open) {
+  state.clockBarSelectedItem = item || "";
+  if (item) {
+    ctx().setSelected([]);
+    ctx().setLastClicked(-1);
+  }
+  updateClockBarItemUi();
+  renderPreview();
+  renderButtonSettings(!!open);
+}
+
+function addClockBarItem(item) {
+  if (isConfigLocked()) return;
+  if (item === "temperature") {
+    var restoreIndoor = !!state.clockBarTempRestoreIndoor;
+    var restoreOutdoor = !!state.clockBarTempRestoreOutdoor;
+    if (!restoreIndoor && !restoreOutdoor) restoreOutdoor = true;
+    state._indoorOn = restoreIndoor;
+    state._outdoorOn = restoreOutdoor;
+    postSwitch(entityName("indoor_temp_enable"), state._indoorOn);
+    postSwitch(entityName("outdoor_temp_enable"), state._outdoorOn);
+    syncTemperatureUi();
+    updateTempPreview();
+  } else if (item === "time") {
+    state.clockBarTimeOn = true;
+    postClockBarTime(true);
+    syncClockBarUi();
+  } else if (item === "network") {
+    state.networkStatusOn = true;
+    postNetworkStatusIcon(true);
+    syncClockBarUi();
+  }
+}
+
+function deleteClockBarItem(item) {
+  if (isConfigLocked()) return;
+  if (item === "temperature") {
+    state.clockBarTempRestoreIndoor = !!state._indoorOn;
+    state.clockBarTempRestoreOutdoor = !!state._outdoorOn;
+    state._indoorOn = false;
+    state._outdoorOn = false;
+    postSwitch(entityName("indoor_temp_enable"), false);
+    postSwitch(entityName("outdoor_temp_enable"), false);
+    syncTemperatureUi();
+    updateTempPreview();
+  } else if (item === "time") {
+    state.clockBarTimeOn = false;
+    postClockBarTime(false);
+    syncClockBarUi();
+  } else if (item === "network") {
+    state.networkStatusOn = false;
+    postNetworkStatusIcon(false);
+    syncClockBarUi();
+  }
+  state.clockBarSelectedItem = "";
+  hideSettingsOverlay();
+  updateClockBarItemUi();
+}
+
 function syncInput(el, val) {
   if (el && document.activeElement !== el) el.value = val;
 }
@@ -128,7 +231,7 @@ function updateSunInfo() {
 
 function updateTempPreview() {
   if (!els.temp) return;
-  var show = state.clockBarOn && (state._indoorOn || state._outdoorOn);
+  var show = state.clockBarOn && clockBarTemperatureActive();
   els.temp.className = "sp-temp" + (show ? " sp-visible" : "");
   var unit = clockBarTemperatureUnitSymbol();
   var indoor = state._indoorVal != null ? state._indoorVal : "24";

@@ -364,6 +364,7 @@ script:
       - script.stop: screensaver_idle_check
       - script.stop: home_screen_idle_check
       - script.stop: screen_schedule_wake_timeout_check
+      - script.execute: hide_cover_art_view
       - globals.set:
           id: backlight_manual_off
           value: 'false'
@@ -395,6 +396,9 @@ script:
           id: screensaver_dimmed_active
           value: 'false'
       - globals.set:
+          id: cover_art_screensaver_active
+          value: 'false'
+      - globals.set:
           id: backlight_manual_off
           value: 'false'
       - globals.set:
@@ -403,6 +407,7 @@ script:
       - lambda: 'global_preferences->sync();'
       - lvgl.resume:
       - script.execute: hide_clock_view
+      - script.execute: hide_cover_art_view
       - lvgl.widget.hide: dim_screensaver_touch_guard
       - if:
           condition:
@@ -435,6 +440,9 @@ script:
           id: screensaver_dimmed_active
           value: 'false'
       - globals.set:
+          id: cover_art_screensaver_active
+          value: 'false'
+      - globals.set:
           id: backlight_manual_off
           value: 'false'
       - globals.set:
@@ -442,6 +450,7 @@ script:
           value: '0'
       - lvgl.resume:
       - script.execute: hide_clock_view
+      - script.execute: hide_cover_art_view
       - lvgl.widget.hide: dim_screensaver_touch_guard
       - if:
           condition:
@@ -480,10 +489,14 @@ script:
           id: screensaver_dimmed_active
           value: 'false'
       - globals.set:
+          id: cover_art_screensaver_active
+          value: 'false'
+      - globals.set:
           id: display_asleep
           value: 'true'
       - lvgl.resume:
       - lvgl.widget.hide: dim_screensaver_touch_guard
+      - script.execute: hide_cover_art_view
       - script.execute: show_clock_view
       - lambda: 'global_preferences->sync();'
 

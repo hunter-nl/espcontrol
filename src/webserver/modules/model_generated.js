@@ -56,6 +56,7 @@ var EspControlModel = (() => {
     normalizeClockBrightness: () => normalizeClockBrightness,
     normalizeHexColor: () => normalizeHexColor,
     normalizeHour: () => normalizeHour,
+    normalizeLanguage: () => normalizeLanguage,
     normalizeMonthNames: () => normalizeMonthNames,
     normalizeNtpServer: () => normalizeNtpServer,
     normalizeScheduleClockBrightness: () => normalizeScheduleClockBrightness,
@@ -752,6 +753,10 @@ var EspControlModel = (() => {
     if (unit === "c" || unit === "\xB0c" || unit === "celsius" || unit === "centigrade") return "\xB0C";
     return "Auto";
   }
+  function normalizeLanguage(value) {
+    const language = String(value == null ? "" : value).trim().toLowerCase();
+    return language || "en";
+  }
   function normalizeHour(value, fallback) {
     const n = parseInt(String(value), 10);
     if (!Number.isFinite(n)) return fallback;
@@ -911,11 +916,13 @@ var EspControlModel = (() => {
       indoorTempEntity: String(settings.indoor_temp_entity || ""),
       outdoorTempEntity: String(settings.outdoor_temp_entity || ""),
       clockBar: objectValue(settings, "clock_bar") != null ? !!settings.clock_bar : false,
+      clockBarTime: objectValue(settings, "clock_bar_time") != null ? !!settings.clock_bar_time : true,
       networkStatusIcon: objectValue(settings, "network_status_icon") != null ? !!settings.network_status_icon : true,
       temperatureDegreeSymbol: objectValue(settings, "temperature_degree_symbol") != null ? !!settings.temperature_degree_symbol : true,
       subpageChevron: objectValue(settings, "subpage_chevron") != null ? !!settings.subpage_chevron : true,
       timezone: String(settings.timezone || current.timezone),
       temperatureUnit: normalizeTemperatureUnit(settings.temperature_unit),
+      language: normalizeLanguage(settings.language || current.language),
       clockFormat,
       hasNtpServer1,
       hasNtpServer2,
@@ -931,6 +938,14 @@ var EspControlModel = (() => {
       presenceSensorEntity: String(settings.presence_sensor_entity || ""),
       mediaPlayerSleepPrevention: !!settings.media_player_sleep_prevention,
       mediaPlayerSleepPreventionEntity: String(settings.media_player_sleep_prevention_entity || ""),
+      coverArtScreensaver: !!settings.cover_art_screensaver,
+      coverArtMediaPlayerEntity: String(settings.cover_art_media_player_entity || ""),
+      coverArtHomeAssistantUrl: String(settings.cover_art_home_assistant_url || ""),
+      coverArtDelay: objectValue(settings, "cover_art_delay") != null ? settings.cover_art_delay : 10,
+      coverArtTrackOverlayDuration: objectValue(settings, "cover_art_track_overlay_duration") != null ? settings.cover_art_track_overlay_duration : 5,
+      coverArtProgressBar: objectValue(settings, "cover_art_progress_bar") != null ? !!settings.cover_art_progress_bar : true,
+      coverArtOpenMediaSubpage: !!settings.cover_art_open_media_subpage,
+      coverArtMediaSubpageTarget: String(settings.cover_art_media_subpage_target || ""),
       screensaverAction,
       clockScreensaver: screensaverAction === "clock",
       clockBrightnessDay,

@@ -422,7 +422,7 @@ const switchOptionSpecs = hooks.cardContractOptions("");
 const switchOptionByName = Object.fromEntries(switchOptionSpecs.map((option) => [option.name, option]));
 assert.deepStrictEqual(
   Array.from(switchOptionSpecs, (option) => option.name),
-  ["large_numbers", "confirmation_mode", "confirm_message", "confirm_yes", "confirm_no"],
+  ["large_numbers", "confirmation_mode", "on_pattern", "confirm_message", "confirm_yes", "confirm_no"],
   "switch option specs preserve current option order"
 );
 assert.deepStrictEqual(
@@ -441,6 +441,7 @@ assert.strictEqual(
   "switch confirmation message spec exposes mode-specific defaults"
 );
 assert.strictEqual(switchOptionByName.large_numbers.kind, "flag", "switch large-number option is a flag");
+assert.deepStrictEqual(Array.from(switchOptionByName.on_pattern.values), ["", "stripes"], "switch on pattern spec exposes stripes option");
 assert.strictEqual(switchOptionByName.confirm_yes.defaultValue, "Yes", "switch confirm text spec exposes current default");
 assert.strictEqual(switchOptionByName.confirm_no.defaultValue, "No", "switch cancel text spec exposes current default");
 const sensorOptionSpecs = hooks.cardContractOptions("sensor");
@@ -637,6 +638,11 @@ assert.strictEqual(hooks.switchConfirmationEnabled(confirmOnSwitch), true, "swit
 assert.strictEqual(hooks.switchConfirmationMode(confirmOnSwitch), "on", "switch on confirmation mode");
 assert.strictEqual(hooks.switchConfirmationMessage(confirmOnSwitch), "Turn on this device?", "switch on confirmation default message");
 assert.strictEqual(hooks.serializeButtonConfig(confirmOnSwitch), "switch.printer;Printer;Printer 3D;Auto;;;;;confirm_on", "switch on confirmation round-trip");
+const patternedSwitch = hooks.parseButtonConfig("switch.printer;Printer;Printer 3D;Auto;;;;;on_pattern=stripes");
+assert.strictEqual(hooks.cardOnPattern(patternedSwitch), "stripes", "switch on pattern is decoded");
+assert.strictEqual(hooks.serializeButtonConfig(patternedSwitch), "switch.printer;Printer;Printer 3D;Auto;;;;;on_pattern=stripes", "switch on pattern round-trip");
+hooks.setCardOnPattern(patternedSwitch, "");
+assert.strictEqual(patternedSwitch.options, "", "switch on pattern can be cleared");
 const confirmBothSwitch = hooks.parseButtonConfig("switch.printer;Printer;Printer 3D;Auto;;;;;confirm_off,confirm_on");
 assert.strictEqual(hooks.switchConfirmationMode(confirmBothSwitch), "both", "switch both confirmation mode");
 assert.strictEqual(hooks.switchConfirmationMessage(confirmBothSwitch), "Toggle this device?", "switch both confirmation default message");

@@ -20,7 +20,9 @@ script:
     then:
       - lambda: |-
           network_status_set_wifi_icon(id(network_status_icon_label),
-                                       id(wifi_strength_percent).state);
+                                       id(wifi_strength_percent).state,
+                                       wifi::global_wifi_component != nullptr &&
+                                         wifi::global_wifi_component->is_connected());
 
   - id: network_status_open_info
     mode: single

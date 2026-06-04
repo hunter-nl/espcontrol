@@ -36,6 +36,16 @@ var CARD_CONTRACT_CARDS = {
         ]
       },
       {
+        "name": "on_pattern",
+        "label": "On State Pattern",
+        "kind": "choice",
+        "values": [
+          "",
+          "stripes"
+        ],
+        "defaultValue": ""
+      },
+      {
         "name": "confirm_message",
         "label": "Message",
         "kind": "text",

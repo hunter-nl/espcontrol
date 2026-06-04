@@ -20,7 +20,7 @@ inline void setup_todo_card(BtnSlot &s, const ParsedCfg &p, uint32_t secondary_c
   lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(s.icon_lbl,
     (!p.icon.empty() && p.icon != "Auto") ? find_icon(p.icon.c_str()) : find_icon("Check"));
-  lv_label_set_text(s.text_lbl, p.label.empty() ? "Todo" : p.label.c_str());
+  lv_label_set_text(s.text_lbl, p.label.empty() ? espcontrol_i18n("Todo") : p.label.c_str());
 }
 
 inline void todo_cancel_pending_request(const char *reason, bool keep_modal_waiting = true) {
@@ -161,11 +161,11 @@ inline void todo_lite_percent_decode(const char *src, size_t len, char *dst, siz
 }
 
 inline std::string todo_lite_card_label(TodoCardCtx *ctx) {
-  if (!ctx) return "Todo";
+  if (!ctx) return espcontrol_i18n(std::string("Todo"));
   if (!ctx->configured_label.empty()) return ctx->configured_label;
   if (!ctx->friendly_name.empty()) return ctx->friendly_name;
   if (!ctx->entity_id.empty()) return ctx->entity_id;
-  return "Todo";
+  return espcontrol_i18n(std::string("Todo"));
 }
 
 inline void todo_lite_apply_card_text(TodoCardCtx *ctx) {
@@ -193,7 +193,7 @@ inline void setup_todo_card(BtnSlot &s, const ParsedCfg &p, uint32_t secondary_c
     (!p.icon.empty() && p.icon != "Auto") ? find_icon(p.icon.c_str()) : find_icon("Check"));
   lv_label_set_text(s.sensor_lbl, "--");
   lv_label_set_text(s.unit_lbl, "");
-  lv_label_set_text(s.text_lbl, p.label.empty() ? "Todo" : p.label.c_str());
+  lv_label_set_text(s.text_lbl, p.label.empty() ? espcontrol_i18n("Todo") : p.label.c_str());
   apply_push_button_transition(s.btn);
 }
 
@@ -259,7 +259,7 @@ inline void todo_lite_modal_set_status(const char *text) {
       lv_obj_set_style_text_font(ui.status_lbl, ui.active->label_font, LV_PART_MAIN);
   }
   if (!ui.status_lbl) return;
-  lv_label_set_text(ui.status_lbl, text ? text : "");
+  lv_label_set_text(ui.status_lbl, text ? espcontrol_i18n(text) : "");
   if (wants_visible) lv_obj_clear_flag(ui.status_lbl, LV_OBJ_FLAG_HIDDEN);
   else lv_obj_add_flag(ui.status_lbl, LV_OBJ_FLAG_HIDDEN);
 }
@@ -304,7 +304,7 @@ inline lv_obj_t *todo_lite_create_row(TodoCardCtx *ctx, TodoLiteItem *item,
   lv_coord_t label_x = checkbox_size + gap;
   lv_coord_t label_w = content_w > label_x ? content_w - label_x : lv_pct(100);
   lv_obj_t *label = lv_label_create(row);
-  lv_label_set_text(label, item && item->summary[0] ? item->summary : "(untitled)");
+  lv_label_set_text(label, item && item->summary[0] ? item->summary : espcontrol_i18n("(untitled)"));
   lv_label_set_long_mode(label, LV_LABEL_LONG_DOT);
   lv_obj_set_width(label, label_w);
   lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_SOFT), LV_PART_MAIN);
@@ -802,11 +802,11 @@ inline bool todo_entity_id_safe(const std::string &entity_id) {
 }
 
 inline std::string todo_card_label(TodoCardCtx *ctx) {
-  if (!ctx) return "Todo";
+  if (!ctx) return espcontrol_i18n(std::string("Todo"));
   if (!ctx->configured_label.empty()) return ctx->configured_label;
   if (!ctx->friendly_name.empty()) return ctx->friendly_name;
   if (!ctx->entity_id.empty()) return ctx->entity_id;
-  return "Todo";
+  return espcontrol_i18n(std::string("Todo"));
 }
 
 inline void todo_apply_value_font(TodoCardCtx *ctx) {
@@ -840,7 +840,7 @@ inline void setup_todo_card(BtnSlot &s, const ParsedCfg &p, uint32_t secondary_c
     (!p.icon.empty() && p.icon != "Auto") ? find_icon(p.icon.c_str()) : find_icon("Check"));
   lv_label_set_text(s.sensor_lbl, "--");
   lv_label_set_text(s.unit_lbl, "");
-  lv_label_set_text(s.text_lbl, p.label.empty() ? "Todo" : p.label.c_str());
+  lv_label_set_text(s.text_lbl, p.label.empty() ? espcontrol_i18n("Todo") : p.label.c_str());
   apply_push_button_transition(s.btn);
 }
 
@@ -950,7 +950,7 @@ inline void todo_modal_set_status(const char *text) {
       lv_obj_set_style_text_font(ui.status_lbl, ui.active->label_font, LV_PART_MAIN);
   }
   if (!ui.status_lbl) return;
-  lv_label_set_text(ui.status_lbl, text ? text : "");
+  lv_label_set_text(ui.status_lbl, text ? espcontrol_i18n(text) : "");
   if (wants_visible) lv_obj_clear_flag(ui.status_lbl, LV_OBJ_FLAG_HIDDEN);
   else lv_obj_add_flag(ui.status_lbl, LV_OBJ_FLAG_HIDDEN);
 }
@@ -1111,7 +1111,7 @@ inline void todo_modal_render_items(TodoCardCtx *ctx, const std::vector<TodoItem
     }
     if (click_index >= TODO_MAX_ITEMS) break;
     lv_obj_t *row = todo_modal_create_list_item_row(
-      ui.list, item.summary.empty() ? "(untitled)" : item.summary, true, true, false,
+      ui.list, item.summary.empty() ? espcontrol_i18n(std::string("(untitled)")) : item.summary, true, true, false,
       row_h, content_w, checkbox_size, item_gap,
       ctx->label_font, ctx->icon_font, ctx->width_compensation_percent);
     ui.item_clicks[click_index].ctx = ctx;

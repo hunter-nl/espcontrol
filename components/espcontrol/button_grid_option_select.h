@@ -62,11 +62,11 @@ inline const char *option_select_service_for_entity(const std::string &entity_id
 }
 
 inline std::string option_select_label(OptionSelectCtx *ctx) {
-  if (!ctx) return "Option";
+  if (!ctx) return espcontrol_i18n(std::string("Option"));
   if (!ctx->configured_label.empty()) return ctx->configured_label;
   if (!ctx->friendly_name.empty()) return ctx->friendly_name;
   if (!ctx->entity_id.empty()) return ctx->entity_id;
-  return "Option";
+  return espcontrol_i18n(std::string("Option"));
 }
 
 inline std::string option_select_display_value(const std::string &value) {
@@ -105,9 +105,10 @@ inline void setup_option_select_card(BtnSlot &s, const ParsedCfg &p,
   if (text_value_font) lv_obj_set_style_text_font(s.sensor_lbl, text_value_font, LV_PART_MAIN);
   lv_label_set_text(s.sensor_lbl, "--");
   lv_label_set_text(s.unit_lbl, "");
-  lv_label_set_text(s.text_lbl, p.label.empty()
-    ? (p.entity.empty() ? "Option" : p.entity.c_str())
-    : p.label.c_str());
+  std::string label = p.label.empty()
+    ? (p.entity.empty() ? espcontrol_i18n(std::string("Option")) : p.entity)
+    : p.label;
+  lv_label_set_text(s.text_lbl, label.c_str());
   apply_push_button_transition(s.btn);
 }
 
@@ -278,7 +279,7 @@ inline void option_select_open_modal(OptionSelectCtx *ctx) {
 
   if (count == 0) {
     ui.empty_lbl = lv_label_create(ui.list);
-    lv_label_set_text(ui.empty_lbl, "No options");
+    lv_label_set_text(ui.empty_lbl, espcontrol_i18n("No options"));
     lv_label_set_long_mode(ui.empty_lbl, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(ui.empty_lbl, lv_pct(100));
     lv_obj_set_style_text_color(ui.empty_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);

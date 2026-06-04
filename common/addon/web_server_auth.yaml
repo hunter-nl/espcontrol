@@ -1,0 +1,11 @@
+# =============================================================================
+# WEB SERVER AUTHENTICATION - Optional manual ESPHome install package
+# =============================================================================
+# Include this package from a manual ESPHome YAML to protect EspControl's
+# built-in web page with credentials stored in the user's secrets.yaml file.
+# =============================================================================
+
+web_server:
+  auth:
+    username: !secret espcontrol_web_username
+    password: !secret espcontrol_web_password

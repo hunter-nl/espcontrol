@@ -1,44 +1,33 @@
 #!/usr/bin/env python3
-"""Generate an English source-string inventory for hard-coded UI text."""
+"""Generate compact English source strings for firmware screen text."""
 
 from __future__ import annotations
 
-import json
 import re
 import unicodedata
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "common" / "config" / "strings.en.json"
-
-SOURCE_GLOBS = (
-    "components/espcontrol/**/*.h",
-)
-
-JSON_SOURCES: tuple[Path, ...] = ()
-
-SKIP_FILES = {
-    "entry.js",
-    "styles.js",
-    "sun_calc.h",
-}
+OUTPUT = ROOT / "common" / "config" / "strings.en.txt"
+SOURCE_GLOBS = ("components/espcontrol/**/*.h",)
+SKIP_FILES = {"sun_calc.h"}
 
 STRING_RE = re.compile(r"(?P<q>[\"'])(?P<body>(?:\\.|(?!\1).)*?)(?P=q)")
 LOWER_DISPLAY_WORDS = {
-    "on",
-    "off",
-    "auto",
-    "low",
-    "high",
-    "medium",
-    "home",
-    "away",
-    "sleep",
     "activity",
-    "eco",
+    "auto",
+    "away",
     "boost",
     "comfort",
+    "eco",
+    "high",
+    "home",
+    "low",
+    "medium",
+    "off",
+    "on",
+    "sleep",
 }
 IGNORED_EXACT = {
     "block",
@@ -54,8 +43,8 @@ IGNORED_EXACT = {
     "null",
     "options",
     "precision",
-    "sensor",
     "send failed",
+    "sensor",
     "source",
     "state",
     "status",
@@ -101,22 +90,27 @@ IGNORED_SUBSTRINGS = (
     "number-",
     "script.",
     "screen__",
-    "select-",
     "select.",
+    "select-",
     "sensor.",
     "sp-",
     "std::",
     "subpage_",
-    "switch-",
     "switch.",
+    "switch-",
     "text-",
     "update-",
     "{",
     "}",
 )
-
+IGNORED_PATTERNS = (
+    re.compile(r"^[a-z0-9_./:-]+$"),
+    re.compile(r"^#[0-9A-Fa-f]{3,8}$"),
+    re.compile(r"^[A-Z0-9_]+$"),
+    re.compile(r"^\d+(\.\d+)?$"),
+    re.compile(r"^\.[A-Za-z0-9_-]+"),
+)
 NON_DISPLAY_KEYS = {
-    "bindName",
     "buttonClass",
     "domain",
     "domains",
@@ -139,16 +133,9 @@ NON_DISPLAY_KEYS = {
     "unit",
     "value",
 }
-IGNORED_PATTERNS = (
-    re.compile(r"^[a-z0-9_./:-]+$"),
-    re.compile(r"^#[0-9A-Fa-f]{3,8}$"),
-    re.compile(r"^[A-Z0-9_]+$"),
-    re.compile(r"^\d+(\.\d+)?$"),
-    re.compile(r"^\.[A-Za-z0-9_-]+"),
-)
 
 
-def decode_js_string(value: str) -> str:
+def decode_cpp_string(value: str) -> str:
     if "\\" not in value:
         return value
     try:
@@ -157,37 +144,23 @@ def decode_js_string(value: str) -> str:
         return value
 
 
-def candidate_line(line: str, suffix: str) -> bool:
+def candidate_line(line: str) -> bool:
     if "find_icon(" in line:
         return False
-    if suffix == ".h":
-        markers = (
-            "lv_label_set_text",
-            "return ",
-            "== ",
-            "alarm_",
-            "climate_",
-            "fan_",
-            "media_",
-            "todo_",
-        )
-    else:
-        markers = (
-            "label",
-            "placeholder",
-            "requiredMessage",
-            "textContent",
-            "innerHTML",
-            "selectField",
-            "textField",
-            "toggleSection",
-            "options",
-        )
+    markers = (
+        "lv_label_set_text",
+        "return ",
+        "== ",
+        "alarm_",
+        "climate_",
+        "fan_",
+        "media_",
+        "todo_",
+    )
     return any(marker in line for marker in markers)
 
 
 def display_context_allowed(line: str, start: int) -> bool:
-    """Filter strings that are adjacent to non-display object keys."""
     prefix = line[:start]
     key_match = re.search(r"([A-Za-z_][A-Za-z0-9_]*)\s*:\s*$", prefix)
     if key_match and key_match.group(1) in NON_DISPLAY_KEYS:
@@ -222,7 +195,7 @@ def is_display_string(value: str) -> bool:
         return False
     if re.match(r"^[A-Za-z]+[A-Za-z0-9_]*$", value) and not value[:1].isupper():
         return False
-    if value.startswith(("label_", "pin_", "number_", "icon_")):
+    if value.startswith(("icon_", "label_", "number_", "pin_")):
         return False
     return True
 
@@ -239,13 +212,14 @@ def slugify(value: str) -> str:
 
 
 def add_string(strings: dict[str, set[str]], value: str, source: str) -> None:
-    value = decode_js_string(value).strip()
+    value = decode_cpp_string(value).strip()
     if not is_display_string(value):
         return
     strings.setdefault(value, set()).add(source)
 
 
-def extract_code_strings(strings: dict[str, set[str]]) -> None:
+def extract_strings() -> dict[str, set[str]]:
+    strings: dict[str, set[str]] = {}
     files: list[Path] = []
     for pattern in SOURCE_GLOBS:
         files.extend(ROOT.glob(pattern))
@@ -254,58 +228,24 @@ def extract_code_strings(strings: dict[str, set[str]]) -> None:
             continue
         rel = path.relative_to(ROOT).as_posix()
         for line_no, line in enumerate(path.read_text(errors="ignore").splitlines(), 1):
-            if not candidate_line(line, path.suffix):
+            if not candidate_line(line):
                 continue
             for match in STRING_RE.finditer(line):
-                if not display_context_allowed(line, match.start()):
-                    continue
-                add_string(strings, match.group("body"), f"{rel}:{line_no}")
+                if display_context_allowed(line, match.start()):
+                    add_string(strings, match.group("body"), f"{rel}:{line_no}")
+    return strings
 
 
-def json_line_index(path: Path) -> dict[str, int]:
-    index: dict[str, int] = {}
-    for line_no, line in enumerate(path.read_text().splitlines(), 1):
-        for match in STRING_RE.finditer(line):
-            index.setdefault(match.group("body"), line_no)
-    return index
+def escape_compact_value(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("\n", "\\n").replace("=", "\\=")
 
 
-def extract_json_strings(strings: dict[str, set[str]]) -> None:
-    ui_keys = {
-        "defaultValue",
-        "description",
-        "experimental",
-        "label",
-        "placeholder",
-        "requiredMessage",
-    }
-
-    for path in JSON_SOURCES:
-        line_index = json_line_index(path)
-        rel = path.relative_to(ROOT).as_posix()
-        data = json.loads(path.read_text())
-
-        def walk(value: object, key: str = "") -> None:
-            if isinstance(value, dict):
-                for child_key, child_value in value.items():
-                    walk(child_value, child_key)
-                return
-            if isinstance(value, list):
-                for item in value:
-                    walk(item, key)
-                return
-            if not isinstance(value, str):
-                return
-            if key not in ui_keys and not key.endswith("Label"):
-                return
-            line_no = line_index.get(value, 1)
-            add_string(strings, value, f"{rel}:{line_no}")
-
-        walk(data)
-
-
-def build_inventory(strings: dict[str, set[str]]) -> dict[str, object]:
-    entries: dict[str, str] = {}
+def build_lines(strings: dict[str, set[str]]) -> list[str]:
+    lines = [
+        "# English source strings for hard-coded text rendered on screen by EspControl firmware.",
+        "# Webserver-only text, entity names, service identifiers, icon names, and raw Home Assistant API values are excluded.",
+        "# Format: key=value. Escape literal backslash, newline, and equals as \\\\, \\n, and \\=.",
+    ]
     used_keys: set[str] = set()
     for value in sorted(strings, key=lambda item: item.lower()):
         key = slugify(value)
@@ -315,26 +255,13 @@ def build_inventory(strings: dict[str, set[str]]) -> dict[str, object]:
             key = f"{base}_{suffix}"
             suffix += 1
         used_keys.add(key)
-        entries[key] = value
-    return {
-        "$schema": "https://espcontrol.local/schemas/source-strings-v1.json",
-        "language": "en",
-        "description": (
-            "English source-string inventory for hard-coded text rendered on screen by "
-            "EspControl firmware. Webserver-only text, entity names, service identifiers, "
-            "icon names, and raw Home Assistant API values are excluded. This file is "
-            "generated for translation review and is not yet used at runtime."
-        ),
-        "generatedBy": "scripts/generate_strings_inventory.py",
-        "strings": entries,
-    }
+        lines.append(f"{key}={escape_compact_value(value)}")
+    return lines
 
 
 def main() -> None:
-    strings: dict[str, set[str]] = {}
-    extract_code_strings(strings)
-    extract_json_strings(strings)
-    OUTPUT.write_text(json.dumps(build_inventory(strings), indent=2, ensure_ascii=False) + "\n")
+    strings = extract_strings()
+    OUTPUT.write_text("\n".join(build_lines(strings)) + "\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}")
     print(f"Strings: {len(strings)}")
 

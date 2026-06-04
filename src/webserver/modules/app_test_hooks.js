@@ -30,6 +30,9 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
     switchConfirmationDefaultMessageForMode: switchConfirmationDefaultMessageForMode,
     switchConfirmationYesText: switchConfirmationYesText,
     switchConfirmationNoText: switchConfirmationNoText,
+    normalizeCardOnPattern: normalizeCardOnPattern,
+    cardOnPattern: cardOnPattern,
+    setCardOnPattern: setCardOnPattern,
     sensorActiveColorEnabled: sensorActiveColorEnabled,
     sensorStateLabelsEnabled: sensorStateLabelsEnabled,
     sensorStateInput: sensorStateInput,
@@ -115,6 +118,13 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
       var visible = buttonTypeVisibleInPicker(key, !!isSub);
       state.developerExperimentalFeatures = oldExperimental;
       return visible;
+    },
+    buttonTypePickerKeysForInfoOnly: function (enabled, selectedTypeKey) {
+      var oldInfoOnly = CFG.infoOnly;
+      CFG.infoOnly = !!enabled;
+      var keys = buttonTypePickerKeys(false, selectedTypeKey);
+      CFG.infoOnly = oldInfoOnly;
+      return keys;
     },
     buttonTypesMissingCardMetadata: function () {
       var missing = [];

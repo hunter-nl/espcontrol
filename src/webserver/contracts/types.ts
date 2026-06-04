@@ -112,8 +112,10 @@ export interface PanelSettings {
   sensor_card_color: string;
   temperature_unit: string;
   clock_bar: boolean;
+  clock_bar_time?: boolean;
   network_status_icon: boolean;
   timezone: string;
+  language: string;
   clock_format: string;
   screensaver_mode: string;
   screen_rotation: string;
