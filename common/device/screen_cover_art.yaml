@@ -116,7 +116,6 @@ api:
           host = "[" + host + "]";
         }
         id(cover_art_home_assistant_base_url) = "http://" + host + ":8123";
-        id(cover_art_subscribed_entity).clear();
         id(cover_art_api_wait_logged) = false;
         ESP_LOGI("cover_art", "Using Home Assistant artwork base URL: %s",
                  id(cover_art_home_assistant_base_url).c_str());
@@ -1224,10 +1223,10 @@ script:
             }
             return;
           }
-          if (!ha_api_state_connected()) {
+          if (!ha_api_available()) {
             id(cover_art_subscribed_entity).clear();
             if (!id(cover_art_api_wait_logged)) {
-              ESP_LOGI("cover_art", "Waiting for Home Assistant state connection before subscribing");
+              ESP_LOGI("cover_art", "Waiting for API server before subscribing");
               id(cover_art_api_wait_logged) = true;
             }
             return;
