@@ -395,17 +395,38 @@ export default defineConfig({
         items: [
           { text: 'Setup', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
-          { text: 'Appearance', link: '/features/appearance' },
-          { text: 'Language', link: '/features/language' },
-          { text: 'Temperature', link: '/features/temperature' },
-          { text: 'Idle', link: '/features/idle' },
-          { text: 'Time Settings', link: '/features/clock' },
-          { text: 'Screensaver', link: '/features/screensaver' },
-          { text: 'Backlight', link: '/features/backlight' },
-          { text: 'Screen Schedule', link: '/features/screen-schedule' },
+          {
+            text: 'Display',
+            collapsed: false,
+            items: [
+              { text: 'Appearance', link: '/features/appearance' },
+              { text: 'Backlight', link: '/features/backlight' },
+              { text: 'Clock Bar', link: '/features/clock-bar' },
+              { text: 'Rotation', link: '/features/rotation' },
+            ],
+          },
+          {
+            text: 'Sleep & Schedule',
+            collapsed: false,
+            items: [
+              { text: 'Idle', link: '/features/idle' },
+              { text: 'Screensaver', link: '/features/screensaver' },
+              { text: 'Media Cover Art', link: '/features/media-cover-art' },
+              { text: 'Night Schedule', link: '/features/screen-schedule' },
+            ],
+          },
+          {
+            text: 'System',
+            collapsed: false,
+            items: [
+              { text: 'Language', link: '/features/language' },
+              { text: 'Time Settings', link: '/features/clock' },
+              { text: 'Temperature Settings', link: '/features/temperature' },
+              { text: 'Backup', link: '/features/backup' },
+              { text: 'Firmware', link: '/features/firmware-updates' },
+            ],
+          },
           { text: 'Built-in Relays', link: '/features/relays' },
-          { text: 'Backup', link: '/features/backup' },
-          { text: 'Firmware Updates', link: '/features/firmware-updates' },
         ],
       },
       {
