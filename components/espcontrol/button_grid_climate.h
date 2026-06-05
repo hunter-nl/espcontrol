@@ -331,9 +331,27 @@ inline std::string climate_option_label(const std::string &raw) {
   return espcontrol_i18n(sentence_cap_text(value));
 }
 
-inline lv_coord_t climate_option_menu_width(const std::vector<std::string> &,
-                                            const std::string &) {
-  lv_coord_t width = 220;
+inline size_t climate_utf8_char_count(const std::string &value) {
+  size_t count = 0;
+  for (unsigned char ch : value) {
+    if ((ch & 0xC0) != 0x80) count++;
+  }
+  return count;
+}
+
+inline lv_coord_t climate_option_menu_width(const std::vector<std::string> &options,
+                                            const std::string &,
+                                            const lv_font_t *font) {
+  lv_coord_t line_h = font && font->line_height > 0 ? font->line_height : 32;
+  lv_coord_t widest_text = 0;
+  for (const auto &option : options) {
+    size_t len = climate_utf8_char_count(climate_option_label(option));
+    lv_coord_t estimated_w = static_cast<lv_coord_t>(len) * line_h * 3 / 5;
+    if (estimated_w > widest_text) widest_text = estimated_w;
+  }
+  lv_coord_t width = widest_text + 72;
+  if (width < 180) width = 180;
+  if (width > 340) width = 340;
   return width;
 }
 
@@ -1215,7 +1233,7 @@ inline void climate_open_option_menu(ClimateControlCtx *ctx, const std::string &
 
   ui.option_click_count = 0;
   ControlModalNestedShell shell = control_modal_open_nested_menu(
-    climate_option_menu_width(*options, kind) + 40, 14, climate_hide_option_menu);
+    climate_option_menu_width(*options, kind, ctx->option_menu_font), 14, climate_hide_option_menu);
   ui.menu_overlay = shell.overlay;
   lv_obj_t *box = shell.panel;
 
