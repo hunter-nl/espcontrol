@@ -594,6 +594,20 @@ async function assertClockBarEditorSmoke(page, posts, label) {
   await page.getByText("Time", { exact: true }).click();
   await waitForPost(posts, { domain: "switch", name: "screen__clock_bar_time", action: "turn_on" }, `${label}: add time`, before);
   await page.locator('[data-clockbar-item="time"][data-clockbar-section="middle"]').waitFor({ state: "visible" });
+  const screenBox = await page.locator(".sp-screen").boundingBox();
+  const timeBox = await page.locator('[data-clockbar-item="time"][data-clockbar-section="middle"]').boundingBox();
+  const middleAddBox = await page.locator('[data-clockbar-section="middle"] [data-clockbar-add]').boundingBox();
+  assert(screenBox && timeBox && middleAddBox, `${label}: middle clock bar controls are measurable`);
+  const screenCenter = screenBox.x + screenBox.width / 2;
+  const timeCenter = timeBox.x + timeBox.width / 2;
+  assert(
+    Math.abs(timeCenter - screenCenter) <= 1,
+    `${label}: middle clock bar time remains centered on the screen`
+  );
+  assert(
+    middleAddBox.x >= timeBox.x + timeBox.width,
+    `${label}: middle add control sits beside the centered time`
+  );
   await page.locator("#sp-clockbar-clock-format").waitFor({ state: "visible" });
   await page.locator(".sp-settings-close").click();
 
