@@ -446,6 +446,7 @@ export default defineConfig({
       {
         text: 'Reference',
         items: [
+          { text: 'Contributing', link: '/reference/contributing' },
           { text: 'Icon Reference', link: '/reference/icons' },
           { text: 'Language Support', link: '/reference/language-support' },
           { text: 'Request Device Support', link: '/reference/request-device-support' },
