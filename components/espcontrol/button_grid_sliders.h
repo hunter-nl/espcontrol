@@ -65,6 +65,7 @@ constexpr lv_coord_t MEDIA_VOLUME_CONTROLS_GAP_REF_PX = DISPLAY_MODAL_CONTROLS_G
 constexpr lv_coord_t MEDIA_VOLUME_CONTROLS_DOWN_REF_PX = DISPLAY_MODAL_CONTROLS_DOWN_REF_PX;
 constexpr lv_coord_t MEDIA_VOLUME_TITLE_GAP_REF_PX = DISPLAY_MODAL_TITLE_GAP_REF_PX;
 constexpr lv_coord_t MEDIA_VOLUME_UNIT_Y_REF_PX = -22;
+constexpr lv_coord_t MEDIA_VOLUME_JC4880P443_BUTTON_REF_PX = 96;
 
 struct MediaVolumeCtx {
   std::string entity_id;
@@ -113,6 +114,18 @@ inline MediaVolumeModalUi &media_volume_modal_ui() {
 
 inline lv_coord_t media_volume_card_radius(MediaVolumeCtx *ctx) {
   return control_modal_card_radius(ctx ? ctx->btn : nullptr);
+}
+
+inline ControlModalLayout media_volume_step_button_layout(const ControlModalLayout &layout) {
+  ControlModalLayout controls_layout = layout;
+  if (control_modal_uses_compact_portrait_tuning(layout)) {
+    controls_layout.btn_size = control_modal_scaled_px(
+      MEDIA_VOLUME_JC4880P443_BUTTON_REF_PX, layout.short_side);
+    controls_layout.controls_center_y = layout.arc_size / 2 -
+      controls_layout.btn_size / 2 - layout.inset +
+      control_modal_controls_down_px(layout);
+  }
+  return controls_layout;
 }
 
 inline void slider_fit_to_button(lv_obj_t *slider, lv_obj_t *btn, bool horizontal) {
@@ -880,7 +893,8 @@ inline void media_volume_layout_modal(MediaVolumeCtx *ctx) {
 
   control_modal_apply_back_button_layout(ui.back_btn, layout);
   control_modal_apply_arc_layout(ui.arc, layout, ctx->width_compensation_percent);
-  control_modal_apply_step_buttons_layout(ui.minus_btn, ui.plus_btn, layout);
+  control_modal_apply_step_buttons_layout(
+    ui.minus_btn, ui.plus_btn, media_volume_step_button_layout(layout));
   lv_obj_set_style_translate_y(ui.pct_unit_lbl,
     control_modal_scaled_px(MEDIA_VOLUME_UNIT_Y_REF_PX, layout.short_side), LV_PART_MAIN);
   lv_obj_align(ui.title_lbl, LV_ALIGN_CENTER, 0, title_center_y);
