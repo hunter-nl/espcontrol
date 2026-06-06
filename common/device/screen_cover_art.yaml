@@ -574,11 +574,7 @@ script:
           lv_color_t black = lv_color_make(0, 0, 0);
           lv_obj_set_style_bg_color(id(cover_art_backdrop), black, 0);
           lv_obj_set_style_bg_color(id(cover_art_accent_overlay), black, 0);
-      - if:
-          condition:
-            lambda: 'return id(cover_art_loaded_url).empty();'
-          then:
-            - lvgl.widget.hide: cover_art_image_widget
+      - lvgl.widget.hide: cover_art_image_widget
       - script.execute: cover_art_sync_track_text
       - lambda: |-
           lv_obj_set_style_text_line_space(id(cover_art_title_label), ${cover_art_title_line_space}, 0);

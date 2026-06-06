@@ -559,6 +559,29 @@ def firmware_cover_art_external_input_errors(path: Path, root: Path) -> list[str
     return errors
 
 
+def firmware_cover_art_stale_image_errors(path: Path, root: Path) -> list[str]:
+    if not path.exists():
+        return []
+    rel = path.relative_to(root)
+    text = path.read_text(encoding="utf-8")
+    errors: list[str] = []
+
+    script_match = re.search(
+        r"(?ms)^  - id: cover_art_show_black_screen\n(?P<body>.*?)(?=^  - id: |\Z)",
+        text,
+    )
+    if not script_match:
+        errors.append(f"{rel}: keep a black fallback for cover art with no current image")
+        return errors
+
+    body = script_match.group("body")
+    if "lvgl.widget.hide: cover_art_image_widget" not in body:
+        errors.append(f"{rel}: hide stale cover art image when the black fallback is shown")
+    if "id(cover_art_loaded_url).empty()" in body:
+        errors.append(f"{rel}: hide stale cover art image even after previous artwork loaded")
+    return errors
+
+
 def firmware_climate_step_errors(firmware_dir: Path, root: Path) -> list[str]:
     path = firmware_dir / "button_grid_climate.h"
     if not path.exists():
@@ -694,6 +717,7 @@ def run_scan() -> int:
     errors.extend(firmware_unavailable_retry_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_cover_request_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_cover_art_external_input_errors(COVER_ART_PATH, ROOT))
+    errors.extend(firmware_cover_art_stale_image_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_climate_step_errors(FIRMWARE_DIR, ROOT))
     errors.extend(
         firmware_s3_api_errors(
@@ -956,6 +980,20 @@ def expect_cover_art_external_input_errors(name: str, text: str, expected: tuple
         path.write_text(text, encoding="utf-8")
 
         errors = firmware_cover_art_external_input_errors(path, root)
+        for item in expected:
+            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
+        if not expected:
+            assert not errors, f"{name}: expected no errors, got {errors!r}"
+
+
+def expect_cover_art_stale_image_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        path = root / "common" / "device" / "screen_cover_art.yaml"
+        path.parent.mkdir(parents=True)
+        path.write_text(text, encoding="utf-8")
+
+        errors = firmware_cover_art_stale_image_errors(path, root)
         for item in expected:
             assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
         if not expected:
@@ -1737,6 +1775,36 @@ def run_self_test() -> int:
         "          bool external = next == \"TV\" || next == \"Line-in\";\n"
         "          ha_subscribe_attribute(cover_entity, std::string(\"source\"), handle_media_source);\n"
         "          ha_get_attribute(cover_entity, std::string(\"source\"), handle_media_source);\n",
+        (),
+    )
+    expect_cover_art_stale_image_errors(
+        "missing black fallback image hide",
+        "script:\n"
+        "  - id: cover_art_show_black_screen\n"
+        "    then:\n"
+        "      - globals.set:\n"
+        "          id: cover_art_image_available\n"
+        "          value: 'false'\n",
+        ("hide stale cover art image when the black fallback is shown",),
+    )
+    expect_cover_art_stale_image_errors(
+        "conditional black fallback image hide",
+        "script:\n"
+        "  - id: cover_art_show_black_screen\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: 'return id(cover_art_loaded_url).empty();'\n"
+        "          then:\n"
+        "            - lvgl.widget.hide: cover_art_image_widget\n",
+        ("hide stale cover art image even after previous artwork loaded",),
+    )
+    expect_cover_art_stale_image_errors(
+        "unconditional black fallback image hide",
+        "script:\n"
+        "  - id: cover_art_show_black_screen\n"
+        "    then:\n"
+        "      - lvgl.widget.hide: cover_art_image_widget\n",
         (),
     )
     expect_climate_step_errors(
