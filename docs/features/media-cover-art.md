@@ -12,11 +12,10 @@ You will find these controls in **Settings > Sleep & Schedule > Media Cover Art*
 
 ## Settings
 
-- **Cover Art While Playing** - enables the cover art display.
+- **Show Cover Art** - enables the cover art display.
 - **Media Player** - chooses the media player entity to watch, such as `media_player.living_room`.
-- **Show Cover Art After** - waits for the selected delay before showing cover art.
+- **Show After** - waits for the selected delay before showing cover art.
 - **Track Overlay Duration** - controls how long track information is shown over the artwork on the 4-inch square displays.
-- **Show Track Progress Bar** - shows playback progress over the artwork.
 - **Hide for external sources** - hides cover art when the selected media player source is `TV` or `Line-in`.
 
 Cover art is separate from the normal [Screensaver](/features/screensaver) mode. Use Screensaver when you want the panel to dim, show a clock, or turn off after inactivity.

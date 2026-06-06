@@ -231,15 +231,6 @@ var ENTITY_CATALOG = {
         "track_overlay_duration"
       ]
     },
-    "screen_saver_cover_art_progress_bar": {
-      "domain": "switch",
-      "name": "Screen Saver: Cover Art Progress Bar",
-      "objectIds": [
-        "screen_saver__cover_art_progress_bar",
-        "screen_saver_cover_art_progress_bar",
-        "cover_art_progress_bar"
-      ]
-    },
     "screen_saver_hide_cover_art_external_input": {
       "domain": "switch",
       "name": "Screen Saver: Hide for external sources",
@@ -546,7 +537,6 @@ var ENTITY_CATALOG = {
       "screen_saver_cover_art_ha_url",
       "screen_saver_cover_art_delay",
       "screen_saver_track_overlay_duration",
-      "screen_saver_cover_art_progress_bar",
       "screen_saver_hide_cover_art_external_input",
       "screen_saver_open_media_subpage",
       "screen_saver_media_subpage",

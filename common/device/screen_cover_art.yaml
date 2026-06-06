@@ -96,9 +96,6 @@ globals:
   - id: cover_art_last_position_timestamp
     type: int
     initial_value: '0'
-  - id: cover_art_last_progress_percent
-    type: int
-    initial_value: '-1'
   - id: cover_art_accent_r
     type: int
     initial_value: '0'
@@ -288,22 +285,6 @@ lvgl:
                       text_color: ${cover_art_text_color}
                       text_opa: 80%
                       text_align: left
-            - bar:
-                id: cover_art_progress_bar
-                align: bottom_mid
-                y: 0
-                width: ${cover_art_progress_width}px
-                height: ${cover_art_progress_height}px
-                bg_color: 0x000000
-                bg_opa: 50%
-                radius: 0
-                min_value: 0
-                max_value: 100
-                value: 0
-                hidden: true
-                indicator:
-                  bg_color: ${cover_art_text_color}
-                  radius: 0
       - obj:
           id: cover_art_wake_touch_guard
           x: 0
@@ -578,17 +559,7 @@ script:
           else:
             - lvgl.widget.hide: cover_art_accent_overlay
             - lvgl.widget.hide: cover_art_track_panel
-      - if:
-          condition:
-            lambda: |-
-              return id(cover_art_screensaver_active) &&
-                     id(cover_art_media_playing) &&
-                     id(cover_art_progress_bar_enabled).state;
-          then:
-            - lvgl.widget.show: cover_art_progress_bar
-            - script.execute: cover_art_refresh_progress
-          else:
-            - lvgl.widget.hide: cover_art_progress_bar
+      - script.execute: cover_art_refresh_progress
 
   - id: cover_art_download_failed
     mode: restart
@@ -674,8 +645,6 @@ script:
           id(cover_art_media_duration) = 0.0f;
           id(cover_art_position_anchor_epoch) = 0;
           id(cover_art_last_position_timestamp) = 0;
-          id(cover_art_last_progress_percent) = -1;
-          lv_bar_set_value(id(cover_art_progress_bar), 0, LV_ANIM_OFF);
           lv_label_set_text(id(cover_art_time_label), "0:00  /  0:00");
       - artwork_image.release: cover_art_downloaded_image
       - script.execute: hide_cover_art_view
@@ -933,16 +902,6 @@ script:
           }
           lv_label_set_text(id(cover_art_time_label), label);
 
-          int value = 0;
-          if (duration > 0.0f) {
-            value = (int)((position / duration) * 100.0f + 0.5f);
-          }
-          if (value < 0) value = 0;
-          if (value > 100) value = 100;
-          if (value == id(cover_art_last_progress_percent)) return;
-          id(cover_art_last_progress_percent) = value;
-          lv_bar_set_value(id(cover_art_progress_bar), value, LV_ANIM_OFF);
-
   - id: cover_art_show_track_overlay
     mode: restart
     then:
@@ -955,13 +914,6 @@ script:
                 lv_obj_set_style_text_line_space(id(cover_art_title_label), ${cover_art_title_line_space}, 0);
             - lvgl.widget.show: cover_art_accent_overlay
             - lvgl.widget.show: cover_art_track_panel
-            - if:
-                condition:
-                  lambda: 'return id(cover_art_progress_bar_enabled).state;'
-                then:
-                  - lvgl.widget.show: cover_art_progress_bar
-                else:
-                  - lvgl.widget.hide: cover_art_progress_bar
             - script.execute: cover_art_refresh_progress
             - if:
                 condition:
@@ -1028,16 +980,6 @@ script:
                   - lvgl.widget.show: cover_art_track_panel
                 else:
                   - script.execute: cover_art_show_black_screen
-      - if:
-          condition:
-            lambda: |-
-              return id(cover_art_screensaver_active) &&
-                     id(cover_art_media_playing) &&
-                     id(cover_art_progress_bar_enabled).state;
-          then:
-            - lvgl.widget.show: cover_art_progress_bar
-          else:
-            - lvgl.widget.hide: cover_art_progress_bar
       - script.execute: cover_art_refresh_progress
       - script.execute: backlight_apply_brightness
 
@@ -1053,7 +995,6 @@ script:
       - lvgl.widget.hide: cover_art_screensaver
       - lvgl.widget.hide: cover_art_accent_overlay
       - lvgl.widget.hide: cover_art_track_panel
-      - lvgl.widget.hide: cover_art_progress_bar
       - script.execute: clock_bar_apply
       - if:
           condition:
@@ -1333,7 +1274,6 @@ script:
                 id(cover_art_position_anchor) = id(cover_art_media_position);
                 id(cover_art_position_anchor_epoch) = 0;
                 id(cover_art_last_position_timestamp) = now.is_valid() ? now.timestamp : 0;
-                id(cover_art_last_progress_percent) = -1;
                 if (id(cover_art_screensaver_active)) id(cover_art_refresh_progress).execute();
                 id(cover_art_delay_timer).stop();
                 id(cover_art_show_track_overlay).stop();
@@ -1519,7 +1459,6 @@ script:
               float next_duration = value.empty() ? 0.0f : strtof(value.c_str(), nullptr);
               if (std::fabs(next_duration - id(cover_art_media_duration)) < 0.05f) return;
               id(cover_art_media_duration) = next_duration;
-              id(cover_art_last_progress_percent) = -1;
               if (id(cover_art_screensaver_active)) id(cover_art_refresh_progress).execute();
             };
           if (!already_subscribed) ha_subscribe_attribute(cover_entity, std::string("media_duration"), handle_media_duration);
@@ -1541,7 +1480,6 @@ script:
               } else {
                 id(cover_art_last_position_timestamp) = now.is_valid() ? now.timestamp : 0;
               }
-              id(cover_art_last_progress_percent) = -1;
               if (id(cover_art_screensaver_active) && !id(cover_art_media_playing)) {
                 id(cover_art_refresh_progress).execute();
               }
@@ -1569,7 +1507,6 @@ script:
               long days = 365L * y + y / 4 - y / 100 + y / 400 + (153 * (m - 3) + 2) / 5 + dy - 719469;
               id(cover_art_position_anchor_epoch) = (int)(days * 86400L + hr * 3600 + mn * 60 + sc);
               id(cover_art_last_position_timestamp) = id(cover_art_position_anchor_epoch);
-              id(cover_art_last_progress_percent) = -1;
               if (id(cover_art_screensaver_active) && !id(cover_art_media_playing)) {
                 id(cover_art_refresh_progress).execute();
               }
@@ -1608,7 +1545,5 @@ script:
           id(cover_art_media_duration) = 0.0f;
           id(cover_art_position_anchor_epoch) = 0;
           id(cover_art_last_position_timestamp) = 0;
-          id(cover_art_last_progress_percent) = -1;
-          lv_bar_set_value(id(cover_art_progress_bar), 0, LV_ANIM_OFF);
           lv_label_set_text(id(cover_art_time_label), "0:00  /  0:00");
       - script.execute: hide_cover_art_view

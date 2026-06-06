@@ -88,7 +88,6 @@ var state = {
   coverArtHomeAssistantUrl: "",
   coverArtDelay: 10,
   coverArtTrackOverlayDuration: 5,
-  coverArtProgressBarOn: true,
   coverArtHideExternalInputOn: true,
   coverArtOpenMediaSubpageOn: false,
   coverArtMediaSubpageTarget: "",

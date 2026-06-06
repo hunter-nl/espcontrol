@@ -553,7 +553,7 @@ function buildSettingsPage(parent) {
   var coverArtBody = document.createElement("div");
   if (!isEpaperPreview()) {
     var coverArtToggle = toggleRow(
-      "Cover Art While Playing",
+      "Show Cover Art",
       "sp-set-ss-cover-art-enable",
       state.coverArtScreensaverOn);
     coverArtBody.appendChild(coverArtToggle.row);
@@ -583,7 +583,7 @@ function buildSettingsPage(parent) {
 
     var coverArtDelayField = document.createElement("div");
     coverArtDelayField.className = "sp-field";
-    coverArtDelayField.appendChild(fieldLabel("Show Cover Art After", "sp-set-ss-cover-art-delay"));
+    coverArtDelayField.appendChild(fieldLabel("Show After", "sp-set-ss-cover-art-delay"));
     var coverArtDelaySelect = document.createElement("select");
     coverArtDelaySelect.className = "sp-select";
     coverArtDelaySelect.id = "sp-set-ss-cover-art-delay";
@@ -635,17 +635,6 @@ function buildSettingsPage(parent) {
       coverArtOptions.appendChild(trackOverlayField);
       els.setCoverArtTrackOverlayDuration = trackOverlaySelect;
     }
-
-    var coverArtProgressBarToggle = toggleRow(
-      "Show Track Progress Bar",
-      "sp-set-ss-cover-art-progress-bar",
-      state.coverArtProgressBarOn);
-    coverArtOptions.appendChild(coverArtProgressBarToggle.row);
-    coverArtProgressBarToggle.input.addEventListener("change", function () {
-      state.coverArtProgressBarOn = this.checked;
-      postSwitch(entityName("screen_saver_cover_art_progress_bar"), state.coverArtProgressBarOn);
-    });
-    els.setCoverArtProgressBarToggle = coverArtProgressBarToggle.input;
 
     var coverArtHideExternalInputToggle = toggleRow(
       "Hide for external sources",
@@ -1020,9 +1009,6 @@ function syncCoverArtScreensaverUi() {
       els.setCoverArtTrackOverlayDuration,
       value,
       value > 0 ? formatDuration(value) : "Hidden");
-  }
-  if (els.setCoverArtProgressBarToggle) {
-    els.setCoverArtProgressBarToggle.checked = !!state.coverArtProgressBarOn;
   }
   if (els.setCoverArtHideExternalInputToggle) {
     els.setCoverArtHideExternalInputToggle.checked = !!state.coverArtHideExternalInputOn;

@@ -228,7 +228,6 @@ export interface BackupPanelSettingsState {
   coverArtHomeAssistantUrl: string;
   coverArtDelay: unknown;
   coverArtTrackOverlayDuration: unknown;
-  coverArtProgressBar: boolean;
   coverArtHideExternalInput: boolean;
   coverArtOpenMediaSubpage: boolean;
   coverArtMediaSubpageTarget: string;
@@ -335,7 +334,6 @@ export function normalizeBackupPanelSettings(
     coverArtHomeAssistantUrl: String(settings.cover_art_home_assistant_url || ""),
     coverArtDelay: objectValue(settings, "cover_art_delay") != null ? settings.cover_art_delay : 10,
     coverArtTrackOverlayDuration: objectValue(settings, "cover_art_track_overlay_duration") != null ? settings.cover_art_track_overlay_duration : 5,
-    coverArtProgressBar: objectValue(settings, "cover_art_progress_bar") != null ? !!settings.cover_art_progress_bar : true,
     coverArtHideExternalInput: objectValue(settings, "cover_art_hide_external_input") != null
       ? !!settings.cover_art_hide_external_input
       : true,

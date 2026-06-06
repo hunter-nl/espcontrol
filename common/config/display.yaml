@@ -390,26 +390,6 @@ switch:
       sorting_group_id: sg_screensaver
 
   - platform: template
-    name: "${entity_screen_saver_cover_art_progress_bar}"
-    internal: true
-    id: cover_art_progress_bar_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    icon: "mdi:progress-clock"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - if:
-          condition:
-            lambda: 'return id(cover_art_screensaver_active) && id(cover_art_image_available);'
-          then:
-            - lvgl.widget.show: cover_art_progress_bar
-            - script.execute: cover_art_refresh_progress
-    on_turn_off:
-      - lvgl.widget.hide: cover_art_progress_bar
-
-  - platform: template
     name: "${entity_screen_saver_hide_cover_art_external_input}"
     internal: true
     id: cover_art_hide_external_input_enabled
