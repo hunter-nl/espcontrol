@@ -68,7 +68,6 @@ function htmlFor(slug) {
     '<html lang="en">',
     "<head>",
     '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width,initial-scale=1">',
     `<title>${slug}</title>`,
     "</head>",
     "<body>",
@@ -309,6 +308,8 @@ async function assertMobileTabLayout(page, label, restoreViewport) {
     var screen = document.querySelector(".sp-screen").getBoundingClientRect();
     return {
       tab: document.querySelector("#sp-app").getAttribute("data-active-tab"),
+      viewportMeta: document.querySelector('meta[name="viewport"]') &&
+        document.querySelector('meta[name="viewport"]').getAttribute("content"),
       supportVisible: !!support && supportStyle.display !== "none" && support.getBoundingClientRect().width > 1,
       screenWidth: screen.width,
       documentScrollWidth: document.documentElement.scrollWidth,
@@ -316,6 +317,7 @@ async function assertMobileTabLayout(page, label, restoreViewport) {
     };
   });
   assert.strictEqual(mobile.tab, "screen", `${label}: screen tab is marked active on mobile`);
+  assert.strictEqual(mobile.viewportMeta, "width=device-width,initial-scale=1", `${label}: web app should provide mobile viewport metadata`);
   assert(mobile.supportVisible, `${label}: support button remains visible on the screen tab`);
   assert(mobile.screenWidth <= mobile.windowWidth + 1, `${label}: mobile screen preview fits viewport`);
   assert(
@@ -363,6 +365,58 @@ async function assertMobileTabLayout(page, label, restoreViewport) {
   await page.getByRole("tab", { name: "Screen" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
   await page.waitForTimeout(100);
+}
+
+async function assertMobileDeviceViewport(browser, testCase) {
+  const context = await browser.newContext({
+    viewport: { width: 360, height: 740 },
+    deviceScaleFactor: 3,
+    hasTouch: true,
+    isMobile: true,
+  });
+  await installRoutes(context, testCase.slug);
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espcontrol.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
+    await page.waitForSelector(".sp-main > .sp-btn");
+    await page.getByRole("tab", { name: "Settings" }).click();
+    await page.waitForSelector("#sp-settings.sp-page.active");
+    const mobile = await page.evaluate(() => {
+      var support = document.querySelector(".sp-support-btn");
+      var supportStyle = support ? getComputedStyle(support) : null;
+      return {
+        viewportMeta: document.querySelector('meta[name="viewport"]') &&
+          document.querySelector('meta[name="viewport"]').getAttribute("content"),
+        windowWidth: window.innerWidth,
+        documentScrollWidth: document.documentElement.scrollWidth,
+        supportVisible: !!support && supportStyle.display !== "none" && support.getBoundingClientRect().width > 1,
+      };
+    });
+    assert.strictEqual(
+      mobile.viewportMeta,
+      "width=device-width,initial-scale=1",
+      `${testCase.name}: mobile browser should receive device-width viewport metadata`
+    );
+    assert(
+      mobile.windowWidth <= 380,
+      `${testCase.name}: mobile browser should not render with a desktop layout viewport (${mobile.windowWidth}px)`
+    );
+    assert(
+      mobile.documentScrollWidth <= mobile.windowWidth + 1,
+      `${testCase.name}: mobile device settings tab has horizontal overflow`
+    );
+    assert.strictEqual(mobile.supportVisible, false, `${testCase.name}: support button should not cover settings on mobile devices`);
+  } catch (error) {
+    fs.mkdirSync(FAILURE_DIR, { recursive: true });
+    await page.screenshot({ path: path.join(FAILURE_DIR, `${testCase.name}-${testCase.slug}-mobile.png`), fullPage: true });
+    throw error;
+  } finally {
+    await context.close();
+  }
 }
 
 async function assertEmptyCellSettings(page, posts, label) {
@@ -974,6 +1028,7 @@ async function runCase(browser, testCase) {
   try {
     for (const testCase of CASES) {
       await runCase(browser, testCase);
+      await assertMobileDeviceViewport(browser, testCase);
     }
   } finally {
     await browser.close();
