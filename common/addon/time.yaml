@@ -280,7 +280,7 @@ text:
       sorting_group_id: sg_brightness
     on_value:
       then:
-        - script.execute: ntp_servers_apply
+        - script.execute: ntp_servers_apply_after_network
 
   - platform: template
     name: "${entity_screen_ntp_server_2}"
@@ -299,7 +299,7 @@ text:
       sorting_group_id: sg_brightness
     on_value:
       then:
-        - script.execute: ntp_servers_apply
+        - script.execute: ntp_servers_apply_after_network
 
   - platform: template
     name: "${entity_screen_ntp_server_3}"
@@ -318,7 +318,7 @@ text:
       sorting_group_id: sg_brightness
     on_value:
       then:
-        - script.execute: ntp_servers_apply
+        - script.execute: ntp_servers_apply_after_network
 
 text_sensor:
   # Diagnostic value published from the active time source. This makes
@@ -383,6 +383,12 @@ time:
           - script.execute: time_update
 
 script:
+  - id: ntp_servers_apply_after_network
+    mode: restart
+    then:
+      - delay: 2s
+      - script.execute: ntp_servers_apply
+
   - id: ntp_servers_apply
     mode: restart
     then:

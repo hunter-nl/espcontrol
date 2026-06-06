@@ -10,7 +10,7 @@ wifi:
   reboot_timeout: 30min
   on_connect:
     - script.execute: network_status_refresh
-    - script.execute: ntp_servers_apply
+    - script.execute: ntp_servers_apply_after_network
     - script.stop: wifi_reconnect_flow
     - script.stop: setup_screen_dim
     - lambda: |-

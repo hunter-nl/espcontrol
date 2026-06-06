@@ -323,9 +323,17 @@ def firmware_ntp_startup_errors(
         boot_section = text.split("# Ask Home Assistant", 1)[0]
         if "- script.execute: ntp_servers_apply" in boot_section:
             errors.append(f"{rel}: defer custom NTP server apply until networking has an IP address")
+        if "# NTP server settings" in text:
+            ntp_text_section = text.split("# NTP server settings", 1)[1].split("text_sensor:", 1)[0]
+            if "- script.execute: ntp_servers_apply\n" in ntp_text_section:
+                errors.append(f"{rel}: debounce restored NTP text values before applying SNTP settings")
+            if "id: ntp_servers_apply_after_network" not in text:
+                errors.append(f"{rel}: route NTP server changes through delayed network-ready apply script")
     if sun_calc_path.exists():
         rel = sun_calc_path.relative_to(root)
         text = sun_calc_path.read_text(encoding="utf-8")
+        if "apply_ntp_servers" in text and "App.is_setup_complete()" not in text:
+            errors.append(f"{rel}: skip SNTP reconfiguration until application setup has completed")
         if (
             "apply_ntp_servers" in text
             and "get_ip_addresses().empty()" not in text
@@ -336,7 +344,7 @@ def firmware_ntp_startup_errors(
             continue
         rel = path.relative_to(root)
         text = path.read_text(encoding="utf-8")
-        if "on_connect:" in text and "- script.execute: ntp_servers_apply" not in text:
+        if "on_connect:" in text and "- script.execute: ntp_servers_apply_after_network" not in text:
             errors.append(f"{rel}: apply configured NTP servers after network connect")
     return errors
 
@@ -1450,6 +1458,7 @@ def run_self_test() -> int:
         "    - script.execute: network_status_refresh\n",
         (
             "defer custom NTP server apply",
+            "skip SNTP reconfiguration until application setup",
             "skip SNTP reconfiguration",
             "apply configured NTP servers after network connect",
         ),
@@ -1460,14 +1469,27 @@ def run_self_test() -> int:
         "  on_boot:\n"
         "    then:\n"
         "      - lambda: apply_timezone();\n"
-        "# Ask Home Assistant for time once connected\n",
+        "# Ask Home Assistant for time once connected\n"
+        "# NTP server settings\n"
+        "text:\n"
+        "  - platform: template\n"
+        "    on_value:\n"
+        "      then:\n"
+        "        - script.execute: ntp_servers_apply_after_network\n"
+        "text_sensor:\n"
+        "script:\n"
+        "  - id: ntp_servers_apply_after_network\n"
+        "    then:\n"
+        "      - delay: 2s\n"
+        "      - script.execute: ntp_servers_apply\n",
         "inline void apply_ntp_servers() {\n"
+        "  if (!esphome::App.is_setup_complete()) return;\n"
         "  if (esphome::network::get_ip_addresses().empty()) return;\n"
         "  esp_sntp_init();\n"
         "}\n",
         "wifi:\n"
         "  on_connect:\n"
-        "    - script.execute: ntp_servers_apply\n",
+        "    - script.execute: ntp_servers_apply_after_network\n",
         (),
     )
     expect_weather_request_errors(

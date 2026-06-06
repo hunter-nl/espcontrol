@@ -11,6 +11,7 @@
 #include <esp_sntp.h>
 #endif
 
+#include "esphome/core/application.h"
 #include "esphome/core/log.h"
 #include "esphome/components/network/util.h"
 
@@ -471,6 +472,11 @@ inline void apply_ntp_servers(const std::string &server_1,
                               const std::string &server_2,
                               const std::string &server_3) {
 #if defined(USE_ESP_IDF)
+  if (!esphome::App.is_setup_complete()) {
+    ESP_LOGI("sntp", "Application setup not complete; deferring NTP server apply");
+    return;
+  }
+
   if (esphome::network::get_ip_addresses().empty()) {
     ESP_LOGI("sntp", "Network not ready; deferring NTP server apply");
     return;
