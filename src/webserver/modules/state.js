@@ -183,7 +183,7 @@ function getActiveScreensaverMode() {
 }
 
 function clockBarVisibleInPreview() {
-  return !!state.clockBarOn && normalizeScreensaverAction(state.screensaverAction) !== "clock";
+  return !!state.clockBarOn;
 }
 
 function normalizeScreenRotation(value) {

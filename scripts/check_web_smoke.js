@@ -100,7 +100,7 @@ assert(
 );
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "off"), true, "clock bar preview is visible when enabled");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "dim"), true, "clock bar preview stays visible for dimmed screen saver");
-assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), false, "clock bar preview is hidden for clock screen saver");
+assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), true, "clock bar preview stays visible when clock screen saver is configured");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(false, "off"), false, "clock bar preview is hidden when disabled");
 
 const manifest = JSON.parse(fs.readFileSync(DEVICE_MANIFEST, "utf8"));
