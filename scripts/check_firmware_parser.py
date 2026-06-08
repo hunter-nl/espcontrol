@@ -100,8 +100,25 @@ inline void lv_obj_move_foreground(lv_obj_t *) {}
 #include "button_grid_layout.h"
 
 int main() {
-  assert(grid_track_span_size(480, 8, 8, 15, 3, 1) == 144);
-  assert(grid_track_span_size(480, 8, 8, 15, 3, 2) == 303);
+  int row_span = 0;
+  int col_span = 0;
+  grid_token_spans('\0', row_span, col_span);
+  assert(row_span == 1 && col_span == 1);
+  grid_token_spans('d', row_span, col_span);
+  assert(row_span == 2 && col_span == 1);
+  grid_token_spans('w', row_span, col_span);
+  assert(row_span == 1 && col_span == 2);
+  grid_token_spans('b', row_span, col_span);
+  assert(row_span == 2 && col_span == 2);
+  grid_token_spans('t', row_span, col_span);
+  assert(row_span == 3 && col_span == 1);
+  grid_token_spans('x', row_span, col_span);
+  assert(row_span == 1 && col_span == 3);
+
+  const int single_track = grid_track_span_size(480, 8, 8, 15, 3, 1);
+  assert(single_track == 144);
+  assert(grid_track_span_size(480, 8, 8, 15, 3, 2) == single_track * 2 + 15);
+  assert(grid_track_span_size(480, 8, 8, 15, 3, 3) == single_track * 3 + 15 * 2);
 
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 0) == "light.kitchen");
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 3) == "Lightbulb");
