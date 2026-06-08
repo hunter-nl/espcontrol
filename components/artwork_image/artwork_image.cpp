@@ -125,14 +125,15 @@ inline bool is_color_on(const Color &color) {
   return ((color.r >> 2) + (color.g >> 1) + (color.b >> 2)) & 0x80;
 }
 
-ArtworkImage::ArtworkImage(const std::string &url, int width, int height, ImageFormat format, ImageType type,
-                         image::Transparency transparency, uint32_t download_buffer_size, bool is_big_endian,
-                         bool allow_insecure_local_urls)
+ArtworkImage::ArtworkImage(const std::string &url, int width, int height, ImageFormat format,
+                         ImageResizeMode resize_mode, ImageType type, image::Transparency transparency,
+                         uint32_t download_buffer_size, bool is_big_endian, bool allow_insecure_local_urls)
     : Image(nullptr, 0, 0, type, transparency),
       buffer_(nullptr),
       download_buffer_(download_buffer_size),
       download_buffer_initial_size_(download_buffer_size),
       format_(format),
+      resize_mode_(resize_mode),
       fixed_width_(width),
       fixed_height_(height),
       is_big_endian_(is_big_endian),
@@ -176,14 +177,17 @@ size_t ArtworkImage::resize_(int width_in, int height_in) {
     content_height = height;
   } else if (width_in > 0 && height_in > 0) {
     if (width_in != height_in) {
-      double scale = std::min(
-        static_cast<double>(this->fixed_width_) / width_in,
-        static_cast<double>(this->fixed_height_) / height_in
-      );
+      double width_scale = static_cast<double>(this->fixed_width_) / width_in;
+      double height_scale = static_cast<double>(this->fixed_height_) / height_in;
+      double scale = this->resize_mode_ == ImageResizeMode::COVER
+        ? std::max(width_scale, height_scale)
+        : std::min(width_scale, height_scale);
       content_width = std::max(1, (static_cast<int>(width_in * scale) + 3) & ~3);
       content_height = std::max(1, (static_cast<int>(height_in * scale) + 3) & ~3);
-      if (content_width > this->fixed_width_) content_width = this->fixed_width_;
-      if (content_height > this->fixed_height_) content_height = this->fixed_height_;
+      if (this->resize_mode_ != ImageResizeMode::COVER) {
+        if (content_width > this->fixed_width_) content_width = this->fixed_width_;
+        if (content_height > this->fixed_height_) content_height = this->fixed_height_;
+      }
       offset_x = (this->fixed_width_ - content_width) / 2;
       offset_y = (this->fixed_height_ - content_height) / 2;
     }

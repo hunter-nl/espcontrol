@@ -25,6 +25,7 @@ function buttonTypeInfoOnlyVisible(key) {
     "calendar",
     "clock",
     "door_window",
+    "image",
     "presence",
     "timezone",
     "weather",

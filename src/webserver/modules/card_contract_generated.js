@@ -1134,6 +1134,24 @@ var CARD_CONTRACT_CARDS = {
       "options": ""
     }
   },
+  "image": {
+    "label": "Image",
+    "allowInSubpage": true,
+    "domains": [
+      "camera"
+    ],
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "image",
+      "precision": "",
+      "options": ""
+    }
+  },
   "weather_forecast": {
     "label": "Weather Forecast",
     "allowInSubpage": true,

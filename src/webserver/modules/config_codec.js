@@ -101,6 +101,15 @@ function normalizeButtonConfig(b) {
   if (b && b.type === "webhook") {
     if (typeof normalizeWebhookConfig === "function") normalizeWebhookConfig(b);
   }
+  if (b && b.type === "image") {
+    b.label = "";
+    b.icon = "Auto";
+    b.icon_on = "Auto";
+    b.sensor = "";
+    b.unit = "";
+    b.precision = "";
+    b.options = "";
+  }
   if (b && b.type === "light_switch") {
     b.sensor = "";
     b.unit = "";
@@ -146,7 +155,7 @@ function normalizeButtonConfig(b) {
     if (!b.icon || b.icon === "Auto") b.icon = "Motion Sensor Off";
     if (!b.icon_on || b.icon_on === "Auto") b.icon_on = "Motion Sensor";
     b.options = normalizePresenceOptions(b.options);
-  } else if (b && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && b.type !== "climate" && b.type !== "garage" && b.type !== "webhook" && b.type !== "media" && b.type !== "presence" && b.type !== "subpage" && !cardLargeNumbersSupported(b)) {
+  } else if (b && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && b.type !== "climate" && b.type !== "garage" && b.type !== "webhook" && b.type !== "media" && b.type !== "presence" && b.type !== "subpage" && b.type !== "image" && !cardLargeNumbersSupported(b)) {
     b.options = "";
   }
   return b;
@@ -1029,6 +1038,14 @@ function buttonConfigFields(b) {
       : (mediaStateDisplayModeSupported(sensor) && precision === "state" ? "state" : "");
   }
   if (type === "climate") precision = normalizeClimatePrecisionConfig(precision);
+  if (type === "image") {
+    icon = "Auto";
+    iconOn = "Auto";
+    sensor = "";
+    unit = "";
+    precision = "";
+    options = "";
+  }
   if (type === "door_window") precision = normalizeDoorWindowSubtype(precision);
   var options = b && b.options || "";
   if (type === "") {
@@ -1059,7 +1076,7 @@ function buttonConfigFields(b) {
     options = normalizePresenceOptions(options);
   } else if (isActionOptionSelect || isFanCardType(type)) {
     options = "";
-  } else if (type !== "action" && type !== "alarm_action" && type !== "garage" && type !== "webhook" && type !== "media" && type !== "presence" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
+  } else if (type !== "action" && type !== "alarm_action" && type !== "garage" && type !== "webhook" && type !== "media" && type !== "presence" && type !== "image" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
     options = "";
   }
   if (type === "door_window") {

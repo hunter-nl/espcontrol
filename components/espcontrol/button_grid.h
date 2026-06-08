@@ -22,6 +22,7 @@
 #include <functional>
 #include "esphome/components/api/homeassistant_service.h"
 #include "esphome/components/http_request/http_request.h"
+#include "esphome/components/artwork_image/artwork_image.h"
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "esphome/core/string_ref.h"
 #include "i18n_generated.h"

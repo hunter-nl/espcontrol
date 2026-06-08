@@ -32,6 +32,11 @@ enum ImageFormat {
   HEIC,
 };
 
+enum ImageResizeMode {
+  FIT,
+  COVER,
+};
+
 /**
  * @brief Download an image from a given URL, and decode it using the specified decoder.
  * The image will then be stored in a buffer, so that it can be re-displayed without the
@@ -50,8 +55,8 @@ class ArtworkImage : public PollingComponent,
    * @param format Format that the image is encoded in (@see ImageFormat).
    * @param buffer_size Size of the buffer used to download the image.
    */
-  ArtworkImage(const std::string &url, int width, int height, ImageFormat format, image::ImageType type,
-              image::Transparency transparency, uint32_t buffer_size, bool is_big_endian,
+  ArtworkImage(const std::string &url, int width, int height, ImageFormat format, ImageResizeMode resize_mode,
+              image::ImageType type, image::Transparency transparency, uint32_t buffer_size, bool is_big_endian,
               bool allow_insecure_local_urls);
 
   void draw(int x, int y, display::Display *display, Color color_on, Color color_off) override;
@@ -69,6 +74,13 @@ class ArtworkImage : public PollingComponent,
   /** Set the URL and start an update, queuing the latest request if a download/decode is already active. */
   void request_update_url(const std::string &url);
   const std::string &get_url() const { return this->url_; }
+
+  void set_target_size(int width, int height) {
+    if (width <= 0 || height <= 0) return;
+    this->fixed_width_ = width;
+    this->fixed_height_ = height;
+  }
+  void set_resize_mode(ImageResizeMode resize_mode) { this->resize_mode_ = resize_mode; }
 
   /** Add the request header */
   template<typename V> void add_request_header(const std::string &header, V value) {
@@ -193,6 +205,7 @@ class ArtworkImage : public PollingComponent,
   size_t download_buffer_initial_size_;
 
   const ImageFormat format_;
+  ImageResizeMode resize_mode_;
   image::Image *placeholder_{nullptr};
 
   std::string url_{""};
@@ -200,9 +213,9 @@ class ArtworkImage : public PollingComponent,
   std::vector<std::pair<std::string, TemplatableValue<std::string> > > request_headers_;
 
   /** width requested on configuration, or 0 if non specified. */
-  const int fixed_width_;
+  int fixed_width_;
   /** height requested on configuration, or 0 if non specified. */
-  const int fixed_height_;
+  int fixed_height_;
   /**
    * Whether the image is stored in big-endian format.
    * This is used to determine how to store 16 bit colors in the buffer.

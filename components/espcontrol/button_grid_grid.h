@@ -47,7 +47,12 @@ struct GridConfig {
   std::string timezone;
   std::function<void()> pause_home_idle;
   std::function<void()> resume_home_idle;
+  esphome::artwork_image::ArtworkImage **image_card_images = nullptr;
+  int image_card_image_count = 0;
+  std::function<std::string()> home_assistant_base_url;
 };
+
+#include "button_grid_image.h"
 
 inline void grid_log_memory(const char *stage) {
 #ifdef ESP_PLATFORM
@@ -199,7 +204,7 @@ inline bool info_only_hidden_card_type(const ParsedCfg &p) {
   if (p.type == "sensor" || p.type == "text_sensor" ||
       p.type == "door_window" || p.type == "presence" ||
       p.type == "calendar" || p.type == "clock" || p.type == "timezone" ||
-      p.type == "weather" || p.type == "weather_forecast") {
+      p.type == "weather" || p.type == "weather_forecast" || p.type == "image") {
     return false;
   }
   return true;
@@ -232,6 +237,11 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (cfg.info_only && info_only_hidden_card_type(p)) {
     lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    return;
+  }
+
+  if (p.type == "image") {
+    setup_image_card(s);
     return;
   }
 
@@ -581,7 +591,16 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
       cfg.subpage_chevron_y, cfg.subpage_chevron_text_width_percent);
   }
 
-  if (p.type == "media") {
+  if (p.type == "image") {
+    lv_obj_t *widget = s.sensor_container
+      ? static_cast<lv_obj_t *>(lv_obj_get_user_data(s.sensor_container))
+      : nullptr;
+    if (widget) {
+      lv_obj_update_layout(s.btn);
+      lv_obj_set_pos(widget, 0, 0);
+      lv_obj_set_size(widget, lv_obj_get_width(s.btn), lv_obj_get_height(s.btn));
+    }
+  } else if (p.type == "media") {
     refresh_media_card_layout(s, p, cfg, row_span);
   } else if (brightness_slider_type(p.type) || p.type == "light_temperature" ||
              (p.type == "cover" && !cover_command_mode(p.sensor) && !cover_toggle_mode(p.sensor))) {
@@ -788,6 +807,7 @@ inline void grid_phase2(
   reset_ha_control_availability_refs();
   clear_internal_relay_watchers();
   navigation_clear_subpages();
+  reset_image_card_pool(cfg);
 
   bool has_on, has_off, has_sensor_color;
   uint32_t on_val = parse_hex_color(on_hex, has_on);
@@ -828,6 +848,7 @@ inline void grid_phase2(
     bool is_1x1_card = row_span == 1 && col_span == 1;
     if (cfg.info_only && info_only_hidden_card_type(p)) continue;
     if (p.type == "push") continue;
+    if (bind_image_card(s, p, cfg)) continue;
     if (bind_basic_sensor_card(s, p, palette)) continue;
     if (bind_passive_card_sources(s, p)) continue;
     if (p.type == "garage") {
@@ -1351,6 +1372,7 @@ inline void grid_phase2(
       display_apply_slot_text_width(sub_slot, display);
       setup_card_visual(sub_slot, sb_cfg, cfg, palette, rs, cs);
 
+      if (bind_image_card(sub_slot, sb_cfg, cfg)) continue;
       if (bind_basic_sensor_card(sub_slot, sb_cfg, palette)) continue;
       if (bind_passive_card_sources(sub_slot, sb_cfg)) continue;
       if (sb_cfg.type == "cover" && cover_command_mode(sb_cfg.sensor)) {
