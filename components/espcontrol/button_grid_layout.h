@@ -130,19 +130,45 @@ inline void clear_spanned_cells(const OrderResult &order, int num_slots, int col
   }
 }
 
+inline lv_coord_t grid_div_round_closest(lv_coord_t dividend, int divisor) {
+  if (divisor <= 0) return 0;
+  return (dividend + divisor / 2) / divisor;
+}
+
+inline lv_coord_t grid_equal_fr_track_size(lv_coord_t usable, int track_count, int track_index) {
+  if (track_count < 1) track_count = 1;
+  if (track_index < 0) track_index = 0;
+  if (track_index >= track_count) track_index = track_count - 1;
+  lv_coord_t remaining_usable = usable;
+  int remaining_tracks = track_count;
+  for (int i = 0; i < track_count; i++) {
+    lv_coord_t size = grid_div_round_closest(remaining_usable, remaining_tracks);
+    if (i == track_index) return size;
+    remaining_usable -= size;
+    remaining_tracks--;
+  }
+  return 0;
+}
+
 inline lv_coord_t grid_track_span_size(lv_coord_t total_size,
                                        lv_coord_t pad_start,
                                        lv_coord_t pad_end,
                                        lv_coord_t gap,
                                        int track_count,
+                                       int start,
                                        int span) {
   if (track_count < 1) track_count = 1;
+  if (start < 0) start = 0;
+  if (start >= track_count) start = track_count - 1;
   if (span < 1) span = 1;
-  if (span > track_count) span = track_count;
+  if (span > track_count - start) span = track_count - start;
   lv_coord_t usable = total_size - pad_start - pad_end - gap * (track_count - 1);
   if (usable <= 0) return 0;
-  lv_coord_t track_size = usable / track_count;
-  return track_size * span + gap * (span - 1);
+  lv_coord_t size = gap * (span - 1);
+  for (int offset = 0; offset < span; offset++) {
+    size += grid_equal_fr_track_size(usable, track_count, start + offset);
+  }
+  return size;
 }
 
 inline void set_grid_card_cell(lv_obj_t *btn,
@@ -167,6 +193,7 @@ inline void set_grid_card_cell(lv_obj_t *btn,
     lv_obj_get_style_pad_right(grid, LV_PART_MAIN),
     lv_obj_get_style_pad_column(grid, LV_PART_MAIN),
     cols,
+    col,
     col_span);
   lv_coord_t height = grid_track_span_size(
     lv_obj_get_height(grid),
@@ -174,6 +201,7 @@ inline void set_grid_card_cell(lv_obj_t *btn,
     lv_obj_get_style_pad_bottom(grid, LV_PART_MAIN),
     lv_obj_get_style_pad_row(grid, LV_PART_MAIN),
     rows,
+    row,
     row_span);
   if (col_span > 1 && width > 0) lv_obj_set_width(btn, width);
   if (row_span > 1 && height > 0) lv_obj_set_height(btn, height);

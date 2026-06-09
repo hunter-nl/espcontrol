@@ -115,10 +115,16 @@ int main() {
   grid_token_spans('x', row_span, col_span);
   assert(row_span == 1 && col_span == 3);
 
-  const int single_track = grid_track_span_size(480, 8, 8, 15, 3, 1);
-  assert(single_track == 144);
-  assert(grid_track_span_size(480, 8, 8, 15, 3, 2) == single_track * 2 + 15);
-  assert(grid_track_span_size(480, 8, 8, 15, 3, 3) == single_track * 3 + 15 * 2);
+  assert(grid_equal_fr_track_size(434, 3, 0) == 145);
+  assert(grid_equal_fr_track_size(434, 3, 1) == 145);
+  assert(grid_equal_fr_track_size(434, 3, 2) == 144);
+  assert(grid_track_span_size(480, 8, 8, 15, 3, 0, 1) == 145);
+  assert(grid_track_span_size(480, 8, 8, 15, 3, 0, 2) == 305);
+  assert(grid_track_span_size(480, 8, 8, 15, 3, 1, 2) == 304);
+  assert(grid_track_span_size(480, 8, 8, 15, 3, 0, 3) == 464);
+  assert(grid_track_span_size(1024, 5, 5, 10, 5, 0, 2) == 400);
+  assert(grid_track_span_size(1024, 5, 5, 10, 5, 3, 2) == 399);
+  assert(grid_track_span_size(600, 42, 5, 10, 3, 0, 2) == 366);
 
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 0) == "light.kitchen");
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 3) == "Lightbulb");
