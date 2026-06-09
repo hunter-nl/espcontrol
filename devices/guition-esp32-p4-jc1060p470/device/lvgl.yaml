@@ -101,8 +101,8 @@ lvgl:
           align: top_right
           x: -4
           y: 1
-          width: 40
-          height: 36
+          width: 48
+          height: 44
           bg_opa: 0%
           border_width: 0
           pad_all: 0

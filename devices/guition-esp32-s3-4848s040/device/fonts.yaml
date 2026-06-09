@@ -23,7 +23,7 @@ font:
   # Status, network, and subpage icons
   - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
     id: font_icon_status
-    size: 28
+    size: 32
     bpp: 4
     glyphs: !include ../../../common/assets/network_status_glyphs.yaml
 
