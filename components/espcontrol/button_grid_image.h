@@ -664,13 +664,13 @@ inline void setup_image_card(BtnSlot &s) {
   const lv_font_t *loading_label_font = image_card_label_font_for_slot(s);
   image_card_apply_loading_fonts(loading, loading_icon_font, loading_label_font);
   lv_obj_set_style_text_color(loading_icon, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
-  lv_obj_set_style_text_opa(loading_icon, LV_OPA_70, LV_PART_MAIN);
+  lv_obj_set_style_text_opa(loading_icon, LV_OPA_COVER, LV_PART_MAIN);
   lv_label_set_text(loading_icon, IMAGE_CARD_LOADING_ICON);
 
   lv_obj_t *loading_label = lv_label_create(loading);
   image_card_apply_loading_fonts(loading, loading_icon_font, loading_label_font);
-  lv_obj_set_style_text_color(loading_label, lv_color_hex(DARK_TEXT_SOFT), LV_PART_MAIN);
-  lv_obj_set_style_text_opa(loading_label, LV_OPA_80, LV_PART_MAIN);
+  lv_obj_set_style_text_color(loading_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_text_opa(loading_label, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_text_align(loading_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   lv_label_set_text(loading_label, espcontrol_i18n("Loading"));
 
@@ -1168,13 +1168,13 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
   lv_obj_t *loading_icon = lv_label_create(ui.loading_widget);
   if (ctx->icon_font) lv_obj_set_style_text_font(loading_icon, ctx->icon_font, LV_PART_MAIN);
   lv_obj_set_style_text_color(loading_icon, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
-  lv_obj_set_style_text_opa(loading_icon, LV_OPA_80, LV_PART_MAIN);
+  lv_obj_set_style_text_opa(loading_icon, LV_OPA_COVER, LV_PART_MAIN);
   lv_label_set_text(loading_icon, IMAGE_CARD_LOADING_ICON);
 
   lv_obj_t *loading_label = lv_label_create(ui.loading_widget);
   if (ctx->label_font) lv_obj_set_style_text_font(loading_label, ctx->label_font, LV_PART_MAIN);
   lv_obj_set_style_text_color(loading_label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
-  lv_obj_set_style_text_opa(loading_label, LV_OPA_80, LV_PART_MAIN);
+  lv_obj_set_style_text_opa(loading_label, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_text_align(loading_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   lv_label_set_text(loading_label, espcontrol_i18n("Loading"));
 
