@@ -50,12 +50,13 @@ script:
     then:
       - lambda: |-
           bool enabled = id(clock_bar_enabled).state;
-          bool fullscreen_screensaver_active =
-              id(is_clock_showing) || id(cover_art_screensaver_active);
+          bool screensaver_active =
+              id(is_clock_showing) ||
+              id(cover_art_screensaver_active) ||
+              id(screensaver_display_off_active) ||
+              id(screensaver_dimmed_active);
           bool reserve_clock_bar_space = enabled &&
-              !fullscreen_screensaver_active &&
-              !id(screensaver_display_off_active) &&
-              !id(screensaver_dimmed_active);
+              !screensaver_active;
           bool visible = reserve_clock_bar_space &&
               clock_bar_active_on_button_grid_page(id(main_page)->obj);
           bool show_time = visible && id(clock_bar_time_enabled).state;
@@ -75,6 +76,21 @@ script:
             id(temperature_6),
           };
           set_clock_bar_temperature_labels(temperature_labels, 6);
+          clock_bar_set_button_grid_pages_pad_top(
+            id(main_page)->obj,
+            reserve_clock_bar_space ? ${main_page_pad_top} : ${main_page_compact_pad_top});
+
+          if (!visible) {
+            for (lv_obj_t *label : temperature_labels) {
+              lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
+            }
+            lv_obj_add_flag(id(display_time), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(clock_bar_weather_icon_label), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(network_status_button), LV_OBJ_FLAG_HIDDEN);
+            network_status_hide_modal();
+            return;
+          }
+
           apply_clock_bar_layout(id(clock_bar_layout).state,
                                  temperature_labels,
                                  6,
@@ -91,13 +107,6 @@ script:
                                  ${screen_width} >= 700 ? 20 : 16,
                                  clock_bar_icon_y,
                                  clock_bar_gap);
-          clock_bar_set_button_grid_pages_pad_top(
-            id(main_page)->obj,
-            reserve_clock_bar_space ? ${main_page_pad_top} : ${main_page_compact_pad_top});
-
-          if (!visible) {
-            id(clock_bar_hide).execute();
-          }
 
           if (show_time) {
             lv_obj_clear_flag(id(display_time), LV_OBJ_FLAG_HIDDEN);
