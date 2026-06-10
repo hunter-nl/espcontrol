@@ -339,6 +339,20 @@ script:
           value: 'false'
       - lvgl.widget.hide: cover_art_wake_touch_guard
 
+  - id: cover_art_resume_image_cards_after_wake
+    mode: restart
+    then:
+      - delay: 15s
+      - if:
+          condition:
+            lambda: |-
+              return std::string("${device_slug}") == "guition-esp32-s3-4848s040" &&
+                     !id(cover_art_screensaver_active);
+          then:
+            - lambda: |-
+                image_card_set_refresh_paused(false, "S3 cover art wake settled");
+                if (ha_api_connected()) refresh_image_cards();
+
   - id: cover_art_apply_responsive_layout
     mode: restart
     then:
@@ -952,6 +966,7 @@ script:
     mode: restart
     then:
       - script.stop: cover_art_delay_timer
+      - script.stop: cover_art_resume_image_cards_after_wake
       - script.execute: cover_art_sync_track_text
       - lambda: |-
           if (id(cover_art_loaded_url).empty()) {
@@ -1026,9 +1041,7 @@ script:
             - lambda: |-
                 id(cover_art_image_available) = false;
                 id(cover_art_loaded_url).clear();
-            - lambda: |-
-                image_card_set_refresh_paused(false, "S3 cover art inactive");
-                if (ha_api_connected()) refresh_image_cards();
+            - script.execute: cover_art_resume_image_cards_after_wake
       - script.execute: clock_bar_apply
 
   - id: cover_art_delay_timer

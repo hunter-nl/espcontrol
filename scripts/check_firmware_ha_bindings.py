@@ -618,6 +618,43 @@ def firmware_cover_art_stale_image_errors(path: Path, root: Path) -> list[str]:
     return errors
 
 
+def firmware_cover_art_s3_image_resume_errors(path: Path, root: Path) -> list[str]:
+    if not path.exists():
+        return []
+    rel = path.relative_to(root)
+    text = path.read_text(encoding="utf-8")
+    errors: list[str] = []
+
+    resume_body = yaml_script_body(text, "cover_art_resume_image_cards_after_wake")
+    if resume_body is None:
+        errors.append(f"{rel}: delay S3 image-card refresh after cover art wake")
+    else:
+        if "delay: 15s" not in resume_body:
+            errors.append(f"{rel}: keep a quiet period for S3 controls after cover art wake")
+        if 'std::string("${device_slug}") == "guition-esp32-s3-4848s040"' not in resume_body:
+            errors.append(f"{rel}: scope delayed cover art image-card resume to the S3 panel")
+        if "!id(cover_art_screensaver_active)" not in resume_body:
+            errors.append(f"{rel}: do not resume S3 image-card refresh while cover art is active")
+        if "image_card_set_refresh_paused(false" not in resume_body or "refresh_image_cards()" not in resume_body:
+            errors.append(f"{rel}: resume S3 image cards after the cover art wake quiet period")
+
+    show_body = yaml_script_body(text, "show_cover_art_view")
+    if show_body is None:
+        errors.append(f"{rel}: missing show_cover_art_view script")
+    elif "script.stop: cover_art_resume_image_cards_after_wake" not in show_body:
+        errors.append(f"{rel}: cancel delayed S3 image-card resume when cover art returns")
+
+    hide_body = yaml_script_body(text, "hide_cover_art_view")
+    if hide_body is None:
+        errors.append(f"{rel}: missing hide_cover_art_view script")
+    else:
+        if "script.execute: cover_art_resume_image_cards_after_wake" not in hide_body:
+            errors.append(f"{rel}: schedule delayed S3 image-card resume after cover art hides")
+        if "image_card_set_refresh_paused(false" in hide_body:
+            errors.append(f"{rel}: do not immediately resume S3 image-card refresh after cover art hides")
+    return errors
+
+
 def firmware_image_card_entity_errors(firmware_dir: Path, root: Path) -> list[str]:
     path = firmware_dir / "button_grid_image.h"
     if not path.exists():
@@ -955,6 +992,7 @@ def run_scan() -> int:
     errors.extend(firmware_cover_request_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_cover_art_external_input_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_cover_art_stale_image_errors(COVER_ART_PATH, ROOT))
+    errors.extend(firmware_cover_art_s3_image_resume_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_image_card_entity_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_base_url_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_quality_errors(FIRMWARE_DIR, ROOT))
@@ -1322,6 +1360,20 @@ def expect_screensaver_wake_guard_errors(
         cover_art_path.write_text(cover_art_text, encoding="utf-8")
 
         errors = firmware_screensaver_wake_guard_errors(backlight_path, cover_art_path, root)
+        for item in expected:
+            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
+        if not expected:
+            assert not errors, f"{name}: expected no errors, got {errors!r}"
+
+
+def expect_cover_art_s3_image_resume_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        path = root / "common" / "device" / "screen_cover_art.yaml"
+        path.parent.mkdir(parents=True)
+        path.write_text(text, encoding="utf-8")
+
+        errors = firmware_cover_art_s3_image_resume_errors(path, root)
         for item in expected:
             assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
         if not expected:
@@ -2460,6 +2512,50 @@ def run_self_test() -> int:
         "                      value: 'false'\n",
         valid_cover_art_wake_guard,
         (),
+    )
+    expect_cover_art_s3_image_resume_errors(
+        "cover art delays S3 image-card resume",
+        "script:\n"
+        "  - id: cover_art_resume_image_cards_after_wake\n"
+        "    then:\n"
+        "      - delay: 15s\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return std::string(\"${device_slug}\") == \"guition-esp32-s3-4848s040\" &&\n"
+        "                     !id(cover_art_screensaver_active);\n"
+        "          then:\n"
+        "            - lambda: |-\n"
+        "                image_card_set_refresh_paused(false, \"S3 cover art wake settled\");\n"
+        "                if (ha_api_connected()) refresh_image_cards();\n"
+        "  - id: show_cover_art_view\n"
+        "    then:\n"
+        "      - script.stop: cover_art_resume_image_cards_after_wake\n"
+        "  - id: hide_cover_art_view\n"
+        "    then:\n"
+        "      - script.execute: cover_art_resume_image_cards_after_wake\n",
+        (),
+    )
+    expect_cover_art_s3_image_resume_errors(
+        "cover art resumes S3 image cards immediately",
+        "script:\n"
+        "  - id: cover_art_resume_image_cards_after_wake\n"
+        "    then:\n"
+        "      - lambda: |-\n"
+        "          image_card_set_refresh_paused(false, \"S3 cover art inactive\");\n"
+        "          if (ha_api_connected()) refresh_image_cards();\n"
+        "  - id: show_cover_art_view\n"
+        "    then:\n"
+        "      - lambda: 'image_card_set_refresh_paused(true, \"S3 cover art active\");'\n"
+        "  - id: hide_cover_art_view\n"
+        "    then:\n"
+        "      - lambda: |-\n"
+        "          image_card_set_refresh_paused(false, \"S3 cover art inactive\");\n"
+        "          if (ha_api_connected()) refresh_image_cards();\n",
+        (
+            "keep a quiet period for S3 controls after cover art wake",
+            "do not immediately resume S3 image-card refresh after cover art hides",
+        ),
     )
     expect_climate_step_errors(
         "climate ignores whole-number display step",
