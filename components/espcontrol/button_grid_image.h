@@ -613,8 +613,12 @@ inline bool image_card_apply_modal_geometry(ImageCardCtx *ctx,
 }
 
 inline bool image_card_modal_refresh_supported() {
-  return !control_modal_current_is_jc4880p443_size() &&
-         !control_modal_current_is_4848_size();
+  return !control_modal_current_is_4848_size();
+}
+
+inline bool image_card_tile_prefetches_modal_quality() {
+  return image_card_modal_refresh_supported() &&
+         !control_modal_current_is_jc4880p443_size();
 }
 
 inline void image_card_limit_target_size(lv_coord_t source_width, lv_coord_t source_height,
@@ -644,7 +648,7 @@ inline void image_card_high_quality_request_size(lv_coord_t target_width, lv_coo
 
 inline void image_card_tile_request_size(lv_coord_t target_width, lv_coord_t target_height,
                                          int *request_width, int *request_height) {
-  if (image_card_modal_refresh_supported()) {
+  if (image_card_tile_prefetches_modal_quality()) {
     image_card_high_quality_request_size(target_width, target_height, request_width, request_height);
     return;
   }
