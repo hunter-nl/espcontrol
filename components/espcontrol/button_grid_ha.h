@@ -35,6 +35,8 @@ inline bool ha_api_state_connected() {
 
 constexpr uint32_t HA_UNAVAILABLE_STATE_RETRY_INTERVAL_MS = 5000;
 constexpr uint32_t HA_UNAVAILABLE_STATE_RETRY_RESPONSE_TIMEOUT_MS = 10000;
+constexpr size_t HA_READ_INTERNAL_FREE_MIN_BYTES = 8 * 1024;
+constexpr size_t HA_READ_INTERNAL_LARGEST_MIN_BYTES = 4 * 1024;
 constexpr size_t HA_ACTION_INTERNAL_FREE_MIN_BYTES = 12 * 1024;
 constexpr size_t HA_ACTION_INTERNAL_LARGEST_MIN_BYTES = 4 * 1024;
 
@@ -110,7 +112,9 @@ inline void ha_retry_unavailable_states(bool force = false) {
       }
     }
 
-    if (!ha_internal_heap_available("Home Assistant state retry")) continue;
+    if (!ha_internal_heap_available("Home Assistant state retry",
+                                    HA_READ_INTERNAL_FREE_MIN_BYTES,
+                                    HA_READ_INTERNAL_LARGEST_MIN_BYTES)) continue;
     ref.waiting_for_response = true;
     ref.last_request_ms = now;
     const std::string entity_id = ref.entity_id;
@@ -220,7 +224,9 @@ inline bool ha_subscribe_state(const std::string &entity_id,
 inline bool ha_get_state(const std::string &entity_id,
                          HomeAssistantStateCallback callback) {
   if (!ha_api_available() || entity_id.empty() || !callback) return false;
-  if (!ha_internal_heap_available("Home Assistant state request")) return false;
+  if (!ha_internal_heap_available("Home Assistant state request",
+                                  HA_READ_INTERNAL_FREE_MIN_BYTES,
+                                  HA_READ_INTERNAL_LARGEST_MIN_BYTES)) return false;
   auto callback_ref = std::make_shared<HomeAssistantStateCallback>(std::move(callback));
   esphome::api::global_api_server->get_home_assistant_state(
     entity_id, {},
@@ -247,7 +253,9 @@ inline bool ha_get_attribute(const std::string &entity_id,
                              const std::string &attribute,
                              HomeAssistantStateCallback callback) {
   if (!ha_api_available() || entity_id.empty() || !callback) return false;
-  if (!ha_internal_heap_available("Home Assistant attribute request")) return false;
+  if (!ha_internal_heap_available("Home Assistant attribute request",
+                                  HA_READ_INTERNAL_FREE_MIN_BYTES,
+                                  HA_READ_INTERNAL_LARGEST_MIN_BYTES)) return false;
   auto callback_ref = std::make_shared<HomeAssistantStateCallback>(std::move(callback));
   esphome::api::global_api_server->get_home_assistant_state(
     entity_id, attribute,
