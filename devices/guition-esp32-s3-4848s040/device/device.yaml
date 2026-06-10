@@ -204,6 +204,8 @@ output:
   - platform: ledc
     pin: GPIO38
     id: gpio_backlight_pwm
+    # The 4848S040 backlight driver needs a low PWM rate; high rates make
+    # brightness levels below roughly 85% appear off on some boards.
     frequency: 100Hz
     min_power: 0.01
     zero_means_zero: true
