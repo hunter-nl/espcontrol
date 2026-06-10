@@ -84,16 +84,28 @@ lvgl:
           hidden: true
 
       # Weather status (small icon in the clock bar)
-      - label:
-          text: "\U000F0590"
-          id: clock_bar_weather_icon_label
-          text_font: font_icon_status
+      - obj:
+          id: clock_bar_weather_icon_container
           align: top_right
           x: -16
           y: 1
-          text_align: center
-          text_color: 0xFFFFFF
+          width: 42
+          height: 38
+          bg_opa: 0%
+          border_width: 0
+          pad_all: 0
+          scrollable: false
+          scrollbar_mode: "off"
+          clickable: false
           hidden: true
+          widgets:
+            - label:
+                text: "\U000F0590"
+                id: clock_bar_weather_icon_label
+                text_font: font_icon_status
+                align: center
+                text_align: center
+                text_color: 0xFFFFFF
 
       # Network status (tappable, right side of clock bar)
       - obj:

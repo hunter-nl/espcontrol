@@ -41,7 +41,7 @@ script:
             lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
           }
           lv_obj_add_flag(id(display_time), LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(id(clock_bar_weather_icon_label), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(clock_bar_weather_icon_container), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(network_status_button), LV_OBJ_FLAG_HIDDEN);
           network_status_hide_modal();
 
@@ -85,7 +85,7 @@ script:
               lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
             }
             lv_obj_add_flag(id(display_time), LV_OBJ_FLAG_HIDDEN);
-            lv_obj_add_flag(id(clock_bar_weather_icon_label), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(clock_bar_weather_icon_container), LV_OBJ_FLAG_HIDDEN);
             lv_obj_add_flag(id(network_status_button), LV_OBJ_FLAG_HIDDEN);
             network_status_hide_modal();
             return;
@@ -96,7 +96,7 @@ script:
                                  6,
                                  id(display_time),
                                  id(network_status_button),
-                                 id(clock_bar_weather_icon_label),
+                                 id(clock_bar_weather_icon_container),
                                  show_time,
                                  show_network,
                                  show_weather,
@@ -123,9 +123,9 @@ script:
           subscribe_clock_bar_weather_icon(id(clock_bar_weather_icon_label),
                                            id(clock_bar_weather_entity).state);
           if (show_weather) {
-            lv_obj_clear_flag(id(clock_bar_weather_icon_label), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(id(clock_bar_weather_icon_container), LV_OBJ_FLAG_HIDDEN);
           } else {
-            lv_obj_add_flag(id(clock_bar_weather_icon_label), LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(id(clock_bar_weather_icon_container), LV_OBJ_FLAG_HIDDEN);
           }
           if (!visible) return;
 
