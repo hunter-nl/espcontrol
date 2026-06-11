@@ -28,6 +28,17 @@ export function normalizeHour(value: unknown, fallback: number): number {
   return n;
 }
 
+export function normalizeTimeOfDay(value: unknown, fallback: string): string {
+  const text = String(value == null ? "" : value).trim();
+  const match = /^(\d{1,2}):(\d{2})$/.exec(text);
+  if (!match) return fallback;
+  const hour = parseInt(match[1] || "", 10);
+  const minute = parseInt(match[2] || "", 10);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return fallback;
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return fallback;
+  return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+}
+
 export function normalizeScheduleWakeTimeout(value: unknown): number {
   const n = parseFloat(String(value));
   if (!Number.isFinite(n) || n <= 0) return 60;
@@ -128,6 +139,8 @@ export interface BackupScreenSettingsState {
   brightnessDayVal: number;
   brightnessNightVal: number;
   automaticBrightnessEnabled: boolean;
+  brightnessDawnTime: string;
+  brightnessDuskTime: string;
   scheduleTrigger: string;
   scheduleEnabled: boolean;
   scheduleOnHour: number;
@@ -161,6 +174,8 @@ export function normalizeBackupScreenSettings(
     automaticBrightnessEnabled: objectValue(screenSettings, "automatic_brightness") != null
       ? !!screenSettings.automatic_brightness
       : true,
+    brightnessDawnTime: normalizeTimeOfDay(screenSettings.brightness_dawn_time, "06:00"),
+    brightnessDuskTime: normalizeTimeOfDay(screenSettings.brightness_dusk_time, "18:00"),
     scheduleTrigger,
     scheduleEnabled: scheduleTrigger !== "disabled",
     scheduleOnHour: normalizeHour(screenSettings.schedule_on_hour, 6),

@@ -195,6 +195,44 @@ text:
             then:
               - lambda: 'apply_clock_screensaver_text_color(id(clock_label), id(schedule_clock_text_color).state);'
 
+  - platform: template
+    name: "${entity_screen_brightness_dawn_time}"
+    internal: true
+    id: brightness_dawn_time
+    optimistic: true
+    restore_value: true
+    initial_value: "06:00"
+    min_length: 5
+    max_length: 5
+    mode: text
+    entity_category: config
+    icon: "mdi:weather-sunset-up"
+    update_interval: never
+    web_server:
+      sorting_group_id: sg_brightness
+    on_value:
+      then:
+        - script.execute: backlight_apply_brightness
+
+  - platform: template
+    name: "${entity_screen_brightness_dusk_time}"
+    internal: true
+    id: brightness_dusk_time
+    optimistic: true
+    restore_value: true
+    initial_value: "18:00"
+    min_length: 5
+    max_length: 5
+    mode: text
+    entity_category: config
+    icon: "mdi:weather-sunset-down"
+    update_interval: never
+    web_server:
+      sorting_group_id: sg_brightness
+    on_value:
+      then:
+        - script.execute: backlight_apply_brightness
+
 number:
   - platform: template
     name: "${entity_screen_schedule_on_hour}"
@@ -734,7 +772,6 @@ script:
             id(backlight_force_display_off).execute();
             return;
           }
-          if (!id(automatic_brightness_enabled).state) return;
           float pct;
           if (id(manual_wake_ms) != 0) {
             pct = id(schedule_wake_brightness).state;
@@ -756,9 +793,18 @@ script:
             if (pct > 100) pct = 100;
           } else {
             bool is_day = id(last_is_daytime);
-            pct = calc_brightness_pct(
+            int rise_h = id(sunrise_hour);
+            int rise_m = id(sunrise_minute);
+            int set_h = id(sunset_hour);
+            int set_m = id(sunset_minute);
+            bool times_valid = brightness_schedule_times(
+              id(automatic_brightness_enabled).state,
               id(sunrise_sunset_valid), id(sunrise_hour), id(sunrise_minute),
               id(sunset_hour), id(sunset_minute),
+              id(brightness_dawn_time).state, id(brightness_dusk_time).state,
+              rise_h, rise_m, set_h, set_m);
+            pct = calc_brightness_pct(
+              times_valid, rise_h, rise_m, set_h, set_m,
               now.is_valid() ? now.hour : 12, now.is_valid() ? now.minute : 0,
               &is_day, id(brightness_day).state, id(brightness_night).state);
             id(last_is_daytime) = is_day;
@@ -822,10 +868,19 @@ interval:
             lambda: |-
               auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
               if (!now.is_valid()) return false;
-              bool changed = check_daylight_transition(
+              int rise_h = id(sunrise_hour);
+              int rise_m = id(sunrise_minute);
+              int set_h = id(sunset_hour);
+              int set_m = id(sunset_minute);
+              bool times_valid = brightness_schedule_times(
+                id(automatic_brightness_enabled).state,
                 id(sunrise_sunset_valid), id(sunrise_hour), id(sunrise_minute),
-                id(sunset_hour), id(sunset_minute), now.hour, now.minute,
-                id(last_is_daytime));
+                id(sunset_hour), id(sunset_minute),
+                id(brightness_dawn_time).state, id(brightness_dusk_time).state,
+                rise_h, rise_m, set_h, set_m);
+              bool changed = check_daylight_transition(
+                times_valid, rise_h, rise_m, set_h, set_m,
+                now.hour, now.minute, id(last_is_daytime));
               if (changed) id(last_is_daytime) = !id(last_is_daytime);
               return changed;
           then:

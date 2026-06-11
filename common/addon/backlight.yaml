@@ -712,9 +712,18 @@ script:
             if (night_pct > 100.0f) night_pct = 100.0f;
 
             bool is_day = id(last_is_daytime);
-            pct = calc_brightness_pct(
+            int rise_h = id(sunrise_hour);
+            int rise_m = id(sunrise_minute);
+            int set_h = id(sunset_hour);
+            int set_m = id(sunset_minute);
+            bool times_valid = brightness_schedule_times(
+              id(automatic_brightness_enabled).state,
               id(sunrise_sunset_valid), id(sunrise_hour), id(sunrise_minute),
               id(sunset_hour), id(sunset_minute),
+              id(brightness_dawn_time).state, id(brightness_dusk_time).state,
+              rise_h, rise_m, set_h, set_m);
+            pct = calc_brightness_pct(
+              times_valid, rise_h, rise_m, set_h, set_m,
               now.is_valid() ? now.hour : 12, now.is_valid() ? now.minute : 0,
               &is_day, day_pct, night_pct);
             id(last_is_daytime) = is_day;

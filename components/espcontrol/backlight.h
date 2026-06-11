@@ -407,6 +407,42 @@ inline bool check_daylight_transition(
   return is_day != last_is_day;
 }
 
+inline bool parse_time_of_day(const std::string &value, int &hour, int &minute) {
+  int h = -1;
+  int m = -1;
+  if (std::sscanf(value.c_str(), " %d:%d", &h, &m) != 2) return false;
+  if (h < 0 || h > 23 || m < 0 || m > 59) return false;
+  hour = h;
+  minute = m;
+  return true;
+}
+
+inline bool brightness_schedule_times(
+    bool automatic_times_enabled,
+    bool sunrise_valid, int sunrise_h, int sunrise_m, int sunset_h, int sunset_m,
+    const std::string &manual_dawn, const std::string &manual_dusk,
+    int &rise_h, int &rise_m, int &set_h, int &set_m) {
+  if (automatic_times_enabled) {
+    rise_h = sunrise_h;
+    rise_m = sunrise_m;
+    set_h = sunset_h;
+    set_m = sunset_m;
+    return sunrise_valid;
+  }
+
+  int dawn_h = 6;
+  int dawn_m = 0;
+  int dusk_h = 18;
+  int dusk_m = 0;
+  bool dawn_valid = parse_time_of_day(manual_dawn, dawn_h, dawn_m);
+  bool dusk_valid = parse_time_of_day(manual_dusk, dusk_h, dusk_m);
+  rise_h = dawn_h;
+  rise_m = dawn_m;
+  set_h = dusk_h;
+  set_m = dusk_m;
+  return dawn_valid && dusk_valid;
+}
+
 // ── Screen schedule helpers ───────────────────────────────────────────
 
 inline bool screen_schedule_in_window(int now_h, int on_hour, int off_hour) {

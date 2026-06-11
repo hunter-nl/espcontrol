@@ -75,6 +75,7 @@ var EspControlModel = (() => {
     normalizeScreensaverAction: () => normalizeScreensaverAction,
     normalizeScreensaverDimmedBrightness: () => normalizeScreensaverDimmedBrightness,
     normalizeTemperatureUnit: () => normalizeTemperatureUnit,
+    normalizeTimeOfDay: () => normalizeTimeOfDay,
     parseBackOrderToken: () => parseBackOrderToken,
     parseCompactSubpageConfig: () => parseCompactSubpageConfig,
     parseGridOrder: () => parseGridOrder,
@@ -173,8 +174,13 @@ var EspControlModel = (() => {
     });
   }
   function decodeConfigField(value) {
-    return String(value || "").replace(/%([0-9a-fA-F]{2})/g, (_match, hex) => {
-      return String.fromCharCode(parseInt(hex, 16));
+    const str = String(value || "");
+    return str.replace(/(%[0-9a-fA-F]{2})+/g, (run) => {
+      try {
+        return decodeURIComponent(run);
+      } catch {
+        return run;
+      }
     });
   }
   function legacyButtonConfigSafe(fields) {
@@ -693,12 +699,36 @@ var EspControlModel = (() => {
     if (!legacy) return compact;
     return compact.length < legacy.length ? compact : legacy;
   }
+  function utf8ByteLength(str) {
+    let bytes = 0;
+    for (let i = 0; i < str.length; i++) {
+      const code = str.charCodeAt(i);
+      if (code < 128) bytes += 1;
+      else if (code >= 55296 && code <= 56319) {
+        bytes += 4;
+        i += 1;
+      } else if (code < 2048) bytes += 2;
+      else bytes += 3;
+    }
+    return bytes;
+  }
   function splitSubpageConfigChunks(value, chunkCount, chunkSize = 255) {
     const full = String(value || "");
-    if (chunkCount < 1 || chunkSize < 1 || full.length > chunkCount * chunkSize) return null;
+    if (chunkCount < 1 || chunkSize < 1 || utf8ByteLength(full) > chunkCount * chunkSize) return null;
     const chunks = [];
+    let charPos = 0;
     for (let i = 0; i < chunkCount; i += 1) {
-      chunks.push(full.substring(i * chunkSize, (i + 1) * chunkSize));
+      let bytes = 0;
+      let end = charPos;
+      while (end < full.length) {
+        const code = full.charCodeAt(end);
+        const charBytes = code < 128 ? 1 : code >= 55296 && code <= 56319 ? 4 : code < 2048 ? 2 : 3;
+        if (bytes + charBytes > chunkSize) break;
+        bytes += charBytes;
+        end += code >= 55296 && code <= 56319 ? 2 : 1;
+      }
+      chunks.push(full.substring(charPos, end));
+      charPos = end;
     }
     return chunks;
   }
@@ -801,6 +831,16 @@ var EspControlModel = (() => {
     if (n > 23) return 23;
     return n;
   }
+  function normalizeTimeOfDay(value, fallback) {
+    const text = String(value == null ? "" : value).trim();
+    const match = /^(\d{1,2}):(\d{2})$/.exec(text);
+    if (!match) return fallback;
+    const hour = parseInt(match[1] || "", 10);
+    const minute = parseInt(match[2] || "", 10);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return fallback;
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return fallback;
+    return String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+  }
   function normalizeScheduleWakeTimeout(value) {
     const n = parseFloat(String(value));
     if (!Number.isFinite(n) || n <= 0) return 60;
@@ -898,6 +938,8 @@ var EspControlModel = (() => {
       brightnessDayVal: numberOrFallback(screenSettings.brightness_day, 100),
       brightnessNightVal: numberOrFallback(screenSettings.brightness_night, 75),
       automaticBrightnessEnabled: objectValue(screenSettings, "automatic_brightness") != null ? !!screenSettings.automatic_brightness : true,
+      brightnessDawnTime: normalizeTimeOfDay(screenSettings.brightness_dawn_time, "06:00"),
+      brightnessDuskTime: normalizeTimeOfDay(screenSettings.brightness_dusk_time, "18:00"),
       scheduleTrigger,
       scheduleEnabled: scheduleTrigger !== "disabled",
       scheduleOnHour: normalizeHour(screenSettings.schedule_on_hour, 6),

@@ -84,6 +84,7 @@ export {
   normalizeScreensaverAction,
   normalizeScreensaverDimmedBrightness,
   normalizeTemperatureUnit,
+  normalizeTimeOfDay,
   scheduleModeOption,
   screensaverActionOption,
 } from "./settings";

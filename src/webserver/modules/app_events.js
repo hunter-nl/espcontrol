@@ -283,6 +283,14 @@ function connectEvents() {
       state.automaticBrightnessEnabled = d.value === true || val === "ON";
       syncScreenScheduleUi();
     },
+    "text-screen__brightness_dawn_time": function (val) {
+      state.brightnessDawnTime = normalizeTimeOfDay(val, "06:00");
+      syncScreenScheduleUi();
+    },
+    "text-screen__brightness_dusk_time": function (val) {
+      state.brightnessDuskTime = normalizeTimeOfDay(val, "18:00");
+      syncScreenScheduleUi();
+    },
     "switch-screen__schedule_enabled": function (val, d) {
       state.scheduleEnabled = d.value === true || val === "ON";
       if (!state._scheduleTriggerReceived) {

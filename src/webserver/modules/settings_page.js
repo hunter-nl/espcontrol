@@ -124,6 +124,25 @@ function buildSettingsPage(parent) {
     syncScreenScheduleUi();
   });
 
+  var brightnessManualTimes = condField();
+  var dawnTime = createTimeInput("Dawn", "sp-set-brightness-dawn-time", state.brightnessDawnTime, "06:00", function (value) {
+    state.brightnessDawnTime = normalizeTimeOfDay(value, "06:00");
+    postBrightnessDawnTime(state.brightnessDawnTime);
+    syncScreenScheduleUi();
+  });
+  brightnessManualTimes.appendChild(dawnTime.wrap);
+  els.setBrightnessDawnTime = dawnTime.input;
+
+  var duskTime = createTimeInput("Dusk", "sp-set-brightness-dusk-time", state.brightnessDuskTime, "18:00", function (value) {
+    state.brightnessDuskTime = normalizeTimeOfDay(value, "18:00");
+    postBrightnessDuskTime(state.brightnessDuskTime);
+    syncScreenScheduleUi();
+  });
+  brightnessManualTimes.appendChild(duskTime.wrap);
+  els.setBrightnessDuskTime = duskTime.input;
+  blBody.appendChild(brightnessManualTimes);
+  els.setBrightnessManualTimes = brightnessManualTimes;
+
   var sunInfo = document.createElement("div");
   sunInfo.className = "sp-sun-info";
   sunInfo.id = "sp-sun-info";
@@ -570,7 +589,7 @@ function buildSettingsPage(parent) {
 
   function addMediaPlayerSleepPreventionToggle(parent, inputId) {
     var mediaPlayerToggle = toggleRow(
-      "Allow media cover art to override",
+      "Allow Media Cover Art to override screensaver settings",
       inputId,
       state.mediaPlayerSleepPreventionOn);
     parent.appendChild(mediaPlayerToggle.row);
@@ -1145,6 +1164,25 @@ function createHourSelect(label, id, initial, onChange) {
   });
   wrap.appendChild(select);
   return { wrap: wrap, select: select };
+}
+
+function createTimeInput(label, id, initial, fallback, onChange) {
+  var wrap = document.createElement("div");
+  wrap.className = "sp-field";
+  wrap.appendChild(fieldLabel(label, id));
+  var input = document.createElement("input");
+  input.type = "time";
+  input.className = "sp-input";
+  input.id = id;
+  input.step = "60";
+  input.value = normalizeTimeOfDay(initial, fallback);
+  input.addEventListener("change", function () {
+    var value = normalizeTimeOfDay(this.value, fallback);
+    this.value = value;
+    onChange(value);
+  });
+  wrap.appendChild(input);
+  return { wrap: wrap, input: input };
 }
 
 function createEntityToggleSection(label, id, checked, switchName, entityLabel, entityPostName, placeholder) {

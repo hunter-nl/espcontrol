@@ -28,6 +28,9 @@ CPP_SOURCE = r'''
 #include <string>
 #include <vector>
 
+#define ESP_LOGW(tag, fmt, ...)
+#define ESP_LOGI(tag, fmt, ...)
+
 namespace esphome {
 namespace text { class Text {}; }
 class StringRef {
@@ -54,6 +57,9 @@ constexpr int LV_STATE_PRESSED = 2;
 constexpr int LV_STATE_DEFAULT = 0;
 constexpr int LV_STATE_DISABLED = 4;
 constexpr int LV_LABEL_LONG_WRAP = 0;
+constexpr int LV_ALIGN_TOP_LEFT = 0;
+constexpr int LV_ALIGN_TOP_MID = 1;
+constexpr int LV_ALIGN_TOP_RIGHT = 2;
 constexpr int LV_ALIGN_BOTTOM_LEFT = 0;
 constexpr int LV_ALIGN_BOTTOM_RIGHT = 1;
 constexpr int LV_GRID_ALIGN_START = 0;
@@ -371,6 +377,21 @@ int main() {
   assert(light_brightness_to_percent(128.0f, brightness_pct) && brightness_pct == 50);
   assert(light_brightness_to_percent(255.0f, brightness_pct) && brightness_pct == 100);
   assert(!light_brightness_to_percent(NAN, brightness_pct));
+  int hour = 0;
+  int minute = 0;
+  assert(parse_time_of_day("05:30", hour, minute) && hour == 5 && minute == 30);
+  assert(parse_time_of_day("5:30", hour, minute) && hour == 5 && minute == 30);
+  assert(!parse_time_of_day("24:00", hour, minute));
+  int rise_h = 0;
+  int rise_m = 0;
+  int set_h = 0;
+  int set_m = 0;
+  assert(brightness_schedule_times(true, true, 7, 15, 20, 45, "06:00", "18:00", rise_h, rise_m, set_h, set_m));
+  assert(rise_h == 7 && rise_m == 15 && set_h == 20 && set_m == 45);
+  assert(brightness_schedule_times(false, true, 7, 15, 20, 45, "06:30", "21:05", rise_h, rise_m, set_h, set_m));
+  assert(rise_h == 6 && rise_m == 30 && set_h == 21 && set_m == 5);
+  assert(!brightness_schedule_times(false, true, 7, 15, 20, 45, "bad", "25:00", rise_h, rise_m, set_h, set_m));
+  assert(rise_h == 6 && rise_m == 0 && set_h == 18 && set_m == 0);
 
   OrderResult parsed;
   parse_order_string("1,2d,3w,4b,5t,6x,99", 9, parsed);
@@ -421,10 +442,28 @@ def main() -> int:
         tmp_path = Path(tmp)
         (tmp_path / "button_grid_config_pure.h").write_text(pure_config_header(), encoding="utf-8")
         shutil.copy2(ROOT / "components" / "espcontrol" / "temperature_unit.h", tmp_path / "temperature_unit.h")
+        shutil.copy2(ROOT / "components" / "espcontrol" / "sun_calc.h", tmp_path / "sun_calc.h")
         shutil.copy2(CONTRACT_HEADER, tmp_path / "button_grid_contract_generated.h")
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
         shutil.copy2(BACKLIGHT_HEADER, tmp_path / "backlight.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
+        lvgl_stub = tmp_path / "esphome" / "components" / "lvgl" / "lvgl_esphome.h"
+        lvgl_stub.parent.mkdir(parents=True, exist_ok=True)
+        lvgl_stub.write_text("", encoding="utf-8")
+        app_stub = tmp_path / "esphome" / "core" / "application.h"
+        app_stub.parent.mkdir(parents=True, exist_ok=True)
+        app_stub.write_text(
+            "namespace esphome { struct AppClass { bool is_setup_complete() const { return true; } }; inline AppClass App; }\n",
+            encoding="utf-8",
+        )
+        log_stub = tmp_path / "esphome" / "core" / "log.h"
+        log_stub.write_text("", encoding="utf-8")
+        network_stub = tmp_path / "esphome" / "components" / "network" / "util.h"
+        network_stub.parent.mkdir(parents=True, exist_ok=True)
+        network_stub.write_text(
+            "#include <vector>\nnamespace esphome { namespace network { inline std::vector<int> get_ip_addresses() { return {1}; } } }\n",
+            encoding="utf-8",
+        )
         source = tmp_path / "check_firmware_parser.cpp"
         binary = tmp_path / "check_firmware_parser"
         source.write_text(CPP_SOURCE, encoding="utf-8")

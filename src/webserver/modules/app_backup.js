@@ -79,6 +79,8 @@ function exportConfig() {
       brightness_day: Math.round(state.brightnessDayVal),
       brightness_night: Math.round(state.brightnessNightVal),
       automatic_brightness: !!state.automaticBrightnessEnabled,
+      brightness_dawn_time: normalizeTimeOfDay(state.brightnessDawnTime, "06:00"),
+      brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
       schedule_trigger: normalizeScheduleTrigger(state.scheduleTrigger, state.scheduleEnabled),
       schedule_enabled: !!state.scheduleEnabled,
       schedule_on_hour: normalizeHour(state.scheduleOnHour, 6),
@@ -333,6 +335,8 @@ function importConfig() {
         state.brightnessDayVal = importedScreenSettings.brightnessDayVal;
         state.brightnessNightVal = importedScreenSettings.brightnessNightVal;
         state.automaticBrightnessEnabled = importedScreenSettings.automaticBrightnessEnabled;
+        state.brightnessDawnTime = importedScreenSettings.brightnessDawnTime;
+        state.brightnessDuskTime = importedScreenSettings.brightnessDuskTime;
         state.scheduleTrigger = importedScreenSettings.scheduleTrigger;
         state.scheduleEnabled = importedScreenSettings.scheduleEnabled;
         state.scheduleOnHour = importedScreenSettings.scheduleOnHour;
@@ -347,6 +351,8 @@ function importConfig() {
         postNumber(entityName("screen_daytime_brightness"), state.brightnessDayVal);
         postNumber(entityName("screen_nighttime_brightness"), state.brightnessNightVal);
         postAutomaticBrightnessEnabled(state.automaticBrightnessEnabled);
+        postBrightnessDawnTime(state.brightnessDawnTime);
+        postBrightnessDuskTime(state.brightnessDuskTime);
         postScreenScheduleTrigger(state.scheduleTrigger);
         postScreenScheduleOnHour(state.scheduleOnHour);
         postScreenScheduleOffHour(state.scheduleOffHour);

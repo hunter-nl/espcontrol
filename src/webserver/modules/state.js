@@ -106,6 +106,8 @@ var state = {
   brightnessDayVal: 100,
   brightnessNightVal: 75,
   automaticBrightnessEnabled: true,
+  brightnessDawnTime: "06:00",
+  brightnessDuskTime: "18:00",
   scheduleTrigger: "disabled",
   _scheduleTriggerReceived: false,
   scheduleEnabled: false,
@@ -383,6 +385,10 @@ function normalizeHour(value, fallback) {
   return EspControlModel.normalizeHour(value, fallback);
 }
 
+function normalizeTimeOfDay(value, fallback) {
+  return EspControlModel.normalizeTimeOfDay(value, fallback);
+}
+
 function normalizeScheduleWakeTimeout(value) {
   return EspControlModel.normalizeScheduleWakeTimeout(value);
 }
@@ -570,8 +576,16 @@ function syncScreenScheduleUi() {
   state.scheduleWakeBrightness = normalizeScheduleWakeBrightness(state.scheduleWakeBrightness);
   state.scheduleDimmedBrightness = normalizeScheduleDimmedBrightness(state.scheduleDimmedBrightness);
   state.scheduleClockBrightness = normalizeScheduleClockBrightness(state.scheduleClockBrightness);
+  state.brightnessDawnTime = normalizeTimeOfDay(state.brightnessDawnTime, "06:00");
+  state.brightnessDuskTime = normalizeTimeOfDay(state.brightnessDuskTime, "18:00");
   if (els.setAutomaticBrightnessToggle) {
     els.setAutomaticBrightnessToggle.checked = !!state.automaticBrightnessEnabled;
+  }
+  if (els.setBrightnessDawnTime) els.setBrightnessDawnTime.value = state.brightnessDawnTime;
+  if (els.setBrightnessDuskTime) els.setBrightnessDuskTime.value = state.brightnessDuskTime;
+  if (els.setBrightnessManualTimes) {
+    els.setBrightnessManualTimes.className =
+      "sp-cond-field" + (!state.automaticBrightnessEnabled ? " sp-visible" : "");
   }
   if (els.setScheduleToggle) els.setScheduleToggle.checked = !!state.scheduleEnabled;
   if (els.setScheduleModeButtons) {

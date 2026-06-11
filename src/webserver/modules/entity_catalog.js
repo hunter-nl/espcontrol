@@ -419,6 +419,24 @@ var ENTITY_CATALOG = {
       "domain": "number",
       "name": "Screen: Nighttime Brightness"
     },
+    "screen_brightness_dawn_time": {
+      "domain": "text",
+      "name": "Screen: Brightness Dawn Time",
+      "objectIds": [
+        "screen__brightness_dawn_time",
+        "screen_brightness_dawn_time",
+        "brightness_dawn_time"
+      ]
+    },
+    "screen_brightness_dusk_time": {
+      "domain": "text",
+      "name": "Screen: Brightness Dusk Time",
+      "objectIds": [
+        "screen__brightness_dusk_time",
+        "screen_brightness_dusk_time",
+        "brightness_dusk_time"
+      ]
+    },
     "firmware_version": {
       "domain": "text_sensor",
       "name": "Firmware: Version",
@@ -549,6 +567,8 @@ var ENTITY_CATALOG = {
       "screen_schedule_clock_text_color",
       "screen_daytime_brightness",
       "screen_nighttime_brightness",
+      "screen_brightness_dawn_time",
+      "screen_brightness_dusk_time",
       "firmware_version",
       "firmware_update",
       "firmware_check_for_update",

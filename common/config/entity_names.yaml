@@ -81,6 +81,8 @@ substitutions:
   entity_screen_schedule_clock_text_color: "Screen: Schedule Clock Text Color"
   entity_screen_daytime_brightness: "Screen: Daytime Brightness"
   entity_screen_nighttime_brightness: "Screen: Nighttime Brightness"
+  entity_screen_brightness_dawn_time: "Screen: Brightness Dawn Time"
+  entity_screen_brightness_dusk_time: "Screen: Brightness Dusk Time"
   entity_firmware_version: "Firmware: Version"
   entity_firmware_update: "Firmware: Update"
   entity_firmware_check_for_update: "Firmware: Check for Update"

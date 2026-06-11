@@ -725,6 +725,8 @@ var SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE =
   "The schedule clock brightness setting is not available on this firmware. Update the device firmware, then reload this page.";
 var AUTOMATIC_BRIGHTNESS_UNAVAILABLE =
   "Automatic brightness control is not available on this firmware. Update the device firmware, then reload this page.";
+var BRIGHTNESS_TIME_UNAVAILABLE =
+  "Manual brightness times are not available on this firmware. Update the device firmware, then reload this page.";
 
 function postAutomaticBrightnessEnabled(on) {
   postSwitchWithObjectIds(
@@ -732,6 +734,24 @@ function postAutomaticBrightnessEnabled(on) {
     entityObjectIds("screen_automatic_brightness"),
     on,
     AUTOMATIC_BRIGHTNESS_UNAVAILABLE
+  );
+}
+
+function postBrightnessDawnTime(value) {
+  postTextWithObjectIds(
+    entityName("screen_brightness_dawn_time"),
+    entityObjectIds("screen_brightness_dawn_time"),
+    normalizeTimeOfDay(value, state.brightnessDawnTime || "06:00"),
+    BRIGHTNESS_TIME_UNAVAILABLE
+  );
+}
+
+function postBrightnessDuskTime(value) {
+  postTextWithObjectIds(
+    entityName("screen_brightness_dusk_time"),
+    entityObjectIds("screen_brightness_dusk_time"),
+    normalizeTimeOfDay(value, state.brightnessDuskTime || "18:00"),
+    BRIGHTNESS_TIME_UNAVAILABLE
   );
 }
 

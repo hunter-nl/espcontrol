@@ -69,6 +69,8 @@
     { "key": "screen_schedule_clock_text_color", "domain": "text", "name": "Screen: Schedule Clock Text Color", "objectIds": ["screen__schedule_clock_text_color", "screen_schedule_clock_text_color", "schedule_clock_text_color"], "groups": ["settings"] },
     { "key": "screen_daytime_brightness", "domain": "number", "name": "Screen: Daytime Brightness", "groups": ["settings"] },
     { "key": "screen_nighttime_brightness", "domain": "number", "name": "Screen: Nighttime Brightness", "groups": ["settings"] },
+    { "key": "screen_brightness_dawn_time", "domain": "text", "name": "Screen: Brightness Dawn Time", "objectIds": ["screen__brightness_dawn_time", "screen_brightness_dawn_time", "brightness_dawn_time"], "groups": ["settings"] },
+    { "key": "screen_brightness_dusk_time", "domain": "text", "name": "Screen: Brightness Dusk Time", "objectIds": ["screen__brightness_dusk_time", "screen_brightness_dusk_time", "brightness_dusk_time"], "groups": ["settings"] },
     { "key": "firmware_version", "domain": "text_sensor", "name": "Firmware: Version", "objectIds": ["firmware__version", "firmware_version", "firmware_version_sensor"], "groups": ["settings"] },
     { "key": "firmware_update", "domain": "update", "name": "Firmware: Update", "objectIds": ["firmware__update", "firmware_update"], "groups": ["settings"] },
     { "key": "firmware_check_for_update", "domain": "button", "name": "Firmware: Check for Update", "objectIds": ["firmware__check_for_update", "firmware_check_for_update"], "groups": ["settings"] },
