@@ -148,8 +148,6 @@ function connectEvents() {
     },
     "text-clock_bar_weather_entity": function (val) {
       state.clockBarWeatherEntity = "";
-      syncClockBarWeatherUi();
-      updateWeatherPreview();
     },
     "switch-screen__network_status_icon": function (val, d) {
       state.networkStatusOn = true;

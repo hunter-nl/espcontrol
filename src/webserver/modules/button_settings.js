@@ -20,11 +20,8 @@ function updatePreviewHint(c) {
 function renderSelectionBar(c) {
   if (!els.selectionBar) return;
   c = c || ctx();
-  var clockBarItem = "";
-  state.clockBarSelectedItem = "";
-  state.clockBarAddDraft = null;
   els.selectionBar.innerHTML = "";
-  if (isConfigLocked() || (!clockBarItem && !c.selected.length)) {
+  if (isConfigLocked() || !c.selected.length) {
     els.selectionBar.className = "sp-selection-bar";
     return;
   }
@@ -43,7 +40,7 @@ function renderSelectionBar(c) {
   var actions = document.createElement("div");
   actions.className = "sp-selection-actions";
 
-  if ((clockBarItem && clockBarItemHasSettings(clockBarItem)) || (!clockBarItem && c.selected.length === 1)) {
+  if (c.selected.length === 1) {
     var editBtn = document.createElement("button");
     editBtn.type = "button";
     editBtn.className = "sp-selection-btn sp-selection-btn-primary";
@@ -74,8 +71,6 @@ function closeSettings() {
   hideSettingsOverlay();
   _settingsDeferred = false;
   state.settingsDraft = null;
-  state.clockBarSelectedItem = "";
-  state.clockBarAddDraft = null;
   ctx().setSelected([]);
   updateClockBarItemUi();
   renderPreview();
@@ -83,11 +78,9 @@ function closeSettings() {
 
 function clearCardSelection() {
   var c = ctx();
-  if (!c.selected.length && c.getLastClicked() < 0 && !state.clockBarSelectedItem && !state.clockBarAddDraft) return;
+  if (!c.selected.length && c.getLastClicked() < 0) return;
   c.setSelected([]);
   c.setLastClicked(-1);
-  state.clockBarSelectedItem = "";
-  state.clockBarAddDraft = null;
   hideSettingsOverlay();
   updateClockBarItemUi();
   renderPreview();
@@ -112,8 +105,6 @@ function handleDocumentSelectionMouseDown(e) {
 
 function openSelectedCardSettings() {
   if (isConfigLocked()) return;
-  state.clockBarSelectedItem = "";
-  state.clockBarAddDraft = null;
   var c = ctx();
   if (c.selected.length !== 1) return;
   renderButtonSettings(true);
@@ -121,7 +112,6 @@ function openSelectedCardSettings() {
 
 function openCardSettings(slot) {
   if (isConfigLocked()) return;
-  state.clockBarAddDraft = null;
   var c = ctx();
   if ((slot > 0 || (slot === -2 && c.isSub)) && c.selected.indexOf(slot) === -1) {
     c.setSelected([slot]);
@@ -190,9 +180,6 @@ function renderButtonSettings(forceOpen) {
     hideSettingsOverlay();
     return;
   }
-
-  state.clockBarSelectedItem = "";
-  state.clockBarAddDraft = null;
 
   if (c.selected.length === 0) {
     hideSettingsOverlay();

@@ -222,11 +222,6 @@ function setupPreviewEvents() {
     }
     var target = e.target.closest("[data-pos]");
     if (!target) return;
-    if (state.clockBarSelectedItem || state.clockBarAddDraft) {
-      state.clockBarSelectedItem = "";
-      state.clockBarAddDraft = null;
-      updateClockBarItemUi();
-    }
     var pos = parseInt(target.getAttribute("data-pos"), 10);
     var c = ctx();
     var slot = c.grid[pos];
@@ -475,7 +470,6 @@ function newCardDraftKey(isSub, homeSlot, pos, slot) {
 }
 
 function beginNewCardDraft(pos, slot, isSub) {
-  state.clockBarAddDraft = null;
   state.settingsDraft = {
     key: newCardDraftKey(isSub, state.editingSubpage, pos, slot),
     slot: slot,
@@ -836,10 +830,7 @@ function showSelectionMenu(e) {
   if (isConfigLocked()) return;
   hideContextMenu();
   var c = ctx();
-  var clockBarItem = "";
-  state.clockBarSelectedItem = "";
-  state.clockBarAddDraft = null;
-  if (!clockBarItem && !c.selected.length) return;
+  if (!c.selected.length) return;
 
   ctxMenu = document.createElement("div");
   ctxMenu.className = "sp-ctx-menu";

@@ -155,8 +155,6 @@ var state = {
   configLocked: false,
   configLockReason: "",
   clockBarLayout: null,
-  clockBarSelectedItem: "",
-  clockBarAddDraft: null,
   clockBarDragItem: "",
   clockBarTempRestoreIndoor: false,
   clockBarTempRestoreOutdoor: true,
@@ -649,11 +647,6 @@ function syncScreenScheduleUi() {
 }
 
 function syncTemperatureUi() {
-  if (els.setClockBarTemperatureEntity && isClockBarTemperatureItem(state.clockBarSelectedItem)) {
-    var index = clockBarTemperatureItemIndex(state.clockBarSelectedItem);
-    var list = clockBarTemperatureEntries();
-    syncInput(els.setClockBarTemperatureEntity, list[index] || "");
-  }
   if (els.setIndoorToggle) els.setIndoorToggle.checked = !!state._indoorOn;
   if (els.setIndoorField) {
     els.setIndoorField.className = "sp-cond-field" + (state._indoorOn ? " sp-visible" : "");
@@ -662,10 +655,6 @@ function syncTemperatureUi() {
   if (els.setOutdoorField) {
     els.setOutdoorField.className = "sp-cond-field" + (state._outdoorOn ? " sp-visible" : "");
   }
-}
-
-function syncClockBarWeatherUi() {
-  syncInput(els.setClockBarWeatherEntity, state.clockBarWeatherEntity);
 }
 
 function syncNtpServerUi() {
@@ -729,13 +718,6 @@ function syncThemeFromDevice(theme, options) {
 
 function syncClockBarUi() {
   var visible = clockBarVisibleInPreview();
-  var clearedClockBarSelection = false;
-  if (!visible && (state.clockBarSelectedItem || state.clockBarAddDraft)) {
-    state.clockBarSelectedItem = "";
-    state.clockBarAddDraft = null;
-    clearedClockBarSelection = true;
-    hideSettingsOverlay();
-  }
   syncPreviewGridTop();
   if (els.topbar) els.topbar.className = "sp-topbar" + (visible ? "" : " sp-hidden");
   if (els.setClockBarToggle) els.setClockBarToggle.checked = !!state.clockBarOn;
@@ -754,14 +736,8 @@ function syncClockBarUi() {
     els.setSubpageChevronToggle.checked = !!state.subpageChevronsOn;
   }
   updateClockBarItemUi();
-  syncClockBarWeatherUi();
-  updateWeatherPreview();
   updateNetworkPreview();
   updateTempPreview();
-  if (clearedClockBarSelection) {
-    renderPreview();
-    renderButtonSettings();
-  }
 }
 
 function syncIdleUi() {

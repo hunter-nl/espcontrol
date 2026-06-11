@@ -109,7 +109,7 @@ function isClockBarTemperatureItem(item) {
   return clockBarTemperatureItemIndex(item) >= 0;
 }
 
-function clockBarTemperatureItemIds(includeNext) {
+function clockBarTemperatureItemIds() {
   var count = clockBarTemperatureEntries().length;
   var out = [];
   for (var i = 0; i < count && i < MAX_CLOCK_BAR_TEMPERATURES; i++) {
@@ -118,8 +118,8 @@ function clockBarTemperatureItemIds(includeNext) {
   return out;
 }
 
-function clockBarItems(includeNextTemperature) {
-  return clockBarTemperatureItemIds(!!includeNextTemperature).concat(["time", "network"]);
+function clockBarItems() {
+  return clockBarTemperatureItemIds().concat(["time", "network"]);
 }
 
 function clockBarDefaultSection(item) {
@@ -148,24 +148,13 @@ function clockBarItemLabel(item) {
   return "Clock Bar";
 }
 
-function clockBarItemHasSettings(item) {
-  return false;
-}
-
-function clockBarItemIcon(item) {
-  if (isClockBarTemperatureItem(item)) return "thermometer";
-  if (item === "time") return "clock-outline";
-  if (item === "network") return "wifi-strength-4";
-  return "plus";
-}
-
 function clockBarLayoutStorageKey() {
   return CLOCK_BAR_LAYOUT_STORAGE_PREFIX + (typeof DEVICE_ID === "string" ? DEVICE_ID : "default");
 }
 
 function cloneClockBarLayout(layout) {
   var out = { left: [], middle: [], right: [] };
-  var allowed = clockBarItems(true);
+  var allowed = clockBarItems();
   CLOCK_BAR_SECTIONS.forEach(function (section) {
     (layout && layout[section] || []).forEach(function (item) {
       if (allowed.indexOf(item) !== -1 && out[section].indexOf(item) === -1) out[section].push(item);
@@ -184,7 +173,7 @@ function serializeClockBarLayout(layout) {
 function parseClockBarLayout(value) {
   var out = { left: [], middle: [], right: [] };
   var seen = {};
-  var allowed = clockBarItems(true);
+  var allowed = clockBarItems();
   String(value || "").split("|").forEach(function (segment) {
     var parts = segment.split(":");
     if (parts.length < 2) return;
@@ -234,7 +223,7 @@ function normalizeClockBarLayout() {
       if (next[section].indexOf(item) === -1) next[section].push(item);
     });
   });
-  clockBarItems(false).forEach(function (item) {
+  clockBarItems().forEach(function (item) {
     var section = clockBarDefaultSection(item);
     if (!clockBarItemActive(item) || next[section].indexOf(item) !== -1) return;
     next[clockBarDefaultSection(item)].push(item);
@@ -263,11 +252,6 @@ function createClockBarItemElement(item, section) {
     clock.textContent = "--:--";
     button.appendChild(clock);
     els.clock = clock;
-  } else if (item === "weather") {
-    var weather = document.createElement("span");
-    weather.className = "sp-weather-preview mdi mdi-weather-partly-cloudy";
-    button.appendChild(weather);
-    els.weatherPreview = weather;
   } else if (item === "network") {
     var network = document.createElement("span");
     network.className = "sp-network-preview mdi mdi-wifi-strength-4";
@@ -283,7 +267,6 @@ function renderClockBarLayout() {
   els.clockBarItems = {};
   els.temps = {};
   els.clock = null;
-  els.weatherPreview = null;
   els.networkPreview = null;
   CLOCK_BAR_SECTIONS.forEach(function (section) {
     var container = els.clockBarSections[section];
@@ -301,7 +284,6 @@ function renderClockBarLayout() {
   });
   updateTempPreview();
   updateClockText();
-  updateWeatherPreview();
   updateNetworkPreview();
 }
 
@@ -318,17 +300,9 @@ function syncClockBarItemElement(item) {
 
 function updateClockBarItemUi() {
   renderClockBarLayout();
-  clockBarTemperatureItemIds(true).forEach(syncClockBarItemElement);
+  clockBarTemperatureItemIds().forEach(syncClockBarItemElement);
   syncClockBarItemElement("time");
   syncClockBarItemElement("network");
-}
-
-function setClockBarItemSelected(item, open) {
-  state.clockBarSelectedItem = "";
-  state.clockBarAddDraft = null;
-  updateClockBarItemUi();
-  renderPreview();
-  renderButtonSettings(!!open);
 }
 
 function syncInput(el, val) {
@@ -419,12 +393,5 @@ function updateNetworkPreview() {
   var show = clockBarVisibleInPreview() && state.networkStatusOn;
   els.networkPreview.className = "sp-network-preview mdi mdi-" +
     networkPreviewIconSlug(state.networkTransport, state.wifiStrengthPercent) +
-    (show ? " sp-visible" : "");
-}
-
-function updateWeatherPreview() {
-  if (!els.weatherPreview) return;
-  var show = clockBarVisibleInPreview() && state.clockBarWeatherOn;
-  els.weatherPreview.className = "sp-weather-preview mdi mdi-weather-partly-cloudy" +
     (show ? " sp-visible" : "");
 }
