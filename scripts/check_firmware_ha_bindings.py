@@ -493,8 +493,10 @@ def firmware_clock_bar_weather_subscription_errors(firmware_dir: Path, root: Pat
     body = subscription.group("body")
     if "ha_api_state_connected()" not in body:
         errors.append(f"{rel}: wait for Home Assistant state readiness before clock bar weather subscription")
-    if "if (!ha_subscribe_state(" not in body or "active_entity.clear();" not in body:
+    if "if (!ha_subscribe_state(" not in body or "active.entity_id.clear();" not in body:
         errors.append(f"{rel}: retry clock bar weather subscription when early subscription fails")
+    if "ha_subscription_generation()" not in body or "current.generation != generation" not in body:
+        errors.append(f"{rel}: ignore stale clock bar weather callbacks after subscription refresh")
     return errors
 
 
@@ -2132,15 +2134,32 @@ def run_self_test() -> int:
         (
             "wait for Home Assistant state readiness",
             "retry clock bar weather subscription",
+            "ignore stale clock bar weather callbacks",
         ),
     )
     expect_clock_bar_weather_subscription_errors(
-        "clock bar weather waits for state readiness",
+        "clock bar weather waits for state readiness without stale guard",
         "inline void subscribe_clock_bar_weather_icon() {\n"
         "  if (!ha_api_state_connected()) return;\n"
-        "  active_entity = next_entity;\n"
+        "  uint32_t generation = ha_subscription_generation();\n"
+        "  active.entity_id = next_entity;\n"
         "  if (!ha_subscribe_state(next_entity, cb)) {\n"
-        "    active_entity.clear();\n"
+        "    active.entity_id.clear();\n"
+        "    return;\n"
+        "  }\n"
+        "}\n",
+        ("ignore stale clock bar weather callbacks",),
+    )
+    expect_clock_bar_weather_subscription_errors(
+        "clock bar weather waits and ignores stale callbacks",
+        "inline void subscribe_clock_bar_weather_icon() {\n"
+        "  if (!ha_api_state_connected()) return;\n"
+        "  uint32_t generation = ha_subscription_generation();\n"
+        "  active.entity_id = next_entity;\n"
+        "  if (!ha_subscribe_state(next_entity, [generation]() {\n"
+        "    if (current.generation != generation) return;\n"
+        "  })) {\n"
+        "    active.entity_id.clear();\n"
         "    return;\n"
         "  }\n"
         "}\n",

@@ -329,13 +329,13 @@ def test_grid_phase2_uses_cleaned_spanned_layout() -> None:
 
 
 def test_spanned_cards_refresh_after_clock_bar_padding_changes() -> None:
-    backlight = (ROOT / "components" / "espcontrol" / "backlight.h").read_text(encoding="utf-8")
+    clock_bar = (ROOT / "components" / "espcontrol" / "clock_bar.h").read_text(encoding="utf-8")
     layout = (ROOT / "components" / "espcontrol" / "button_grid_layout.h").read_text(encoding="utf-8")
     grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
-    assert "struct ClockBarResponsiveGridCard" in backlight, (
+    assert "struct ClockBarResponsiveGridCard" in clock_bar, (
         "spanned card dimensions must be tracked outside the one-time grid placement pass"
     )
-    assert "clock_bar_refresh_responsive_grid_cards();" in backlight, (
+    assert "clock_bar_refresh_responsive_grid_cards();" in clock_bar, (
         "clock-bar padding changes must resize registered wide/tall/large cards"
     )
     assert "clock_bar_register_responsive_grid_card(" in layout, (

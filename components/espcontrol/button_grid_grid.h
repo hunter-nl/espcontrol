@@ -1930,33 +1930,6 @@ inline void grid_phase2(
 
 // ── Phase 3: Temperature + presence/media subscriptions ───────────────
 
-inline std::string clock_bar_temperature_trim(const std::string &value) {
-  size_t start = 0;
-  while (start < value.size() && std::isspace((unsigned char) value[start])) start++;
-  size_t end = value.size();
-  while (end > start && std::isspace((unsigned char) value[end - 1])) end--;
-  return value.substr(start, end - start);
-}
-
-inline std::vector<std::string> parse_clock_bar_temperature_entities(const std::string &value) {
-  std::vector<std::string> out;
-  std::string current;
-  for (char ch : value) {
-    if (ch == '|' || ch == ',' || ch == '\n') {
-      std::string entity = clock_bar_temperature_trim(current);
-      if (!entity.empty() && std::find(out.begin(), out.end(), entity) == out.end()) out.push_back(entity);
-      current.clear();
-      if (out.size() >= 6) return out;
-    } else {
-      current.push_back(ch);
-    }
-  }
-  std::string entity = clock_bar_temperature_trim(current);
-  if (!entity.empty() && std::find(out.begin(), out.end(), entity) == out.end()) out.push_back(entity);
-  if (out.size() > 6) out.resize(6);
-  return out;
-}
-
 inline uint32_t &clock_bar_temperature_subscription_generation() {
   static uint32_t generation = 0;
   return generation;

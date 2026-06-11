@@ -385,12 +385,15 @@ esphome:
               id(cover_art_media_player_entity).state,
               &id(media_player_playing),
               []() {
-                return id(clock_bar_enabled).state &&
-                       clock_bar_active_on_button_grid_page(id(main_page)->obj) &&
-                       !id(screensaver_display_off_active) &&
-                       !id(screensaver_dimmed_active) &&
-                       !id(is_clock_showing) &&
-                       !id(cover_art_screensaver_active);
+                return clock_bar_should_show(
+                    id(clock_bar_enabled).state,
+                    id(main_page)->obj,
+                    id(display_asleep),
+                    id(screen_schedule_asleep),
+                    id(is_clock_showing),
+                    id(cover_art_screensaver_active),
+                    id(screensaver_display_off_active),
+                    id(screensaver_dimmed_active));
               },
               []() {
                 id(screensaver_presence_wake).execute();

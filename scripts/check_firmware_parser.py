@@ -15,6 +15,7 @@ CONFIG_HEADER = ROOT / "components" / "espcontrol" / "button_grid_config.h"
 CONTRACT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_contract_generated.h"
 CARD_RUNTIME_HEADER = ROOT / "components" / "espcontrol" / "button_grid_card_runtime.h"
 BACKLIGHT_HEADER = ROOT / "components" / "espcontrol" / "backlight.h"
+CLOCK_BAR_HEADER = ROOT / "components" / "espcontrol" / "clock_bar.h"
 LAYOUT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_layout.h"
 DEVICES_DIR = ROOT / "devices"
 
@@ -44,7 +45,10 @@ class StringRef {
 };
 }
 
-struct lv_obj_t {};
+struct lv_obj_t {
+  int flags = 0;
+  std::string text;
+};
 struct lv_disp_t {};
 struct lv_font_t {};
 using lv_coord_t = int;
@@ -90,9 +94,9 @@ inline void lv_obj_set_style_text_opa(lv_obj_t *, int, int) {}
 inline void lv_obj_add_state(lv_obj_t *, int) {}
 inline void lv_obj_clear_state(lv_obj_t *, int) {}
 inline bool lv_obj_has_state(lv_obj_t *, int) { return false; }
-inline void lv_obj_add_flag(lv_obj_t *, int) {}
-inline void lv_obj_clear_flag(lv_obj_t *, int) {}
-inline bool lv_obj_has_flag(lv_obj_t *, int) { return false; }
+inline void lv_obj_add_flag(lv_obj_t *obj, int flag) { if (obj) obj->flags |= flag; }
+inline void lv_obj_clear_flag(lv_obj_t *obj, int flag) { if (obj) obj->flags &= ~flag; }
+inline bool lv_obj_has_flag(lv_obj_t *obj, int flag) { return obj && (obj->flags & flag); }
 inline uint32_t lv_obj_get_child_cnt(lv_obj_t *) { return 0; }
 inline lv_obj_t *lv_obj_get_child(lv_obj_t *, uint32_t) { return nullptr; }
 inline int lv_obj_get_width(lv_obj_t *) { return 480; }
@@ -115,7 +119,7 @@ inline void lv_obj_set_pos(lv_obj_t *, int, int) {}
 inline void lv_obj_set_grid_cell(lv_obj_t *, int, int, int, int, int, int) {}
 inline void lv_obj_set_style_pad_top(lv_obj_t *, int, int) {}
 inline void lv_obj_update_layout(lv_obj_t *) {}
-inline void lv_label_set_text(lv_obj_t *, const char *) {}
+inline void lv_label_set_text(lv_obj_t *obj, const char *text) { if (obj) obj->text = text ? text : ""; }
 inline void lv_obj_align(lv_obj_t *, int, int, int) {}
 inline void lv_obj_move_foreground(lv_obj_t *) {}
 inline void lv_obj_move_background(lv_obj_t *) { lv_obj_move_background_calls++; }
@@ -152,6 +156,40 @@ int main() {
   assert(clock_bar_grid_track_span_size(1024, 5, 5, 10, 5, 3, 2) == 399);
   assert(clock_bar_grid_track_span_size(600, 42, 5, 10, 3, 0, 2) == 366);
 
+  auto fallback_clock_bar = parse_clock_bar_layout("bad|unknown:time");
+  assert(fallback_clock_bar.section[CLOCK_BAR_ITEM_TEMPERATURE] == CLOCK_BAR_SECTION_LEFT);
+  assert(fallback_clock_bar.order[CLOCK_BAR_ITEM_TEMPERATURE] == 0);
+  assert(fallback_clock_bar.section[CLOCK_BAR_ITEM_TIME] == CLOCK_BAR_SECTION_MIDDLE);
+  assert(fallback_clock_bar.section[CLOCK_BAR_ITEM_NETWORK] == CLOCK_BAR_SECTION_RIGHT);
+  assert(fallback_clock_bar.section[CLOCK_BAR_ITEM_WEATHER] == -1);
+
+  auto duplicate_clock_bar = parse_clock_bar_layout(
+    " left : temperature , temperature | middle: time | right: network,network,weather ");
+  assert(duplicate_clock_bar.section[CLOCK_BAR_ITEM_TEMPERATURE] == CLOCK_BAR_SECTION_LEFT);
+  assert(duplicate_clock_bar.order[CLOCK_BAR_ITEM_TEMPERATURE] == 0);
+  assert(duplicate_clock_bar.section[CLOCK_BAR_ITEM_TIME] == CLOCK_BAR_SECTION_MIDDLE);
+  assert(duplicate_clock_bar.order[CLOCK_BAR_ITEM_TIME] == 0);
+  assert(duplicate_clock_bar.section[CLOCK_BAR_ITEM_NETWORK] == CLOCK_BAR_SECTION_RIGHT);
+  assert(duplicate_clock_bar.order[CLOCK_BAR_ITEM_NETWORK] == 0);
+  assert(duplicate_clock_bar.section[CLOCK_BAR_ITEM_WEATHER] == CLOCK_BAR_SECTION_RIGHT);
+  assert(duplicate_clock_bar.order[CLOCK_BAR_ITEM_WEATHER] == 1);
+
+  auto compact_clock_bar = compact_clock_bar_layout(
+    duplicate_clock_bar, 1, true, false, true);
+  assert(compact_clock_bar.section[CLOCK_BAR_ITEM_TEMPERATURE] == CLOCK_BAR_SECTION_LEFT);
+  assert(compact_clock_bar.section[CLOCK_BAR_ITEM_NETWORK] == -1);
+  assert(compact_clock_bar.section[CLOCK_BAR_ITEM_WEATHER] == CLOCK_BAR_SECTION_RIGHT);
+  assert(compact_clock_bar.order[CLOCK_BAR_ITEM_WEATHER] == 0);
+  assert(compact_clock_bar.count[CLOCK_BAR_SECTION_LEFT] == 1);
+  assert(compact_clock_bar.count[CLOCK_BAR_SECTION_RIGHT] == 1);
+
+  auto clock_bar_entities = parse_clock_bar_temperature_entities(
+    " sensor.outdoor | sensor.indoor, sensor.outdoor\nsensor.loft,, ");
+  assert(clock_bar_entities.size() == 3);
+  assert(clock_bar_entities[0] == "sensor.outdoor");
+  assert(clock_bar_entities[1] == "sensor.indoor");
+  assert(clock_bar_entities[2] == "sensor.loft");
+
   set_clock_bar_temperature_value_count(6);
   lv_obj_t temperature_1;
   lv_obj_t temperature_2;
@@ -181,6 +219,17 @@ int main() {
 	    true, true, true, true, true,
 	    1024, 12, 17, 20, 10, 80, 10);
   assert(lv_obj_move_background_calls == 9);
+  hide_clock_bar_top_layer_widgets(
+    temperature_labels, 6, &display_time, &network_status_button, &weather_icon_container);
+  assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&temperature_2, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&temperature_3, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&temperature_4, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&temperature_5, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&temperature_6, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&display_time, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&network_status_button, LV_OBJ_FLAG_HIDDEN));
+  assert(lv_obj_has_flag(&weather_icon_container, LV_OBJ_FLAG_HIDDEN));
   set_clock_bar_temperature_value_count(0);
 
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 0) == "light.kitchen");
@@ -500,6 +549,7 @@ def main() -> int:
         shutil.copy2(ROOT / "components" / "espcontrol" / "sun_calc.h", tmp_path / "sun_calc.h")
         shutil.copy2(CONTRACT_HEADER, tmp_path / "button_grid_contract_generated.h")
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
+        shutil.copy2(CLOCK_BAR_HEADER, tmp_path / "clock_bar.h")
         shutil.copy2(BACKLIGHT_HEADER, tmp_path / "backlight.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
         lvgl_stub = tmp_path / "esphome" / "components" / "lvgl" / "lvgl_esphome.h"

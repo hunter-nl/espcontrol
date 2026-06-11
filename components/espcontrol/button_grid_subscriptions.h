@@ -212,34 +212,63 @@ inline void subscribe_weather_state(lv_obj_t *icon_lbl, lv_obj_t *text_lbl, cons
   );
 }
 
+struct ClockBarWeatherIconSubscription {
+  std::string entity_id;
+  uint32_t generation = 0;
+  lv_obj_t *icon_lbl = nullptr;
+};
+
+inline ClockBarWeatherIconSubscription &clock_bar_weather_icon_subscription() {
+  static ClockBarWeatherIconSubscription subscription;
+  return subscription;
+}
+
 inline void subscribe_clock_bar_weather_icon(lv_obj_t *icon_lbl, const std::string &entity_id) {
   if (!icon_lbl) return;
-  static std::string active_entity;
-  std::string next_entity = entity_id;
+  ClockBarWeatherIconSubscription &active = clock_bar_weather_icon_subscription();
+  std::string next_entity = clock_bar_trim(entity_id);
   if (next_entity.empty()) {
-    active_entity.clear();
+    active.entity_id.clear();
+    active.generation = 0;
+    active.icon_lbl = icon_lbl;
     lv_label_set_text(icon_lbl, weather_icon_for_state(""));
     return;
   }
-  if (active_entity == next_entity) return;
+  uint32_t generation = ha_subscription_generation();
+  if (active.entity_id == next_entity &&
+      active.generation == generation &&
+      active.icon_lbl == icon_lbl) {
+    return;
+  }
   lv_label_set_text(icon_lbl, weather_icon_for_state(""));
   if (!ha_api_state_connected()) {
     ESP_LOGI("weather", "Deferring clock bar weather subscription for %s", next_entity.c_str());
+    active.entity_id.clear();
+    active.generation = 0;
+    active.icon_lbl = icon_lbl;
     return;
   }
   ESP_LOGI("weather", "Subscribing to clock bar weather state for %s", next_entity.c_str());
-  active_entity = next_entity;
+  active.entity_id = next_entity;
+  active.generation = generation;
+  active.icon_lbl = icon_lbl;
   if (!ha_subscribe_state(
     next_entity,
-    std::function<void(esphome::StringRef)>([icon_lbl, next_entity](esphome::StringRef state) {
-      if (active_entity != next_entity) return;
+    std::function<void(esphome::StringRef)>([icon_lbl, next_entity, generation](esphome::StringRef state) {
+      ClockBarWeatherIconSubscription &current = clock_bar_weather_icon_subscription();
+      if (current.entity_id != next_entity ||
+          current.generation != generation ||
+          current.icon_lbl != icon_lbl) {
+        return;
+      }
       std::string state_text = string_ref_limited(state, HA_SHORT_STATE_MAX_LEN);
       lv_label_set_text(icon_lbl, weather_icon_for_state(state_text));
       notify_dashboard_content_changed();
     })
   )) {
     ESP_LOGW("weather", "Failed to subscribe to clock bar weather state for %s", next_entity.c_str());
-    active_entity.clear();
+    active.entity_id.clear();
+    active.generation = 0;
     return;
   }
 }
