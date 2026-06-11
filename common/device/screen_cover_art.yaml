@@ -979,6 +979,7 @@ script:
           id: screensaver_dimmed_active
           value: 'false'
       - lvgl.resume:
+      - lambda: 'navigation_return_home(id(main_page)->obj);'
       - script.execute: hide_clock_view
       - script.execute: clock_bar_apply
       - lvgl.widget.hide: dim_screensaver_touch_guard

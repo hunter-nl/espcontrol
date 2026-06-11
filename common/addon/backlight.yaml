@@ -181,6 +181,7 @@ script:
           then:
             - script.execute: screensaver_idle_check
           else:
+            - lambda: 'navigation_return_home(id(main_page)->obj);'
             - if:
                 condition:
                   lambda: 'return screensaver_action_clock_mode(id(screensaver_action).current_option());'
@@ -190,13 +191,6 @@ script:
                       value: 'true'
                   - script.execute: show_clock_view
                 else:
-                  - lambda: |-
-                      media_volume_hide_modal();
-                      climate_control_hide_modal();
-                      option_select_hide_modal();
-                      switch_confirmation_hide_modal();
-                      alarm_pin_hide_modal();
-                      network_status_hide_modal();
                   - script.execute: hide_cover_art_view
                   - if:
                       condition:
@@ -474,15 +468,7 @@ script:
                 return (int)(val * 1000);
             - lambda: |-
                 if (!id(home_screen_idle_suspended)) {
-                  media_volume_hide_modal();
-                  climate_control_hide_modal();
-                  option_select_hide_modal();
-                  switch_confirmation_hide_modal();
-                  alarm_pin_hide_modal();
-                  network_status_hide_modal();
-                }
-                if (!id(home_screen_idle_suspended) && lv_scr_act() != id(main_page)->obj) {
-                  lv_scr_load_anim(id(main_page)->obj, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+                  navigation_return_home(id(main_page)->obj);
                 }
 
   # Wake from screensaver
