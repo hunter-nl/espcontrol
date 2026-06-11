@@ -84,7 +84,7 @@ lvgl:
       - obj:
           id: clock_bar_weather_icon_container
           align: top_right
-          x: -14
+          x: -8
           y: 1
           width: 48
           height: 44
@@ -107,7 +107,7 @@ lvgl:
       - obj:
           id: network_status_button
           align: top_right
-          x: -14
+          x: -8
           y: 1
           width: 48
           height: 44
