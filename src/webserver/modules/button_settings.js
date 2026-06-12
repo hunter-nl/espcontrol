@@ -57,18 +57,6 @@ function renderClockBarSelectionBar() {
   });
   actions.appendChild(hideBtn);
 
-  var menuBtn = document.createElement("button");
-  menuBtn.type = "button";
-  menuBtn.className = "sp-selection-btn";
-  menuBtn.setAttribute("aria-label", "Clock bar actions");
-  menuBtn.innerHTML = '<span class="mdi mdi-dots-horizontal"></span>';
-  menuBtn.addEventListener("click", function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    showClockBarContextMenu(e, state.clockBarSelectedItem);
-  });
-  actions.appendChild(menuBtn);
-
   els.selectionBar.appendChild(actions);
   return true;
 }

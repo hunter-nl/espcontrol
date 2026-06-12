@@ -960,7 +960,7 @@ async function assertClockBarEditorSmoke(page, posts, label) {
   assert.strictEqual(await page.locator(".sp-selection-bar.sp-visible").count(), 1, `${label}: clicking clock bar selects an item`);
   assert((await page.locator(".sp-selection-bar").textContent()).includes("Clock selected"), `${label}: clock selection is labelled`);
   assert.strictEqual(await page.getByRole("button", { name: "Edit", exact: true }).isDisabled(), true, `${label}: clock edit button is disabled`);
-  assert.strictEqual(await page.getByRole("button", { name: "Clock bar actions", exact: true }).count(), 1, `${label}: clock selection exposes actions menu button`);
+  assert.strictEqual(await page.getByRole("button", { name: "Clock bar actions", exact: true }).count(), 0, `${label}: clock selection does not expose redundant actions menu button`);
   const selectedClockItem = page.locator('[data-clockbar-item="time"]');
   await page.mouse.move(0, 0);
   await page.waitForTimeout(250);
