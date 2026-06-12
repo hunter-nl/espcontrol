@@ -121,7 +121,7 @@ script:
                                  visible && id(indoor_temp_enable).state,
                                  visible && id(outdoor_temp_enable).state,
                                  clock_bar_screen_width,
-                                 clock_bar_screen_width >= 700 ? 4 : 3,
+                                 clock_bar_screen_width >= 700 ? 8 : 6,
                                  clock_bar_label_y,
                                  clock_bar_right_x,
                                  clock_bar_icon_y,

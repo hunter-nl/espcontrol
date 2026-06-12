@@ -20,7 +20,7 @@ lvgl:
           id: temperatures
           text_font: font_text_body
           align: top_left
-          x: 4
+          x: 8
           y: 8
           text_color: 0xFFFFFF
           hidden: true
