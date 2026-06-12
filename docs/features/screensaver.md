@@ -27,8 +27,6 @@ The screensaver turns on after the panel hasn't been touched for a set amount of
 
 If the 10 or 30 second choices are not shown, update the panel firmware first. The web page checks what range the installed firmware supports before showing the shorter timer values.
 
-You can also enable **Allow Media Cover Art to override screensaver settings**. It uses the **Media Player** selected in [Media Cover Art](/features/media-cover-art), and when that media player is in the `playing` state, the timer keeps waiting instead of putting the screen to sleep.
-
 ### What Happens
 
 When the screensaver activates, you can choose what happens:
@@ -45,7 +43,7 @@ Instead of a timer, the screensaver is controlled by a motion or presence sensor
 
 To use this, enter the name of your motion or presence sensor from Home Assistant (for example, `binary_sensor.hallway_presence`).
 
-Below the presence entity, use **Then** to choose whether the panel dims the screen, shows the clock, or turns the display off when nobody is detected. This uses the same options as Timer mode, including **Allow Media Cover Art to override screensaver settings**.
+Below the presence entity, use **Then** to choose whether the panel dims the screen, shows the clock, or turns the display off when nobody is detected. This uses the same options as Timer mode.
 
 Switching back to Timer keeps the sensor name saved, so you can return to Sensor mode later without typing it in again.
 

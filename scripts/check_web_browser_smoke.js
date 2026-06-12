@@ -281,12 +281,31 @@ async function assertSettingsPage(page, label, options = {}) {
   assert(appearanceVisible, `${label}: settings content should render`);
   assert.strictEqual(themeVisible, !!options.isEpaper, `${label}: theme selector visibility should match display type`);
   assert.strictEqual(onColorVisible, !options.isEpaper, `${label}: color controls visibility should match display type`);
+  const nightScheduleCard = page.locator("#sp-settings .card").filter({
+    has: page.locator(".card-header h3", { hasText: /^Night Schedule$/ }),
+  }).first();
+  assert(await nightScheduleCard.isVisible(), `${label}: night schedule settings card should render`);
+  await nightScheduleCard.locator(".card-header").click();
+  const nightScheduleInfo = page.locator("#sp-night-schedule-info");
+  assert(await nightScheduleInfo.isVisible(), `${label}: night schedule override info panel should render`);
+  assert.strictEqual(
+    await nightScheduleInfo.innerText(),
+    "Night Schedule overrides screensaver and Media Cover Art settings while it is active.",
+    `${label}: night schedule override info panel text should match`
+  );
   if (!options.isEpaper) {
     const coverArtCard = page.locator("#sp-settings .card").filter({
       has: page.locator(".card-header h3", { hasText: /^Media Cover Art$/ }),
     }).first();
     assert(await coverArtCard.isVisible(), `${label}: media cover art settings card should render`);
     await coverArtCard.locator(".card-header").click();
+    const coverArtInfo = page.locator("#sp-cover-art-info");
+    assert(await coverArtInfo.isVisible(), `${label}: media cover art override info panel should render`);
+    assert.strictEqual(
+      await coverArtInfo.innerText(),
+      "Media Cover Art overrides existing screensaver settings while the selected media player is playing.",
+      `${label}: media cover art override info panel text should match`
+    );
     await coverArtCard.locator("#sp-set-ss-cover-art-enable + .sp-toggle-track").click();
     assert.strictEqual(
       await page.locator("#sp-set-ss-track-overlay").count(),
@@ -304,8 +323,8 @@ async function assertSettingsPage(page, label, options = {}) {
   );
   assert.strictEqual(
     await page.locator("#sp-set-sensor-media-player-enable").count(),
-    1,
-    `${label}: sensor cover art override should render`
+    0,
+    `${label}: sensor cover art override should not render`
   );
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   assert(!overflow, `${label}: settings page has horizontal overflow`);

@@ -13,7 +13,7 @@ You will find these controls in **Settings > Sleep & Schedule > Media Cover Art*
 ## Settings
 
 - **Show Cover Art** - enables the cover art display.
-- **Media Player** - chooses the media player entity to watch, such as `media_player.living_room`. The Timer and Sensor screensaver **Allow Media Cover Art to override screensaver settings** options use this same media player.
+- **Media Player** - chooses the media player entity to watch, such as `media_player.living_room`.
 - **Show After** - chooses whether cover art appears immediately or waits for the selected delay.
 - **Track Overlay Duration** - controls how long track information is shown over the artwork on the 4-inch square displays.
 - **Hide for external sources** - hides cover art when the selected media player source is `TV` or `Line-in`.

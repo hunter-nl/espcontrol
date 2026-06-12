@@ -383,6 +383,10 @@ var CSS =
   ".sp-cond-field.sp-visible{display:block}" +
   ".sp-cond-field.sp-climate-settings-gap.sp-visible{margin-bottom:24px}" +
   ".sp-schedule-times.sp-hidden{display:none}" +
+  ".sp-info-panel{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:16px;" +
+  "background:rgba(92,115,231,.12);border:1px solid rgba(92,115,231,.22);border-radius:8px;" +
+  "color:var(--text2);font-size:.82rem;line-height:1.35}" +
+  ".sp-info-panel .mdi{font-size:18px;color:var(--accent);line-height:1.1;flex:0 0 auto;margin-top:1px}" +
 
   ".sp-range-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}" +
   ".sp-range-row:last-child{margin-bottom:0}" +

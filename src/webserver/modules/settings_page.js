@@ -26,6 +26,21 @@ function coverArtTrackOverlayDurationSupported() {
   return !!(CFG && CFG.coverArtSquareOverlay);
 }
 
+function infoPanel(id, text) {
+  var panel = document.createElement("div");
+  panel.className = "sp-info-panel";
+  panel.id = id;
+  panel.setAttribute("role", "note");
+  var icon = document.createElement("span");
+  icon.className = "mdi mdi-information-outline";
+  icon.setAttribute("aria-hidden", "true");
+  var message = document.createElement("span");
+  message.textContent = text;
+  panel.appendChild(icon);
+  panel.appendChild(message);
+  return panel;
+}
+
 function buildSettingsPage(parent) {
   var page = document.createElement("div");
   page.id = "sp-settings";
@@ -153,6 +168,10 @@ function buildSettingsPage(parent) {
   var backlightCard = makeCollapsibleCard("Backlight", blBody, true);
 
   var scheduleBody = document.createElement("div");
+  scheduleBody.appendChild(infoPanel(
+    "sp-night-schedule-info",
+    "Night Schedule overrides screensaver and Media Cover Art settings while it is active."
+  ));
   scheduleBody.appendChild(fieldLabel("Mode"));
   var scheduleSegment = document.createElement("div");
   scheduleSegment.className = "sp-segment sp-screensaver-mode";
@@ -587,23 +606,13 @@ function buildSettingsPage(parent) {
   els.setClockBrightnessNightVal = timerClockControls.clockBrightnessNightVal;
   els.setClockBrightnessField = timerClockControls.brightnessField;
 
-  function addMediaPlayerSleepPreventionToggle(parent, inputId) {
-    var mediaPlayerToggle = toggleRow(
-      "Allow Media Cover Art to override screensaver settings",
-      inputId,
-      state.mediaPlayerSleepPreventionOn);
-    parent.appendChild(mediaPlayerToggle.row);
-    mediaPlayerToggle.input.addEventListener("change", function () {
-      state.mediaPlayerSleepPreventionOn = this.checked;
-      syncMediaPlayerSleepPreventionUi();
-      postSwitch(entityName("screen_saver_media_player_sleep_prevention"), state.mediaPlayerSleepPreventionOn);
-    });
-    return mediaPlayerToggle.input;
-  }
-  els.setMediaPlayerSleepPreventionToggle = addMediaPlayerSleepPreventionToggle(timerPanel, "sp-set-ss-media-player-enable");
-
   var coverArtBody = document.createElement("div");
   if (!isEpaperPreview()) {
+    coverArtBody.appendChild(infoPanel(
+      "sp-cover-art-info",
+      "Media Cover Art overrides existing screensaver settings while the selected media player is playing."
+    ));
+
     var coverArtToggle = toggleRow(
       "Show Cover Art",
       "sp-set-ss-cover-art-enable",
@@ -724,7 +733,6 @@ function buildSettingsPage(parent) {
   sensorPanel.appendChild(sensorClockControls.clockField);
   sensorPanel.appendChild(sensorClockControls.dimBrightnessField);
   sensorPanel.appendChild(sensorClockControls.brightnessField);
-  els.setSensorMediaPlayerSleepPreventionToggle = addMediaPlayerSleepPreventionToggle(sensorPanel, "sp-set-sensor-media-player-enable");
   ssBody.appendChild(sensorPanel);
   els.setPresence = presInp;
   els.setSensorClockSelect = sensorClockControls.clockSelect;
