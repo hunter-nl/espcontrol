@@ -53,9 +53,8 @@ script:
           cfg.climate_option_value_font = id(font_text_small)->get_lv_font();
           cfg.temperature_unit = id(temperature_unit_select).current_option();
           cfg.timezone = id(timezone_select).current_option();
-          cfg.pause_home_idle = []() {
-            id(home_screen_idle_suspended) = true;
-            id(home_screen_idle_check).stop();
+          cfg.suspend_display_takeover = []() {
+            id(display_takeover_suspended) = true;
             id(screensaver_idle_check).stop();
             id(screensaver_sleep_timer).stop();
             id(screensaver_sleep_sensor).stop();
@@ -73,8 +72,8 @@ script:
             lv_obj_add_flag(id(dim_screensaver_touch_guard), LV_OBJ_FLAG_HIDDEN);
             id(backlight_apply_brightness).execute();
           };
-          cfg.resume_home_idle = []() {
-            id(home_screen_idle_suspended) = false;
+          cfg.resume_display_takeover = []() {
+            id(display_takeover_suspended) = false;
             id(home_screen_idle_check).execute();
             id(screensaver_idle_check).execute();
           };
@@ -163,9 +162,8 @@ esphome:
             cfg.climate_option_value_font = id(font_text_small)->get_lv_font();
             cfg.temperature_unit = id(temperature_unit_select).current_option();
             cfg.timezone = id(timezone_select).current_option();
-            cfg.pause_home_idle = []() {
-              id(home_screen_idle_suspended) = true;
-              id(home_screen_idle_check).stop();
+            cfg.suspend_display_takeover = []() {
+              id(display_takeover_suspended) = true;
               id(screensaver_idle_check).stop();
               id(screensaver_sleep_timer).stop();
               id(screensaver_sleep_sensor).stop();
@@ -183,8 +181,8 @@ esphome:
               lv_obj_add_flag(id(dim_screensaver_touch_guard), LV_OBJ_FLAG_HIDDEN);
               id(backlight_apply_brightness).execute();
             };
-            cfg.resume_home_idle = []() {
-              id(home_screen_idle_suspended) = false;
+            cfg.resume_display_takeover = []() {
+              id(display_takeover_suspended) = false;
               id(home_screen_idle_check).execute();
               id(screensaver_idle_check).execute();
             };
@@ -291,9 +289,8 @@ esphome:
             cfg.climate_option_value_font = id(font_text_small)->get_lv_font();
             cfg.temperature_unit = id(temperature_unit_select).current_option();
             cfg.timezone = id(timezone_select).current_option();
-            cfg.pause_home_idle = []() {
-              id(home_screen_idle_suspended) = true;
-              id(home_screen_idle_check).stop();
+            cfg.suspend_display_takeover = []() {
+              id(display_takeover_suspended) = true;
               id(screensaver_idle_check).stop();
               id(screensaver_sleep_timer).stop();
               id(screensaver_sleep_sensor).stop();
@@ -311,8 +308,8 @@ esphome:
               lv_obj_add_flag(id(dim_screensaver_touch_guard), LV_OBJ_FLAG_HIDDEN);
               id(backlight_apply_brightness).execute();
             };
-            cfg.resume_home_idle = []() {
-              id(home_screen_idle_suspended) = false;
+            cfg.resume_display_takeover = []() {
+              id(display_takeover_suspended) = false;
               id(home_screen_idle_check).execute();
               id(screensaver_idle_check).execute();
             };

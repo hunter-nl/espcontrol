@@ -87,8 +87,8 @@ struct MediaVolumeCtx {
   const lv_font_t *unit_font = nullptr;
   const lv_font_t *label_font = nullptr;
   const lv_font_t *icon_font = nullptr;
-  std::function<void()> pause_home_idle;
-  std::function<void()> resume_home_idle;
+  std::function<void()> suspend_display_takeover;
+  std::function<void()> resume_display_takeover;
   bool available = true;
 };
 

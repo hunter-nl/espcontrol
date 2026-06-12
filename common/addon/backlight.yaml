@@ -40,7 +40,7 @@ globals:
   - id: screensaver_wake_touch_guard_skip_once
     type: bool
     initial_value: 'false'
-  - id: home_screen_idle_suspended
+  - id: display_takeover_suspended
     type: bool
     initial_value: 'false'
   - id: presence_detected
@@ -377,7 +377,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return !id(home_screen_idle_suspended);'
+            lambda: 'return !id(display_takeover_suspended);'
           then:
             - globals.set:
                 id: display_asleep
@@ -413,7 +413,7 @@ script:
       - lambda: 'backlight_close_modals_for_display_takeover();'
       - if:
           condition:
-            lambda: 'return !id(home_screen_idle_suspended) || id(screen_schedule_asleep);'
+            lambda: 'return !id(display_takeover_suspended) || id(screen_schedule_asleep);'
           then:
             - script.execute: backlight_force_display_off
             - lvgl.resume:
@@ -489,16 +489,14 @@ script:
           condition:
             lambda: |-
               float val = id(home_screen_timeout).state;
-              return !id(home_screen_idle_suspended) && !std::isnan(val) && val > 0;
+              return !std::isnan(val) && val > 0;
           then:
             - delay: !lambda |-
                 float val = id(home_screen_timeout).state;
                 if (std::isnan(val) || val <= 0) val = 60;
                 return (int)(val * 1000);
             - lambda: |-
-                if (!id(home_screen_idle_suspended)) {
-                  navigation_return_home(id(main_page)->obj);
-                }
+                navigation_return_home(id(main_page)->obj);
 
   # Wake from screensaver
   - id: screensaver_wake
@@ -675,7 +673,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return !id(home_screen_idle_suspended);'
+            lambda: 'return !id(display_takeover_suspended);'
           then:
             - script.execute: screensaver_dimmed_refresh_brightness
             - script.wait: screensaver_dimmed_refresh_brightness
@@ -777,7 +775,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return !id(home_screen_idle_suspended);'
+            lambda: 'return !id(display_takeover_suspended);'
           then:
             - lambda: 'navigation_return_home(id(main_page)->obj);'
             - globals.set:

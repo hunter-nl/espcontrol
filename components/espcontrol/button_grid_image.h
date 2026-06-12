@@ -43,8 +43,8 @@ struct ImageCardCtx {
   std::string url;
   std::string modal_url;
   std::string access_token;
-  std::function<void()> pause_home_idle;
-  std::function<void()> resume_home_idle;
+  std::function<void()> suspend_display_takeover;
+  std::function<void()> resume_display_takeover;
   uint32_t refresh_interval_ms = 0;
   uint32_t next_refresh_ms = 0;
   uint32_t retry_deadline_ms = 0;
@@ -559,8 +559,8 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
     contexts[i].source_url.clear();
     contexts[i].url.clear();
     contexts[i].access_token.clear();
-    contexts[i].pause_home_idle = nullptr;
-    contexts[i].resume_home_idle = nullptr;
+    contexts[i].suspend_display_takeover = nullptr;
+    contexts[i].resume_display_takeover = nullptr;
     contexts[i].refresh_interval_ms = 0;
     contexts[i].next_refresh_ms = 0;
     contexts[i].retry_deadline_ms = 0;
@@ -1364,7 +1364,7 @@ inline void image_card_abort_modal_open(ImageCardCtx *ctx, const char *reason) {
   image_card_clear_widget_source(ui.image_widget);
   control_modal_delete_overlay(ControlModalKind::IMAGE_CARD, ui.overlay);
   ui = ImageCardModalUi();
-  if (ctx && ctx->resume_home_idle) ctx->resume_home_idle();
+  if (ctx && ctx->resume_display_takeover) ctx->resume_display_takeover();
   image_card_schedule_modal_cleanup(ctx);
 }
 
@@ -1376,7 +1376,7 @@ inline void image_card_hide_modal() {
   image_card_clear_widget_source(ui.image_widget);
   control_modal_delete_overlay(ControlModalKind::IMAGE_CARD, ui.overlay);
   ui = ImageCardModalUi();
-  if (ctx && ctx->resume_home_idle) ctx->resume_home_idle();
+  if (ctx && ctx->resume_display_takeover) ctx->resume_display_takeover();
   image_card_schedule_modal_cleanup(ctx);
 }
 
@@ -1410,7 +1410,7 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
   ui.overlay = shell.overlay;
   ui.panel = shell.panel;
   ui.back_btn = shell.close_btn;
-  if (ctx->pause_home_idle) ctx->pause_home_idle();
+  if (ctx->suspend_display_takeover) ctx->suspend_display_takeover();
   image_card_style_modal_back_button(ui.back_btn, shell.layout);
 
   lv_obj_set_style_bg_color(ui.panel, lv_color_hex(DARK_OVERLAY), LV_PART_MAIN);
@@ -1626,8 +1626,8 @@ inline bool bind_image_card(BtnSlot &s, const ParsedCfg &p, const GridConfig &cf
   ctx->entity_id = p.entity;
   ctx->base_url = cfg.home_assistant_base_url ? cfg.home_assistant_base_url() : "";
   ctx->base_url_provider = cfg.home_assistant_base_url;
-  ctx->pause_home_idle = cfg.pause_home_idle;
-  ctx->resume_home_idle = cfg.resume_home_idle;
+  ctx->suspend_display_takeover = cfg.suspend_display_takeover;
+  ctx->resume_display_takeover = cfg.resume_display_takeover;
   ctx->refresh_interval_ms = image_card_refresh_interval_ms(p);
   ctx->timer_only = image_card_timer_only_refresh(p);
   ctx->modal_fit = image_card_modal_fit_enabled(p);

@@ -45,8 +45,8 @@ struct GridConfig {
   int subpage_chevron_text_width_percent = 94;
   std::string temperature_unit;
   std::string timezone;
-  std::function<void()> pause_home_idle;
-  std::function<void()> resume_home_idle;
+  std::function<void()> suspend_display_takeover;
+  std::function<void()> resume_display_takeover;
   esphome::artwork_image::ArtworkImage **image_card_images = nullptr;
   esphome::artwork_image::ArtworkImage **image_card_modal_images = nullptr;
   int image_card_image_count = 0;
@@ -1114,7 +1114,7 @@ inline void grid_phase2(
             display_icon_font(display),
             display_volume_width_percent(display),
             s.sensor_lbl, s.unit_lbl,
-            cfg.pause_home_idle, cfg.resume_home_idle);
+            cfg.suspend_display_takeover, cfg.resume_display_takeover);
           subscribe_media_volume_state(ctx);
           if (p.label.empty()) subscribe_friendly_name(s.text_lbl, p.entity);
         } else if (mode == "now_playing") {
@@ -1697,7 +1697,7 @@ inline void grid_phase2(
               display_icon_font(display),
               display_volume_width_percent(display),
               sub_slot.sensor_lbl, sub_slot.unit_lbl,
-              cfg.pause_home_idle, cfg.resume_home_idle);
+              cfg.suspend_display_takeover, cfg.resume_display_takeover);
             subscribe_media_volume_state(ctx);
             if (sb_cfg.label.empty()) subscribe_friendly_name(sub_slot.text_lbl, sb_cfg.entity);
             lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {

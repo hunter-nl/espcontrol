@@ -24,6 +24,16 @@ MANUAL_OVERLAY_DELETE_ALLOWLIST = {
 }
 
 
+def yaml_script_body(text: str, script_id: str) -> str | None:
+    marker = re.search(rf"(?m)^  - id: {re.escape(script_id)}\n", text)
+    if marker is None:
+        return None
+    start = marker.end()
+    next_marker = re.search(r"(?m)^  - id: ", text[start:])
+    end = start + next_marker.start() if next_marker else len(text)
+    return text[start:end]
+
+
 def firmware_modal_errors(firmware_dir: Path, root: Path) -> list[str]:
     allocation_pattern = re.compile(r"\bnew\s+(" + "|".join(FORBIDDEN_ALLOCATIONS) + r")\b")
     layer_top_pattern = re.compile(r"\blv_obj_create\s*\(\s*lv_layer_top\s*\(\s*\)\s*\)")
@@ -57,8 +67,10 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
     modal_path = firmware_dir / "button_grid_modal.h"
     navigation_path = firmware_dir / "button_grid_navigation.h"
     grid_path = firmware_dir / "button_grid_grid.h"
+    image_path = firmware_dir / "button_grid_image.h"
     backlight_path = root / "common" / "addon" / "backlight.yaml"
     schedule_path = root / "common" / "addon" / "backlight_schedule.yaml"
+    generator_path = root / "scripts" / "generate_device_slots.py"
     errors: list[str] = []
 
     if not backlight_header_path.exists():
@@ -84,12 +96,48 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
         errors.append("components/espcontrol/button_grid_navigation.h: close modals before display takeover")
     else:
         text = navigation_path.read_text(encoding="utf-8")
+        hide_modals = re.search(
+            r"inline\s+void\s+navigation_hide_modals\s*\(\s*\)\s*\{(?P<body>.*?)\n\}",
+            text,
+            re.S,
+        )
+        return_home = re.search(
+            r"inline\s+bool\s+navigation_return_home\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
+            text,
+            re.S,
+        )
+        if hide_modals is None or "control_modal_close_active();" not in hide_modals.group("body"):
+            errors.append(
+                "components/espcontrol/button_grid_navigation.h: return-home navigation must close active shared modals"
+            )
+        if return_home is None or "navigation_hide_modals();" not in return_home.group("body"):
+            errors.append(
+                "components/espcontrol/button_grid_navigation.h: return-home navigation must use the shared modal close path"
+            )
         if (
             "navigation_close_modals_for_display_takeover" not in text
             or "control_modal_force_close_active();" not in text
         ):
             errors.append(
                 "components/espcontrol/button_grid_navigation.h: close modals through a display-takeover helper"
+            )
+
+    if not image_path.exists():
+        errors.append("components/espcontrol/button_grid_image.h: wire image modals to display-takeover guards")
+    else:
+        text = image_path.read_text(encoding="utf-8")
+        if "pause_home_idle" in text or "resume_home_idle" in text:
+            errors.append(
+                "components/espcontrol/button_grid_image.h: name image modal guards after display takeover, not home idle"
+            )
+        if (
+            "suspend_display_takeover" not in text
+            or "resume_display_takeover" not in text
+            or "ctx->suspend_display_takeover" not in text
+            or "ctx->resume_display_takeover" not in text
+        ):
+            errors.append(
+                "components/espcontrol/button_grid_image.h: keep image modal display-takeover suspend/resume hooks"
             )
 
     if not grid_path.exists():
@@ -103,10 +151,49 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
         errors.append("common/addon/backlight.yaml: keep display-off modal guards")
     else:
         text = backlight_path.read_text(encoding="utf-8")
+        home_idle_body = yaml_script_body(text, "home_screen_idle_check")
+        if "home_screen_idle_suspended" in text:
+            errors.append(
+                "common/addon/backlight.yaml: keep display-takeover suspension separate from home-return idle"
+            )
+        if "display_takeover_suspended" not in text:
+            errors.append("common/addon/backlight.yaml: track display-takeover suspension explicitly")
+        if home_idle_body is None:
+            errors.append("common/addon/backlight.yaml: keep the home-screen idle return script")
+        else:
+            if (
+                "display_takeover_suspended" in home_idle_body
+                or "home_screen_idle_suspended" in home_idle_body
+            ):
+                errors.append(
+                    "common/addon/backlight.yaml: do not gate home-return idle on display-takeover suspension"
+                )
+            if "navigation_return_home(id(main_page)->obj);" not in home_idle_body:
+                errors.append("common/addon/backlight.yaml: home-return idle must use navigation_return_home")
         if "Skipping automatic display-off while image modal is active" not in text:
             errors.append("common/addon/backlight.yaml: keep automatic idle display-off blocked by image modals")
         if "backlight_close_modals_for_display_takeover();" not in text:
             errors.append("common/addon/backlight.yaml: close modals before manual or scheduled display-off")
+
+    if not generator_path.exists():
+        errors.append("scripts/generate_device_slots.py: generate display-takeover modal guards")
+    else:
+        text = generator_path.read_text(encoding="utf-8")
+        if (
+            "cfg.pause_home_idle" in text
+            or "home_screen_idle_suspended" in text
+            or "id(home_screen_idle_check).stop();" in text
+        ):
+            errors.append(
+                "scripts/generate_device_slots.py: image modal display guard must not stop the home-return timer"
+            )
+        if (
+            "cfg.suspend_display_takeover" not in text
+            or "cfg.resume_display_takeover" not in text
+            or "id(display_takeover_suspended) = true;" not in text
+            or "id(display_takeover_suspended) = false;" not in text
+        ):
+            errors.append("scripts/generate_device_slots.py: generate explicit display-takeover guard hooks")
 
     if not schedule_path.exists():
         errors.append("common/addon/backlight_schedule.yaml: close modals before scheduled takeover")
@@ -164,6 +251,65 @@ def expect_sleep_takeover_errors(name: str, files: dict[str, str], expected: tup
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
+def valid_sleep_takeover_files() -> dict[str, str]:
+    return {
+        "components/espcontrol/backlight.h": (
+            "inline void set_backlight_display_takeover_callback(BacklightDisplayTakeoverCallback callback) {}\n"
+            "inline void backlight_close_modals_for_display_takeover() {}\n"
+        ),
+        "components/espcontrol/button_grid_modal.h": (
+            "inline void control_modal_close_active_internal(bool honor_close_guard) {}\n"
+            "inline void control_modal_force_close_active() { control_modal_close_active_internal(false); }\n"
+        ),
+        "components/espcontrol/button_grid_navigation.h": (
+            "inline void navigation_hide_modals() {\n"
+            "  control_modal_close_active();\n"
+            "}\n"
+            "inline bool navigation_return_home(lv_obj_t *main_page_obj) {\n"
+            "  navigation_hide_modals();\n"
+            "  return true;\n"
+            "}\n"
+            "inline void navigation_close_modals_for_display_takeover() {\n"
+            "  control_modal_force_close_active();\n"
+            "}\n"
+        ),
+        "components/espcontrol/button_grid_grid.h": (
+            "set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);\n"
+        ),
+        "components/espcontrol/button_grid_image.h": (
+            "std::function<void()> suspend_display_takeover;\n"
+            "std::function<void()> resume_display_takeover;\n"
+            "if (ctx->suspend_display_takeover) ctx->suspend_display_takeover();\n"
+            "if (ctx && ctx->resume_display_takeover) ctx->resume_display_takeover();\n"
+        ),
+        "common/addon/backlight.yaml": (
+            "globals:\n"
+            "  - id: display_takeover_suspended\n"
+            "script:\n"
+            "  - id: home_screen_idle_check\n"
+            "    then:\n"
+            "      - lambda: |-\n"
+            "          navigation_return_home(id(main_page)->obj);\n"
+            "Skipping automatic display-off while image modal is active\n"
+            "backlight_close_modals_for_display_takeover();\n"
+        ),
+        "common/addon/backlight_schedule.yaml": (
+            "backlight_close_modals_for_display_takeover();\n"
+            "backlight_close_modals_for_display_takeover();\n"
+        ),
+        "scripts/generate_device_slots.py": (
+            "cfg.suspend_display_takeover = []() {\n"
+            "  id(display_takeover_suspended) = true;\n"
+            "  id(screensaver_idle_check).stop();\n"
+            "};\n"
+            "cfg.resume_display_takeover = []() {\n"
+            "  id(display_takeover_suspended) = false;\n"
+            "  id(home_screen_idle_check).execute();\n"
+            "};\n"
+        ),
+    }
+
+
 def run_self_test() -> int:
     expect_errors(
         "forbidden click allocation",
@@ -211,33 +357,44 @@ def run_self_test() -> int:
     )
     expect_sleep_takeover_errors(
         "display takeover close",
-        {
-            "components/espcontrol/backlight.h": (
-                "inline void set_backlight_display_takeover_callback(BacklightDisplayTakeoverCallback callback) {}\n"
-                "inline void backlight_close_modals_for_display_takeover() {}\n"
-            ),
-            "components/espcontrol/button_grid_modal.h": (
-                "inline void control_modal_close_active_internal(bool honor_close_guard) {}\n"
-                "inline void control_modal_force_close_active() { control_modal_close_active_internal(false); }\n"
-            ),
-            "components/espcontrol/button_grid_navigation.h": (
-                "inline void navigation_close_modals_for_display_takeover() {\n"
-                "  control_modal_force_close_active();\n"
-                "}\n"
-            ),
-            "components/espcontrol/button_grid_grid.h": (
-                "set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);\n"
-            ),
-            "common/addon/backlight.yaml": (
-                "Skipping automatic display-off while image modal is active\n"
-                "backlight_close_modals_for_display_takeover();\n"
-            ),
-            "common/addon/backlight_schedule.yaml": (
-                "backlight_close_modals_for_display_takeover();\n"
-                "backlight_close_modals_for_display_takeover();\n"
-            ),
-        },
+        valid_sleep_takeover_files(),
         (),
+    )
+    home_idle_gated = valid_sleep_takeover_files()
+    home_idle_gated["common/addon/backlight.yaml"] = (
+        "globals:\n"
+        "  - id: display_takeover_suspended\n"
+        "script:\n"
+        "  - id: home_screen_idle_check\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: 'return !id(display_takeover_suspended);'\n"
+        "          then:\n"
+        "            - lambda: 'navigation_return_home(id(main_page)->obj);'\n"
+        "Skipping automatic display-off while image modal is active\n"
+        "backlight_close_modals_for_display_takeover();\n"
+    )
+    expect_sleep_takeover_errors(
+        "home return gated by display takeover",
+        home_idle_gated,
+        ("do not gate home-return idle",),
+    )
+    image_guard_stops_home_idle = valid_sleep_takeover_files()
+    image_guard_stops_home_idle["scripts/generate_device_slots.py"] = (
+        "cfg.suspend_display_takeover = []() {\n"
+        "  id(display_takeover_suspended) = true;\n"
+        "  id(home_screen_idle_check).stop();\n"
+        "};\n"
+        "cfg.resume_display_takeover = []() {\n"
+        "  id(display_takeover_suspended) = false;\n"
+        "  id(home_screen_idle_check).execute();\n"
+        "};\n"
+    )
+    expect_sleep_takeover_errors(
+        "image modal display guard stops home return",
+        image_guard_stops_home_idle,
+        ("must not stop the home-return timer",),
     )
     print("Firmware modal allocation self-tests passed.")
     return 0

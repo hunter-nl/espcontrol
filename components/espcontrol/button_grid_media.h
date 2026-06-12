@@ -557,8 +557,8 @@ inline MediaVolumeCtx *create_media_volume_context(lv_obj_t *btn,
                                                    int width_compensation_percent = 100,
                                                    lv_obj_t *pct_lbl = nullptr,
                                                    lv_obj_t *unit_lbl = nullptr,
-                                                   std::function<void()> pause_home_idle = nullptr,
-                                                   std::function<void()> resume_home_idle = nullptr) {
+                                                   std::function<void()> suspend_display_takeover = nullptr,
+                                                   std::function<void()> resume_display_takeover = nullptr) {
   MediaVolumeCtx *ctx = new MediaVolumeCtx();
   ctx->entity_id = p.entity;
   ctx->label = media_label(p);
@@ -576,8 +576,8 @@ inline MediaVolumeCtx *create_media_volume_context(lv_obj_t *btn,
   ctx->unit_font = unit_font;
   ctx->label_font = label_font;
   ctx->icon_font = icon_font;
-  ctx->pause_home_idle = pause_home_idle;
-  ctx->resume_home_idle = resume_home_idle;
+  ctx->suspend_display_takeover = suspend_display_takeover;
+  ctx->resume_display_takeover = resume_display_takeover;
   if (btn) lv_obj_set_user_data(btn, ctx);
   return ctx;
 }
