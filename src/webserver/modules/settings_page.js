@@ -668,12 +668,15 @@ function buildSettingsPage(parent) {
       trackOverlaySelect.className = "sp-select";
       trackOverlaySelect.id = "sp-set-ss-track-overlay";
       [
-        { label: "Hidden", value: 0 },
+        { label: "Never", value: 0 },
         { label: "3 seconds", value: 3 },
         { label: "5 seconds", value: 5 },
         { label: "10 seconds", value: 10 },
+        { label: "15 seconds", value: 15 },
+        { label: "20 seconds", value: 20 },
         { label: "30 seconds", value: 30 },
-        { label: "1 minute", value: 60 },
+        { label: "60 seconds", value: 60 },
+        { label: "Always", value: -1 },
       ].forEach(function (opt) {
         var o = document.createElement("option");
         o.value = opt.value;
@@ -1093,7 +1096,7 @@ function syncCoverArtScreensaverUi() {
     setSelectValue(
       els.setCoverArtTrackOverlayDuration,
       value,
-      value > 0 ? formatDuration(value) : "Hidden");
+      value < 0 ? "Always" : value > 0 ? formatDuration(value) : "Never");
   }
   if (els.setCoverArtHideExternalInputToggle) {
     els.setCoverArtHideExternalInputToggle.checked = !!state.coverArtHideExternalInputOn;

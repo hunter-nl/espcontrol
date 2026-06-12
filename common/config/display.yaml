@@ -786,7 +786,7 @@ number:
     name: "${entity_screen_saver_track_overlay_duration}"
     internal: true
     id: cover_art_track_overlay_duration
-    min_value: 0
+    min_value: -1
     max_value: 60
     step: 1
     initial_value: 5
@@ -797,6 +797,13 @@ number:
     icon: "mdi:playlist-music-outline"
     web_server:
       sorting_group_id: sg_screensaver
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return id(cover_art_screensaver_active);'
+            then:
+              - script.execute: cover_art_show_track_overlay
 
   # Legacy setting kept so existing panels can migrate their saved single
   # clock brightness into the new day/night settings, and so older cached web
