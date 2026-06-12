@@ -1273,6 +1273,9 @@ inline void reset_ha_control_availability_refs() {
 #ifndef ESPCONTROL_HA_RETRY_HELPERS_DEFINED
 inline void ha_reset_unavailable_state_retries() {}
 #endif
+#ifndef ESPCONTROL_HA_DEFERRED_HELPERS_DEFINED
+inline void ha_reset_deferred_state_requests() {}
+#endif
 
 inline uint32_t &ha_subscription_generation() {
   static uint32_t generation = 1;
@@ -1284,6 +1287,7 @@ inline void bump_ha_subscription_generation() {
   generation++;
   if (generation == 0) generation = 1;
   ha_reset_unavailable_state_retries();
+  ha_reset_deferred_state_requests();
 }
 
 inline void register_ha_control_availability(lv_obj_t *visual_obj, lv_obj_t *input_obj,

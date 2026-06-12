@@ -69,15 +69,47 @@ struct HaUnavailableStateRetryRef {
   bool unavailable = false;
 };
 
+struct HaDeferredStateRequest {
+  std::string entity_id;
+  std::string attribute;
+  std::shared_ptr<HomeAssistantStateCallback> callback;
+  uint32_t generation = 0;
+  bool has_attribute = false;
+};
+
 inline std::vector<HaUnavailableStateRetryRef> &ha_unavailable_state_retry_refs() {
   static std::vector<HaUnavailableStateRetryRef> refs;
   return refs;
 }
 
+inline std::vector<HaDeferredStateRequest> &ha_deferred_state_requests() {
+  static std::vector<HaDeferredStateRequest> requests;
+  return requests;
+}
+
+inline uint8_t &ha_state_callback_depth() {
+  static uint8_t depth = 0;
+  return depth;
+}
+
 inline void ha_reset_unavailable_state_retries() {
   ha_unavailable_state_retry_refs().clear();
 }
+
+inline void ha_reset_deferred_state_requests() {
+  ha_deferred_state_requests().clear();
+}
 #define ESPCONTROL_HA_RETRY_HELPERS_DEFINED 1
+#define ESPCONTROL_HA_DEFERRED_HELPERS_DEFINED 1
+
+inline void ha_invoke_state_callback(const std::shared_ptr<HomeAssistantStateCallback> &callback,
+                                     esphome::StringRef state) {
+  if (!callback || !*callback) return;
+  uint8_t &depth = ha_state_callback_depth();
+  depth++;
+  (*callback)(state);
+  depth--;
+}
 
 inline void ha_note_state_retry_result(const std::string &entity_id,
                                        esphome::StringRef state,
@@ -124,8 +156,66 @@ inline void ha_retry_unavailable_states(bool force = false) {
       entity_id, {},
       [entity_id, generation, callback](esphome::StringRef state) {
         ha_note_state_retry_result(entity_id, state, generation);
-        if (callback && *callback) (*callback)(state);
+        ha_invoke_state_callback(callback, state);
       });
+  }
+}
+
+inline bool ha_queue_deferred_state_request(const std::string &entity_id,
+                                            const std::string &attribute,
+                                            std::shared_ptr<HomeAssistantStateCallback> callback,
+                                            bool has_attribute) {
+  constexpr size_t HA_DEFERRED_STATE_REQUEST_MAX = 64;
+  if (!callback || !*callback) return false;
+  std::vector<HaDeferredStateRequest> &requests = ha_deferred_state_requests();
+  if (requests.size() >= HA_DEFERRED_STATE_REQUEST_MAX) {
+    ESP_LOGW("ha", "Dropping deferred Home Assistant state request for %s: queue full",
+             entity_id.c_str());
+    return false;
+  }
+  requests.push_back({
+    entity_id,
+    attribute,
+    std::move(callback),
+    ha_subscription_generation(),
+    has_attribute,
+  });
+  return true;
+}
+
+inline void ha_flush_deferred_state_requests(size_t max_requests = 8) {
+  if (ha_state_callback_depth() != 0 || !ha_api_state_connected()) return;
+  std::vector<HaDeferredStateRequest> &requests = ha_deferred_state_requests();
+  size_t processed = 0;
+  while (!requests.empty() && processed < max_requests) {
+    HaDeferredStateRequest request = std::move(requests.front());
+    requests.erase(requests.begin());
+    if (!request.callback || !*request.callback) continue;
+    if (request.generation != ha_subscription_generation()) continue;
+    if (!ha_internal_heap_available("deferred Home Assistant state request",
+                                    HA_READ_INTERNAL_FREE_MIN_BYTES,
+                                    HA_READ_INTERNAL_LARGEST_MIN_BYTES)) {
+      requests.insert(requests.begin(), std::move(request));
+      return;
+    }
+
+    auto callback = request.callback;
+    if (request.has_attribute) {
+      esphome::api::global_api_server->get_home_assistant_state(
+        std::move(request.entity_id),
+        std::move(request.attribute),
+        [callback](esphome::StringRef state) {
+          ha_invoke_state_callback(callback, state);
+        });
+    } else {
+      esphome::api::global_api_server->get_home_assistant_state(
+        std::move(request.entity_id),
+        {},
+        [callback](esphome::StringRef state) {
+          ha_invoke_state_callback(callback, state);
+        });
+    }
+    processed++;
   }
 }
 
@@ -216,7 +306,7 @@ inline bool ha_subscribe_state(const std::string &entity_id,
     entity_id, {},
     [entity_id, callback_ref, generation](esphome::StringRef state) {
       ha_note_state_retry_result(entity_id, state, generation);
-      if (callback_ref && *callback_ref) (*callback_ref)(state);
+      ha_invoke_state_callback(callback_ref, state);
     });
   return true;
 }
@@ -228,10 +318,13 @@ inline bool ha_get_state(const std::string &entity_id,
                                   HA_READ_INTERNAL_FREE_MIN_BYTES,
                                   HA_READ_INTERNAL_LARGEST_MIN_BYTES)) return false;
   auto callback_ref = std::make_shared<HomeAssistantStateCallback>(std::move(callback));
+  if (ha_state_callback_depth() != 0) {
+    return ha_queue_deferred_state_request(entity_id, std::string(), callback_ref, false);
+  }
   esphome::api::global_api_server->get_home_assistant_state(
     entity_id, {},
     [callback_ref](esphome::StringRef state) {
-      if (callback_ref && *callback_ref) (*callback_ref)(state);
+      ha_invoke_state_callback(callback_ref, state);
     });
   return true;
 }
@@ -244,7 +337,7 @@ inline bool ha_subscribe_attribute(const std::string &entity_id,
   esphome::api::global_api_server->subscribe_home_assistant_state(
     entity_id, attribute,
     [callback_ref](esphome::StringRef state) {
-      if (callback_ref && *callback_ref) (*callback_ref)(state);
+      ha_invoke_state_callback(callback_ref, state);
     });
   return true;
 }
@@ -257,10 +350,13 @@ inline bool ha_get_attribute(const std::string &entity_id,
                                   HA_READ_INTERNAL_FREE_MIN_BYTES,
                                   HA_READ_INTERNAL_LARGEST_MIN_BYTES)) return false;
   auto callback_ref = std::make_shared<HomeAssistantStateCallback>(std::move(callback));
+  if (ha_state_callback_depth() != 0) {
+    return ha_queue_deferred_state_request(entity_id, attribute, callback_ref, true);
+  }
   esphome::api::global_api_server->get_home_assistant_state(
     entity_id, attribute,
     [callback_ref](esphome::StringRef state) {
-      if (callback_ref && *callback_ref) (*callback_ref)(state);
+      ha_invoke_state_callback(callback_ref, state);
     });
   return true;
 }
