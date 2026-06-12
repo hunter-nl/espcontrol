@@ -313,6 +313,23 @@ script:
       - output.turn_off: gpio_backlight_pwm
       - lambda: 'id(gpio_backlight_pwm).turn_off();'
 
+  - id: backlight_pause_display_off
+    mode: restart
+    then:
+      - script.execute: backlight_force_display_off
+      - delay: 100ms
+      - if:
+          condition:
+            lambda: |-
+              return id(screen_rotation_select).current_option() == "90" ||
+                     id(screen_rotation_select).current_option() == "270";
+          then:
+            - lvgl.pause:
+          else:
+            - lvgl.pause:
+                show_snow: true
+      - script.execute: backlight_force_display_off
+
   - id: backlight_fade_current_ui_to_black
     mode: restart
     then:
@@ -386,8 +403,7 @@ script:
             - script.execute: clock_bar_hide
             - delay: 50ms
             - script.execute: backlight_force_display_off
-            - lvgl.pause:
-            - script.execute: backlight_force_display_off
+            - script.execute: backlight_pause_display_off
           else:
             - lambda: 'ESP_LOGD("backlight", "Skipping automatic display-off while image modal is active");'
 
@@ -412,8 +428,7 @@ script:
             - script.execute: clock_bar_hide
             - delay: 50ms
             - script.execute: backlight_force_display_off
-            - lvgl.pause:
-            - script.execute: backlight_force_display_off
+            - script.execute: backlight_pause_display_off
           else:
             - lambda: 'ESP_LOGD("backlight", "Skipping non-scheduled display-off while image modal is active");'
 
@@ -493,6 +508,7 @@ script:
       - script.stop: backlight_fade_current_ui_to_black
       - script.stop: backlight_sleep_display_off
       - script.stop: backlight_schedule_display_off
+      - script.stop: backlight_pause_display_off
       - script.stop: screensaver_sleep_timer
       - script.stop: screensaver_sleep_sensor
       - script.stop: screensaver_sleep_display_off
@@ -563,6 +579,12 @@ script:
                   - globals.set:
                       id: screensaver_wake_touch_guard_active
                       value: 'false'
+            - if:
+                condition:
+                  lambda: 'return id(screensaver_display_off_active);'
+                then:
+                  - script.execute: backlight_force_display_off
+                  - script.wait: backlight_force_display_off
             - globals.set:
                 id: screensaver_display_off_active
                 value: 'false'

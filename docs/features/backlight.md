@@ -31,11 +31,11 @@ For example, you can set Dawn to `07:00` and Dusk to `22:00` if you want the pan
 
 ## Screensaver
 
-When the screensaver uses **Screen Dimmed**, it keeps the normal screen visible at the saved dim brightness. When the screensaver clock is active, it can use separate daytime and nighttime clock brightness values based on the same automatic or manual day/night times. If the screensaver is set to Display Off, the backlight turns off completely. On wake (touch or presence sensor), brightness returns to the correct level for the current time.
+When the screensaver uses **Screen Dimmed**, it keeps the normal screen visible at the saved dim brightness. When the screensaver clock is active, it can use separate daytime and nighttime clock brightness values based on the same automatic or manual day/night times. If the screensaver is set to Display Off, the backlight turns off completely. While the backlight is off, EspControl can exercise the LCD pixels in the background to reduce burn-in risk without showing that pattern. On wake (touch or presence sensor), brightness returns to the correct level for the current time.
 
 ## Screen Schedule
 
-The [screen schedule](/features/screen-schedule) can turn the physical backlight off, keep the panel dimmed, or show a clock at set hours. **Screen Off** uses the schedule's separate **When Woken** brightness during a temporary wake. **Screen Dimmed** uses its own overnight brightness setting. **Clock** uses its own clock brightness setting.
+The [screen schedule](/features/screen-schedule) can turn the physical backlight off, keep the panel dimmed, or show a clock at set hours. **Screen Off** uses the schedule's separate **When Woken** brightness during a temporary wake and can run the same invisible burn-in protection while dark. **Screen Dimmed** uses its own overnight brightness setting. **Clock** uses its own clock brightness setting.
 
 ## Before Clock Sync
 
