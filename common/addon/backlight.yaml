@@ -320,30 +320,42 @@ script:
     then:
       - if:
           condition:
-            light.is_on: display_backlight
+            lambda: 'return !id(display_takeover_suspended);'
           then:
-            - light.turn_off:
-                id: display_backlight
-                transition_length: 0s
-      - output.turn_off: gpio_backlight_pwm
-      - lambda: 'id(gpio_backlight_pwm).turn_off();'
+            - if:
+                condition:
+                  light.is_on: display_backlight
+                then:
+                  - light.turn_off:
+                      id: display_backlight
+                      transition_length: 0s
+            - output.turn_off: gpio_backlight_pwm
+            - lambda: 'id(gpio_backlight_pwm).turn_off();'
+          else:
+            - lambda: 'ESP_LOGD("backlight", "Skipping force display-off while image modal is active");'
 
   - id: backlight_pause_display_off
     mode: restart
     then:
-      - script.execute: backlight_force_display_off
-      - delay: 100ms
       - if:
           condition:
-            lambda: |-
-              return id(screen_rotation_select).current_option() == "90" ||
-                     id(screen_rotation_select).current_option() == "270";
+            lambda: 'return !id(display_takeover_suspended);'
           then:
-            - lvgl.pause:
+            - script.execute: backlight_force_display_off
+            - delay: 100ms
+            - if:
+                condition:
+                  lambda: |-
+                    return id(screen_rotation_select).current_option() == "90" ||
+                           id(screen_rotation_select).current_option() == "270";
+                then:
+                  - lvgl.pause:
+                else:
+                  - lvgl.pause:
+                      show_snow: true
+            - script.execute: backlight_force_display_off
           else:
-            - lvgl.pause:
-                show_snow: true
-      - script.execute: backlight_force_display_off
+            - lambda: 'ESP_LOGD("backlight", "Skipping LVGL pause while image modal is active");'
 
   - id: backlight_fade_current_ui_to_black
     mode: restart

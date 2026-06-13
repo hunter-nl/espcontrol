@@ -251,13 +251,21 @@ light:
       then:
         - if:
             condition:
-              lambda: |-
-                return !id(display_asleep) &&
-                       !id(screen_schedule_asleep) &&
-                       !id(screensaver_display_off_active) &&
-                       !id(screensaver_dimmed_active);
+              lambda: 'return id(display_takeover_suspended);'
             then:
-              - script.execute: screen_schedule_manual_sleep
+              - lambda: 'ESP_LOGD("backlight", "Restoring backlight after OFF event while image modal is active");'
+              - delay: 10ms
+              - script.execute: backlight_apply_brightness
+            else:
+              - if:
+                  condition:
+                    lambda: |-
+                      return !id(display_asleep) &&
+                             !id(screen_schedule_asleep) &&
+                             !id(screensaver_display_off_active) &&
+                             !id(screensaver_dimmed_active);
+                  then:
+                    - script.execute: screen_schedule_manual_sleep
 
 # ---------------------------------------------------------------------------
 # I2C bus and touchscreen (GSL3680 capacitive, wakes screensaver on touch)
