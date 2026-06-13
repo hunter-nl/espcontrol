@@ -867,6 +867,12 @@ def firmware_artwork_image_auth_errors(path: Path, root: Path) -> list[str]:
         )
     if "config.auth_type = HTTP_AUTH_TYPE_NONE;" not in text:
         errors.append(f"{rel}: explicitly disable HTTP auth for local artwork requests")
+    if (
+        'container->status_code <= 0 && is_ha_media_proxy_url(url)' not in text
+        or "trying artwork bytes anyway" not in text
+        or "container->status_code = HTTP_CODE_OK;" not in text
+    ):
+        errors.append(f"{rel}: allow Home Assistant media proxy artwork to fall back to image-byte detection")
     return errors
 
 
@@ -3014,6 +3020,10 @@ def run_self_test() -> int:
         "    const std::string &url, const std::vector<http_request::Header> &headers) {\n"
         "  esp_http_client_config_t config = {};\n"
         "  config.auth_type = HTTP_AUTH_TYPE_BASIC;\n"
+        "  if (container->status_code <= 0 && is_ha_media_proxy_url(url)) {\n"
+        "    ESP_LOGW(TAG, \"Home Assistant media proxy returned an unknown HTTP status; trying artwork bytes anyway\");\n"
+        "    container->status_code = HTTP_CODE_OK;\n"
+        "  }\n"
         "}\n",
         (
             "keep local Home Assistant image proxy requests off HTTP Basic auth",
@@ -3026,8 +3036,21 @@ def run_self_test() -> int:
         "    const std::string &url, const std::vector<http_request::Header> &headers) {\n"
         "  esp_http_client_config_t config = {};\n"
         "  config.auth_type = HTTP_AUTH_TYPE_NONE;\n"
+        "  if (container->status_code <= 0 && is_ha_media_proxy_url(url)) {\n"
+        "    ESP_LOGW(TAG, \"Home Assistant media proxy returned an unknown HTTP status; trying artwork bytes anyway\");\n"
+        "    container->status_code = HTTP_CODE_OK;\n"
+        "  }\n"
         "}\n",
         (),
+    )
+    expect_artwork_image_auth_errors(
+        "local artwork image request rejects unknown HA media proxy status",
+        "std::shared_ptr<http_request::HttpContainer> ArtworkImage::get_local_idf_(\n"
+        "    const std::string &url, const std::vector<http_request::Header> &headers) {\n"
+        "  esp_http_client_config_t config = {};\n"
+        "  config.auth_type = HTTP_AUTH_TYPE_NONE;\n"
+        "}\n",
+        ("allow Home Assistant media proxy artwork to fall back to image-byte detection",),
     )
     expect_climate_step_errors(
         "climate ignores whole-number display step",

@@ -42,9 +42,13 @@ static std::string sanitize_artwork_url_for_log(const std::string &url) {
   return url.substr(0, query) + "?...";
 }
 
+static bool is_ha_media_proxy_url(const std::string &url) {
+  return url.find("/api/media_player_proxy/") != std::string::npos;
+}
+
 static const char *classify_artwork_url_for_log(const std::string &url) {
   if (url.find("mzstatic.com") != std::string::npos) return "apple-cdn";
-  if (url.find("/api/media_player_proxy/") != std::string::npos) return "ha-media-proxy";
+  if (is_ha_media_proxy_url(url)) return "ha-media-proxy";
   if (url.rfind("http://", 0) == 0) return "http";
   if (url.rfind("https://", 0) == 0) return "https";
   return "unknown";
@@ -473,6 +477,10 @@ std::shared_ptr<http_request::HttpContainer> ArtworkImage::get_local_idf_(
   container->set_content_length_known(content_length > 0);
   container->set_chunked(esp_http_client_is_chunked_response(client));
   container->status_code = esp_http_client_get_status_code(client);
+  if (container->status_code <= 0 && is_ha_media_proxy_url(url)) {
+    ESP_LOGW(TAG, "Home Assistant media proxy returned an unknown HTTP status; trying artwork bytes anyway");
+    container->status_code = HTTP_CODE_OK;
+  }
   container->duration_ms = millis() - start;
   return container;
 #else
