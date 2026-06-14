@@ -1173,6 +1173,7 @@ inline void grid_phase2(
       CoverControlCtx *ctx = create_cover_control_context(
         s, p,
         has_on ? on_val : DEFAULT_SLIDER_COLOR,
+        has_off ? off_val : DEFAULT_OFF_COLOR,
         display_icon_font(display),
         display_main_width_percent(display));
       subscribe_cover_control_state(ctx);
@@ -1437,6 +1438,7 @@ inline void grid_phase2(
           CoverControlCtx *ctx = create_cover_control_context(
             sub_slot, sb_cfg,
             has_on ? on_val : DEFAULT_SLIDER_COLOR,
+            has_off ? off_val : DEFAULT_OFF_COLOR,
             display_icon_font(display),
             display_main_width_percent(display));
           subscribe_cover_control_state(ctx);

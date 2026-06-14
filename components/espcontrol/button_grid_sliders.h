@@ -335,6 +335,7 @@ struct CoverControlCtx {
   int current_position = 0;
   int current_tilt = 0;
   uint32_t accent_color = DEFAULT_SLIDER_COLOR;
+  uint32_t secondary_color = DEFAULT_OFF_COLOR;
   lv_obj_t *btn = nullptr;
   lv_obj_t *icon_lbl = nullptr;
   lv_obj_t *label_lbl = nullptr;
@@ -539,7 +540,7 @@ inline lv_coord_t cover_control_slider_handle_inset(lv_obj_t *slider) {
 
 inline uint32_t cover_control_slider_fill_color(CoverControlCtx *ctx, int pct) {
   return slider_clamp_pct(pct) == 0
-    ? DEFAULT_TERTIARY_COLOR
+    ? (ctx ? ctx->secondary_color : DEFAULT_OFF_COLOR)
     : (ctx ? ctx->accent_color : DEFAULT_SLIDER_COLOR);
 }
 
@@ -942,12 +943,14 @@ inline CoverControlCtx *create_cover_control_context(
     const BtnSlot &s,
     const ParsedCfg &p,
     uint32_t accent_color,
+    uint32_t secondary_color,
     const lv_font_t *icon_font,
     int width_compensation_percent) {
   CoverControlCtx *ctx = new CoverControlCtx();
   ctx->entity_id = p.entity;
   ctx->label = p.label;
   ctx->accent_color = accent_color;
+  ctx->secondary_color = secondary_color;
   ctx->btn = s.btn;
   ctx->icon_lbl = s.icon_lbl;
   ctx->label_lbl = s.text_lbl;
