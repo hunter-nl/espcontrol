@@ -35,6 +35,7 @@ inline bool ha_api_state_connected() {
 
 constexpr uint32_t HA_UNAVAILABLE_STATE_RETRY_INTERVAL_MS = 5000;
 constexpr uint32_t HA_UNAVAILABLE_STATE_RETRY_RESPONSE_TIMEOUT_MS = 10000;
+constexpr uint8_t HA_UNAVAILABLE_STATE_RETRY_MAX_REQUESTS = 3;
 constexpr size_t HA_READ_INTERNAL_FREE_MIN_BYTES = 8 * 1024;
 constexpr size_t HA_READ_INTERNAL_LARGEST_MIN_BYTES = 4 * 1024;
 constexpr size_t HA_ACTION_INTERNAL_FREE_MIN_BYTES = 12 * 1024;
@@ -65,6 +66,7 @@ struct HaUnavailableStateRetryRef {
   std::shared_ptr<HomeAssistantStateCallback> callback;
   uint32_t generation = 0;
   uint32_t last_request_ms = 0;
+  uint8_t retry_requests = 0;
   bool waiting_for_response = false;
   bool unavailable = false;
 };
@@ -119,6 +121,7 @@ inline void ha_note_state_retry_result(const std::string &entity_id,
     if (ref.generation != generation || ref.entity_id != entity_id) continue;
     ref.unavailable = ha_entity_state_unavailable_ref(entity_id, state);
     ref.waiting_for_response = false;
+    if (!ref.unavailable) ref.retry_requests = 0;
   }
 }
 
@@ -130,6 +133,7 @@ inline void ha_retry_unavailable_states(bool force = false) {
 
   for (auto &ref : refs) {
     if (ref.generation != active_generation || !ref.unavailable || !ref.callback) continue;
+    if (ref.retry_requests >= HA_UNAVAILABLE_STATE_RETRY_MAX_REQUESTS) continue;
     if (ref.waiting_for_response) {
       if (ref.last_request_ms != 0 &&
           now - ref.last_request_ms < HA_UNAVAILABLE_STATE_RETRY_RESPONSE_TIMEOUT_MS) {
@@ -149,6 +153,7 @@ inline void ha_retry_unavailable_states(bool force = false) {
                                     HA_READ_INTERNAL_LARGEST_MIN_BYTES)) continue;
     ref.waiting_for_response = true;
     ref.last_request_ms = now;
+    ref.retry_requests++;
     const std::string entity_id = ref.entity_id;
     const uint32_t generation = ref.generation;
     auto callback = ref.callback;
@@ -298,6 +303,7 @@ inline bool ha_subscribe_state(const std::string &entity_id,
     entity_id,
     callback_ref,
     generation,
+    0,
     0,
     false,
     false,

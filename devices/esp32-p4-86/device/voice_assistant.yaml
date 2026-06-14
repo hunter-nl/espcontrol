@@ -260,8 +260,8 @@ micro_wake_word:
     - model: https://raw.githubusercontent.com/TaterTotterson/microWakeWords/refs/heads/main/microWakeWords/stop.json
       id: wake_word_stop
       internal: true
-      probability_cutoff: 0.40
-      sliding_window_size: 3
+      probability_cutoff: 0.65
+      sliding_window_size: 5
   on_wake_word_detected:
     - logger.log:
         level: INFO
