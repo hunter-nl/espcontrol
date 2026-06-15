@@ -545,7 +545,7 @@ inline lv_coord_t cover_control_slider_handle_inset(lv_obj_t *slider) {
 
 inline uint32_t cover_control_slider_fill_color(CoverControlCtx *ctx, int pct) {
   return slider_clamp_pct(pct) == 0
-    ? DEFAULT_TERTIARY_COLOR
+    ? (ctx ? ctx->secondary_color : DEFAULT_OFF_COLOR)
     : (ctx ? ctx->accent_color : DEFAULT_SLIDER_COLOR);
 }
 
