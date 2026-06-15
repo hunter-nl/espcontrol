@@ -164,8 +164,10 @@ struct LightControlModalUi {
   lv_obj_t *temperature_tab = nullptr;
   lv_obj_t *color_tab = nullptr;
   lv_obj_t *slider = nullptr;
+  lv_obj_t *slider_fill = nullptr;
   lv_obj_t *slider_handle = nullptr;
   lv_obj_t *temp_slider = nullptr;
+  lv_obj_t *temp_slider_fill = nullptr;
   lv_obj_t *temp_slider_handle = nullptr;
   lv_obj_t *color_grid = nullptr;
   LightControlCtx *active = nullptr;
@@ -178,6 +180,9 @@ inline LightControlModalUi &light_control_modal_ui() {
 }
 
 inline void light_control_update_slider_handle(lv_obj_t *slider, lv_obj_t *handle, int pct);
+inline void light_control_update_slider_fill(lv_obj_t *slider, lv_obj_t *fill,
+                                             lv_obj_t *handle, int pct,
+                                             uint32_t fill_color);
 
 inline std::string light_control_title(LightControlCtx *ctx) {
   if (!ctx) return espcontrol_i18n(std::string("Light"));
@@ -220,6 +225,8 @@ inline void light_control_set_modal_value(LightControlCtx *ctx, int pct) {
     lv_slider_set_value(ui.slider, pct, LV_ANIM_OFF);
     ctx->updating_slider = false;
   }
+  light_control_update_slider_fill(
+    ui.slider, ui.slider_fill, ui.slider_handle, pct, ctx->accent_color);
   light_control_update_slider_handle(ui.slider, ui.slider_handle, pct);
 }
 
@@ -250,10 +257,11 @@ inline void light_control_set_temp_modal_value(LightControlCtx *ctx, int kelvin)
     ctx->updating_temp_slider = true;
     lv_slider_set_value(ui.temp_slider, light_control_kelvin_to_pct(ctx, kelvin), LV_ANIM_OFF);
     ctx->updating_temp_slider = false;
-    lv_obj_set_style_bg_color(
-      ui.temp_slider, kelvin_to_fill_color(kelvin, ctx->kelvin_min, ctx->kelvin_max),
-      LV_PART_INDICATOR);
   }
+  uint32_t fill_color = kelvin_to_fill_color(kelvin, ctx->kelvin_min, ctx->kelvin_max);
+  light_control_update_slider_fill(
+    ui.temp_slider, ui.temp_slider_fill, ui.temp_slider_handle,
+    light_control_kelvin_to_pct(ctx, kelvin), fill_color);
   light_control_update_slider_handle(
     ui.temp_slider, ui.temp_slider_handle, light_control_kelvin_to_pct(ctx, kelvin));
 }
@@ -355,6 +363,53 @@ inline lv_coord_t light_control_slider_handle_inset(lv_obj_t *slider) {
   return inset;
 }
 
+inline lv_obj_t *light_control_create_slider_fill(lv_obj_t *slider, uint32_t fill_color) {
+  if (!slider) return nullptr;
+  lv_obj_set_style_bg_opa(slider, LV_OPA_TRANSP, LV_PART_INDICATOR);
+  lv_obj_t *fill = lv_obj_create(slider);
+  if (!fill) return nullptr;
+  lv_obj_set_size(fill, 0, 0);
+  lv_obj_set_style_bg_color(fill, lv_color_hex(fill_color), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(fill, LV_OPA_COVER, LV_PART_MAIN);
+  lv_obj_set_style_border_width(fill, 0, LV_PART_MAIN);
+  lv_obj_set_style_shadow_width(fill, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(fill, 0, LV_PART_MAIN);
+  lv_obj_set_style_radius(fill, 0, LV_PART_MAIN);
+  lv_obj_clear_flag(fill, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_clear_flag(fill, LV_OBJ_FLAG_SCROLLABLE);
+  return fill;
+}
+
+inline void light_control_update_slider_fill(lv_obj_t *slider, lv_obj_t *fill,
+                                             lv_obj_t *handle, int pct,
+                                             uint32_t fill_color) {
+  if (!slider || !fill) return;
+  lv_coord_t height = lv_obj_get_height(slider);
+  lv_coord_t width = lv_obj_get_width(slider);
+  if (height <= 0 || width <= 0) return;
+  pct = slider_clamp_pct(pct);
+  lv_obj_set_style_bg_color(fill, lv_color_hex(fill_color), LV_PART_MAIN);
+  lv_coord_t handle_h = height / 70;
+  if (handle_h < 5) handle_h = 5;
+  if (handle_h > 8) handle_h = 8;
+  lv_coord_t fill_h = height;
+  if (pct < 100) {
+    lv_coord_t inset = light_control_slider_handle_inset(slider);
+    lv_coord_t travel = height - inset * 2 - handle_h;
+    if (travel < 0) travel = 0;
+    lv_coord_t y = inset + (lv_coord_t)((int32_t) travel * (100 - pct) / 100);
+    lv_coord_t fill_top = y + handle_h / 2;
+    if (fill_top < 0) fill_top = 0;
+    if (fill_top > height) fill_top = height;
+    fill_h = height - fill_top;
+  }
+  lv_obj_set_size(fill, width, fill_h);
+  lv_obj_set_style_radius(fill, 0, LV_PART_MAIN);
+  lv_obj_align(fill, LV_ALIGN_BOTTOM_MID, 0, 0);
+  lv_obj_move_foreground(fill);
+  if (handle) lv_obj_move_foreground(handle);
+}
+
 inline void light_control_update_slider_handle(lv_obj_t *slider, lv_obj_t *handle, int pct) {
   if (!slider || !handle) return;
   lv_coord_t width = lv_obj_get_width(slider);
@@ -400,7 +455,7 @@ inline void light_control_style_slider(lv_obj_t *slider, uint32_t accent_color) 
   lv_obj_set_style_bg_color(slider, lv_color_hex(DARK_BACKGROUND_SECONDARY), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_bg_color(slider, lv_color_hex(accent_color), LV_PART_INDICATOR);
-  lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_INDICATOR);
+  lv_obj_set_style_bg_opa(slider, LV_OPA_TRANSP, LV_PART_INDICATOR);
   lv_obj_set_style_bg_opa(slider, LV_OPA_TRANSP, LV_PART_KNOB);
   lv_obj_set_style_border_width(slider, 0, LV_PART_MAIN);
   lv_obj_set_style_border_width(slider, 0, LV_PART_KNOB);
@@ -453,9 +508,15 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
   if (slider_w >= slider_h) slider_w = slider_h * 3 / 4;
   light_control_layout_slider(ui.slider, slider_w, slider_h, content_center_y);
   lv_obj_update_layout(ui.panel);
+  light_control_update_slider_fill(
+    ui.slider, ui.slider_fill, ui.slider_handle, ctx->current_pct, ctx->accent_color);
   light_control_update_slider_handle(ui.slider, ui.slider_handle, ctx->current_pct);
   light_control_layout_slider(ui.temp_slider, slider_w, slider_h, content_center_y);
   lv_obj_update_layout(ui.panel);
+  light_control_update_slider_fill(
+    ui.temp_slider, ui.temp_slider_fill, ui.temp_slider_handle,
+    light_control_kelvin_to_pct(ctx, ctx->current_kelvin),
+    kelvin_to_fill_color(ctx->current_kelvin, ctx->kelvin_min, ctx->kelvin_max));
   light_control_update_slider_handle(
     ui.temp_slider, ui.temp_slider_handle, light_control_kelvin_to_pct(ctx, ctx->current_kelvin));
   if (ui.color_grid) {
@@ -518,6 +579,7 @@ inline void light_control_open_modal(LightControlCtx *ctx) {
   ui.slider = lv_slider_create(ui.panel);
   light_control_style_slider(ui.slider, ctx->accent_color);
   lv_slider_set_value(ui.slider, slider_clamp_pct(ctx->current_pct), LV_ANIM_OFF);
+  ui.slider_fill = light_control_create_slider_fill(ui.slider, ctx->accent_color);
   ui.slider_handle = light_control_create_slider_handle(ui.slider);
   lv_obj_add_event_cb(ui.slider, [](lv_event_t *e) {
     LightControlModalUi &ui = light_control_modal_ui();
@@ -531,6 +593,8 @@ inline void light_control_open_modal(LightControlCtx *ctx) {
     int pct = lv_slider_get_value(slider);
     if (ui.active->current_pct == pct) return;
     ui.active->current_pct = pct;
+    light_control_update_slider_fill(
+      slider, ui.slider_fill, ui.slider_handle, pct, ui.active->accent_color);
     light_control_update_slider_handle(slider, ui.slider_handle, pct);
   }, LV_EVENT_VALUE_CHANGED, nullptr);
   lv_obj_add_event_cb(ui.slider, [](lv_event_t *e) {
@@ -541,6 +605,8 @@ inline void light_control_open_modal(LightControlCtx *ctx) {
     lv_obj_t *slider = static_cast<lv_obj_t *>(lv_event_get_target(e));
     int pct = lv_slider_get_value(slider);
     ui.active->current_pct = pct;
+    light_control_update_slider_fill(
+      slider, ui.slider_fill, ui.slider_handle, pct, ui.active->accent_color);
     light_control_update_slider_handle(slider, ui.slider_handle, pct);
     send_slider_action(ui.active->entity_id, pct);
   }, LV_EVENT_RELEASED, nullptr);
@@ -552,7 +618,8 @@ inline void light_control_open_modal(LightControlCtx *ctx) {
   ui.temp_slider = lv_slider_create(ui.panel);
   light_control_style_slider(ui.temp_slider, ctx->accent_color);
   lv_slider_set_value(ui.temp_slider, light_control_kelvin_to_pct(ctx, ctx->current_kelvin), LV_ANIM_OFF);
-  lv_obj_set_style_bg_color(ui.temp_slider, kelvin_to_fill_color(ctx->current_kelvin, ctx->kelvin_min, ctx->kelvin_max), LV_PART_INDICATOR);
+  ui.temp_slider_fill = light_control_create_slider_fill(
+    ui.temp_slider, kelvin_to_fill_color(ctx->current_kelvin, ctx->kelvin_min, ctx->kelvin_max));
   ui.temp_slider_handle = light_control_create_slider_handle(ui.temp_slider);
   lv_obj_add_event_cb(ui.temp_slider, [](lv_event_t *e) {
     LightControlModalUi &ui = light_control_modal_ui();
@@ -566,9 +633,11 @@ inline void light_control_open_modal(LightControlCtx *ctx) {
     int kelvin = light_control_pct_to_kelvin(ui.active, lv_slider_get_value(slider));
     if (ui.active->current_kelvin == kelvin) return;
     ui.active->current_kelvin = kelvin;
-    lv_obj_set_style_bg_color(
-      slider, kelvin_to_fill_color(kelvin, ui.active->kelvin_min, ui.active->kelvin_max),
-      LV_PART_INDICATOR);
+    uint32_t fill_color = kelvin_to_fill_color(
+      kelvin, ui.active->kelvin_min, ui.active->kelvin_max);
+    light_control_update_slider_fill(
+      slider, ui.temp_slider_fill, ui.temp_slider_handle,
+      light_control_kelvin_to_pct(ui.active, kelvin), fill_color);
     light_control_update_slider_handle(
       slider, ui.temp_slider_handle, light_control_kelvin_to_pct(ui.active, kelvin));
   }, LV_EVENT_VALUE_CHANGED, nullptr);
@@ -578,6 +647,12 @@ inline void light_control_open_modal(LightControlCtx *ctx) {
     ui.active->dragging_temp_slider = false;
     if (!ui.active->available) return;
     lv_obj_t *slider = static_cast<lv_obj_t *>(lv_event_get_target(e));
+    int pct = lv_slider_get_value(slider);
+    light_control_update_slider_fill(
+      slider, ui.temp_slider_fill, ui.temp_slider_handle, pct,
+      kelvin_to_fill_color(
+        light_control_pct_to_kelvin(ui.active, pct),
+        ui.active->kelvin_min, ui.active->kelvin_max));
     light_control_update_slider_handle(slider, ui.temp_slider_handle, lv_slider_get_value(slider));
     send_light_temp_action(
       ui.active->entity_id, lv_slider_get_value(slider),
@@ -692,11 +767,12 @@ inline void subscribe_light_control_state(LightControlCtx *ctx) {
         ctx->current_kelvin = kelvin;
         light_control_set_temp_modal_value(ctx, kelvin);
         LightControlModalUi &ui = light_control_modal_ui();
-        if (ui.active == ctx && ui.temp_slider) {
-          lv_obj_set_style_bg_color(
-            ui.temp_slider,
-            kelvin_to_fill_color(kelvin, ctx->kelvin_min, ctx->kelvin_max),
-            LV_PART_INDICATOR);
+        if (ui.active == ctx) {
+          int pct = light_control_kelvin_to_pct(ctx, kelvin);
+          light_control_update_slider_fill(
+            ui.temp_slider, ui.temp_slider_fill, ui.temp_slider_handle, pct,
+            kelvin_to_fill_color(kelvin, ctx->kelvin_min, ctx->kelvin_max));
+          light_control_update_slider_handle(ui.temp_slider, ui.temp_slider_handle, pct);
         }
       })
   );
