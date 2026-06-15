@@ -489,7 +489,7 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
   lv_coord_t tab_frame_w = tabs_total_w + tab_frame_pad * 2;
   lv_coord_t max_tab_frame_w = layout.panel_w - layout.inset * 3;
   if (tab_frame_w > max_tab_frame_w) tab_frame_w = max_tab_frame_w;
-  lv_coord_t slider_w = tab_frame_w;
+  lv_coord_t slider_w = control_modal_home_card_width(ctx->btn, layout);
   if (ui.tab_row) {
     lv_obj_set_size(ui.tab_row, tab_frame_w, tab_frame_h);
     lv_obj_set_style_radius(ui.tab_row, tab_frame_h / 2, LV_PART_MAIN);
@@ -512,7 +512,6 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
   lv_coord_t content_center_y = tab_frame_h / 2 + 12;
   lv_coord_t slider_h = layout.panel_h - layout.inset * 3 - tab_frame_h - 16;
   if (slider_h < 160) slider_h = layout.panel_h / 2;
-  if (slider_w >= slider_h) slider_w = slider_h * 3 / 4;
   light_control_layout_slider(ui.slider, slider_w, slider_h, content_center_y);
   lv_obj_update_layout(ui.panel);
   light_control_update_slider_fill(
@@ -1378,8 +1377,7 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
   lv_coord_t content_center_y = tab_frame_h / 2 + 12;
   lv_coord_t content_h = layout.panel_h - layout.inset * 3 - tab_frame_h - 16;
   if (content_h < 160) content_h = layout.panel_h / 2;
-  lv_coord_t content_w = tab_frame_w;
-  if (content_w >= content_h) content_w = content_h * 3 / 4;
+  lv_coord_t content_w = control_modal_home_card_width(ctx->btn, layout);
   cover_control_layout_slider(ui.position_slider, content_w, content_h, content_center_y);
   lv_obj_update_layout(ui.panel);
   cover_control_update_position_fill(ctx->current_position);
