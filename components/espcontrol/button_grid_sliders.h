@@ -665,18 +665,26 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
     lv_obj_set_style_radius(ui.tab_row, tab_frame_h / 2, LV_PART_MAIN);
     lv_obj_align(ui.tab_row, LV_ALIGN_TOP_MID, 0, layout.inset + 2);
   }
-  lv_obj_t *tabs[3] = {ui.controls_tab, ui.position_tab, ctx->supports_tilt ? ui.tilt_tab : nullptr};
+  struct CoverControlTabLayout {
+    lv_obj_t *btn;
+    CoverControlTab tab;
+  };
+  CoverControlTabLayout tabs[3] = {
+    {ui.position_tab, CoverControlTab::POSITION},
+    {ui.controls_tab, CoverControlTab::CONTROLS},
+    {ctx->supports_tilt ? ui.tilt_tab : nullptr, CoverControlTab::TILT},
+  };
   lv_coord_t first_tab_x = (tab_frame_w - tabs_total_w) / 2;
   int visible_index = 0;
   for (int i = 0; i < 3; i++) {
-    if (!tabs[i]) continue;
-    bool active = (i == static_cast<int>(ui.tab));
+    if (!tabs[i].btn) continue;
+    bool active = (tabs[i].tab == ui.tab);
     lv_coord_t tab_btn_size = active ? selected_tab_size : tab_size;
-    lv_obj_set_size(tabs[i], tab_btn_size, tab_btn_size);
-    lv_obj_set_style_radius(tabs[i], tab_btn_size / 2, LV_PART_MAIN);
+    lv_obj_set_size(tabs[i].btn, tab_btn_size, tab_btn_size);
+    lv_obj_set_style_radius(tabs[i].btn, tab_btn_size / 2, LV_PART_MAIN);
     lv_coord_t tab_x = first_tab_x + visible_index * (tab_size + tab_gap);
-    lv_obj_align(tabs[i], LV_ALIGN_LEFT_MID, tab_x - (tab_btn_size - tab_size) / 2, 0);
-    lv_obj_t *label = lv_obj_get_child(tabs[i], 0);
+    lv_obj_align(tabs[i].btn, LV_ALIGN_LEFT_MID, tab_x - (tab_btn_size - tab_size) / 2, 0);
+    lv_obj_t *label = lv_obj_get_child(tabs[i].btn, 0);
     if (label) lv_obj_align(label, LV_ALIGN_CENTER, tab_btn_size / 16, tab_btn_size / 16);
     visible_index++;
   }
@@ -824,12 +832,12 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
   lv_obj_set_style_shadow_width(ui.tab_row, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_all(ui.tab_row, 0, LV_PART_MAIN);
   lv_obj_clear_flag(ui.tab_row, LV_OBJ_FLAG_SCROLLABLE);
-  ui.controls_tab = cover_control_create_tab_button(
-    ui.tab_row, find_icon("Swap Vertical"), ctx->icon_font,
-    CoverControlTab::CONTROLS, ctx->width_compensation_percent);
   ui.position_tab = cover_control_create_tab_button(
     ui.tab_row, find_icon("View Headline"), ctx->icon_font,
     CoverControlTab::POSITION, ctx->width_compensation_percent);
+  ui.controls_tab = cover_control_create_tab_button(
+    ui.tab_row, find_icon("Swap Vertical"), ctx->icon_font,
+    CoverControlTab::CONTROLS, ctx->width_compensation_percent);
   ui.tilt_tab = cover_control_create_tab_button(
     ui.tab_row, find_icon("Swap Vertical"), ctx->icon_font,
     CoverControlTab::TILT, ctx->width_compensation_percent);
