@@ -387,6 +387,7 @@ var CARD_CONTRACT_CARDS = {
         "label": "Type",
         "kind": "choice",
         "values": [
+          "modal",
           "",
           "tilt",
           "toggle",

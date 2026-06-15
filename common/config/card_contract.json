@@ -313,7 +313,7 @@
           "name": "cover_mode",
           "label": "Type",
           "kind": "choice",
-          "values": ["", "tilt", "toggle", "open", "close", "stop", "set_position"],
+          "values": ["modal", "", "tilt", "toggle", "open", "close", "stop", "set_position"],
           "defaultValue": ""
         },
         {

@@ -1220,6 +1220,11 @@
       "mdi": "swap-horizontal"
     },
     {
+      "name": "Swap Vertical",
+      "codepoint": "F04E2",
+      "mdi": "swap-vertical"
+    },
+    {
       "name": "Power Socket UK",
       "codepoint": "F07E8",
       "mdi": "power-socket-uk"
@@ -1333,6 +1338,11 @@
       "name": "Trash Can Outline",
       "codepoint": "F0A7A",
       "mdi": "trash-can-outline"
+    },
+    {
+      "name": "View Headline",
+      "codepoint": "F0571",
+      "mdi": "view-headline"
     },
     {
       "name": "Volume High",
