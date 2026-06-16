@@ -138,7 +138,7 @@ api:
         }
         int port = static_cast<int>(id(cover_art_home_assistant_artwork_port).state);
         id(cover_art_home_assistant_base_url) =
-          id(cover_art_home_assistant_artwork_protocol).state + "://" + host + ":" + std::to_string(port);
+          id(cover_art_home_assistant_artwork_protocol).current_option() + "://" + host + ":" + std::to_string(port);
         id(cover_art_api_wait_logged) = false;
         ESP_LOGI("cover_art", "Using Home Assistant artwork base URL: %s",
                  id(cover_art_home_assistant_base_url).c_str());
