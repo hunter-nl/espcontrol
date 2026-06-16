@@ -236,7 +236,7 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_small"
+          "climateOptionValue": "font_text_body"
         },
         "display": {
           "wrapTallLabels": false,
@@ -667,7 +667,7 @@
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
-          "climateOptionValue": "font_text_small"
+          "climateOptionValue": "font_text_body"
         },
         "display": {
           "wrapTallLabels": false,
