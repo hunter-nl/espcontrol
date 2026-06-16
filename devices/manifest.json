@@ -509,7 +509,7 @@
           "largeSensor": "font_number_value_large",
           "mediaTitle": "font_text_title",
           "volumeNumber": "font_number_modal",
-          "volumeLabel": "font_text_large",
+          "volumeLabel": "font_text_body",
           "climateCardIcon": "font_icon_card",
           "subpageChevron": "font_icon_status",
           "climateOptionTitle": "font_text_body",
