@@ -422,18 +422,52 @@ async function assertSettingsPage(page, label, options = {}) {
     }).first();
     assert(await coverArtCard.isVisible(), `${label}: media cover art settings card should render`);
     await coverArtCard.locator(".card-header").click();
-    const coverArtInfo = page.locator("#sp-cover-art-info");
-    assert(await coverArtInfo.isVisible(), `${label}: media cover art override info panel should render`);
     assert.strictEqual(
-      await coverArtInfo.innerText(),
-      "Media Cover Art overrides existing screensaver settings while the selected media player is playing.",
-      `${label}: media cover art override info panel text should match`
+      await page.locator("#sp-cover-art-info").count(),
+      0,
+      `${label}: media cover art override info panel should not render`
+    );
+    assert.strictEqual(
+      await page.locator("#sp-set-ss-media-sleep-prevention").count(),
+      0,
+      `${label}: keep-screen-awake option should not render separately`
     );
     await coverArtCard.locator("#sp-set-ss-cover-art-enable + .sp-toggle-track").click();
+    assert(
+      await coverArtCard.locator("#sp-set-ss-cover-art-player").isVisible(),
+      `${label}: media player entity field should render when cover art is enabled`
+    );
+    assert(
+      await coverArtCard.locator("#sp-set-ss-cover-art-delay").isVisible(),
+      `${label}: cover art show-after field should render when cover art is enabled`
+    );
     assert.strictEqual(
       await page.locator("#sp-set-ss-track-overlay").count(),
       options.coverArtSquareOverlay ? 1 : 0,
       `${label}: track overlay duration visibility should match square cover art layout`
+    );
+    assert(
+      await coverArtCard.getByText("Advanced Options", { exact: true }).isVisible(),
+      `${label}: media cover art advanced options should render`
+    );
+    assert.strictEqual(
+      await coverArtCard.locator("#sp-set-ss-cover-art-conditions").isVisible(),
+      false,
+      `${label}: cover art conditions field should be hidden until advanced filtering is enabled`
+    );
+    await coverArtCard.getByText("Advanced Options", { exact: true }).click();
+    assert(
+      await coverArtCard.getByText("Hide for external source inputs", { exact: true }).isVisible(),
+      `${label}: external source input option should render inside advanced options`
+    );
+    assert(
+      await coverArtCard.getByText("Advanced Filtering", { exact: true }).isVisible(),
+      `${label}: advanced filtering toggle should render inside advanced options`
+    );
+    await coverArtCard.locator("#sp-set-ss-cover-art-filtering + .sp-toggle-track").click();
+    assert(
+      await coverArtCard.locator("#sp-set-ss-cover-art-conditions").isVisible(),
+      `${label}: cover art conditions field should render after advanced filtering is enabled`
     );
     assert(
       await page.locator("#sp-set-ss-cover-art-server").count() === 0,
