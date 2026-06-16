@@ -114,11 +114,13 @@ substitutions:
 packages:
   setup:
     url: https://github.com/jtenniswood/espcontrol/
-    file: devices/esp32-p4-86/packages.yaml
+    file: devices/guition-esp32-p4-jc1060p470/packages.yaml
     refresh: 1sec
 ```
 
 If Ethernet is unplugged or your network does not give the display an IP address, the display will show an Ethernet setup message. It will not create a WiFi hotspot in this mode.
+
+If you start from a copied device `esphome.yaml` starter file instead of the template above, set `network_transport: "ethernet"` in `substitutions`. Older copied starters may still contain a top-level `wifi:` block; remove that block before validating the Ethernet build.
 
 The `disable_updates: "true"` substitution removes EspControl's built-in GitHub firmware update checker and update controls. ESPHome OTA stays enabled, so you can still install firmware manually once the display is online.
 
@@ -132,7 +134,7 @@ The Ethernet firmware is intentionally different from the normal WiFi firmware:
 
 When switching a display between WiFi firmware and Ethernet firmware, install the new firmware over USB. OTA updates can fail during this change because the currently running firmware and the new firmware use different network hardware.
 
-To switch back to WiFi later, remove `network_transport: ethernet`, add your `wifi:` block again, then recompile and install the firmware over USB.
+To switch back to WiFi later, remove `network_transport: ethernet` from the manual Ethernet template, add your `wifi:` block again, then recompile and install the firmware over USB. If you are using the current JC1060P470 `esphome.yaml` starter file, set `network_transport: "wifi"` instead.
 
 ::: warning Keep the device name simple
 Use lowercase letters, numbers, and hyphens for `name`. For example, `espcontrol-kitchen` is better than `Kitchen Touchscreen`.
