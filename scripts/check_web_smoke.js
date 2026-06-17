@@ -991,6 +991,22 @@ assert(subpagePresencePreview.iconHtml.includes("mdi-account"), "presence subpag
 assert(subpagePresencePreview.labelHtml.includes("Presence"), "presence subpage preset preview uses the Presence label");
 assert(subpagePresencePreview.labelHtml.includes("mdi-chevron-right"), "presence subpage preset preview shows the chevron badge");
 
+[
+  ["alarm", "alarm_control_panel.home", "mdi-shield-home", "Alarm"],
+  ["vacuum", "vacuum.downstairs", "mdi-robot-vacuum", "Vacuum"],
+  ["weather", "weather.home", "mdi-weather-partly-cloudy", "Weather"],
+].forEach(([kind, entity, iconClass, label]) => {
+  const preview = hooks.buttonTypePreviewFor("subpage", {
+    entity,
+    sensor: "indicator",
+    type: "subpage",
+    options: `subpage_kind=${kind}`,
+  });
+  assert(preview.iconHtml.includes(iconClass), `${label} subpage preset preview uses the expected icon`);
+  assert(preview.labelHtml.includes(label), `${label} subpage preset preview uses the expected label`);
+  assert(preview.labelHtml.includes("mdi-chevron-right"), `${label} subpage preset preview shows the chevron badge`);
+});
+
 const subpageCustomPresetPreview = hooks.buttonTypePreviewFor("subpage", {
   entity: "climate.living_room",
   label: "Downstairs",

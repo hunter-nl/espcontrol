@@ -569,27 +569,41 @@ function setImageRefreshMode(b, value) {
 
 function normalizeSubpageKind(value) {
   value = String(value || "").trim();
-  return value === "lights" || value === "media" ||
-    value === "climate" || value === "presence" ? value : "";
+  return subpagePresetDefaults(value) ? value : "";
 }
 
 function subpageKind(b) {
   return normalizeSubpageKind(configOptionValue(b && b.options, SUBPAGE_KIND_OPTION));
 }
 
+var SUBPAGE_KIND_PRESET_DEFINITIONS = [
+  { value: "", label: "Generic" },
+  { value: "switch", label: "Switch", preset: { label: "Switch", icon: "Power Plug", entityDomains: ["light", "switch", "input_boolean", "fan"], placeholder: "e.g. switch.living_room" } },
+  { value: "lights", label: "Lights", preset: { label: "Lighting", icon: "Lightbulb", entityDomains: ["light"], placeholder: "e.g. light.living_room" } },
+  { value: "climate", label: "Climate", preset: { label: "Climate", icon: "Thermostat", entityDomains: ["climate"], placeholder: "e.g. climate.living_room" } },
+  { value: "presence", label: "Presence", preset: { label: "Presence", icon: "Account", entityDomains: ["person", "device_tracker", "binary_sensor", "input_boolean"], placeholder: "e.g. person.jane" } },
+  { value: "media", label: "Media", preset: { label: "Media", icon: "Speaker", entityDomains: ["media_player"], placeholder: "e.g. media_player.living_room" } },
+  { value: "alarm", label: "Alarm", preset: { label: "Alarm", icon: "Security", entityDomains: ["alarm_control_panel"], placeholder: "e.g. alarm_control_panel.home" } },
+  { value: "cover", label: "Cover", preset: { label: "Cover", icon: "Blinds", entityDomains: ["cover"], placeholder: "e.g. cover.office_blind" } },
+  { value: "garage", label: "Garage Door", preset: { label: "Garage", icon: "Garage", entityDomains: ["cover"], placeholder: "e.g. cover.garage_door" } },
+  { value: "lock", label: "Lock", preset: { label: "Lock", icon: "Lock", entityDomains: ["lock"], placeholder: "e.g. lock.front_door" } },
+  { value: "vacuum", label: "Vacuum", preset: { label: "Vacuum", icon: "Robot Vacuum", entityDomains: ["vacuum"], placeholder: "e.g. vacuum.downstairs" } },
+  { value: "weather", label: "Weather", preset: { label: "Weather", icon: "Weather Partly Cloudy", entityDomains: ["weather"], placeholder: "e.g. weather.home" } },
+  { value: "sensor", label: "Sensor", preset: { label: "Sensor", icon: "Gauge", entityDomains: ["sensor", "binary_sensor", "text_sensor"], placeholder: "e.g. sensor.open_windows" } },
+  { value: "image", label: "Camera/Image", preset: { label: "Camera", icon: "Camera", entityDomains: ["camera", "image"], placeholder: "e.g. camera.front_door" } },
+];
+
+function subpageKindOptions() {
+  return SUBPAGE_KIND_PRESET_DEFINITIONS.map(function (definition) {
+    return [definition.value, definition.label];
+  });
+}
+
 function subpagePresetDefaults(kind) {
-  kind = normalizeSubpageKind(kind);
-  if (kind === "lights") {
-    return { label: "Lighting", icon: "Lightbulb", entityDomain: "light" };
-  }
-  if (kind === "media") {
-    return { label: "Media", icon: "Speaker", entityDomain: "media_player" };
-  }
-  if (kind === "climate") {
-    return { label: "Climate", icon: "Thermostat", entityDomain: "climate" };
-  }
-  if (kind === "presence") {
-    return { label: "Presence", icon: "Account", entityDomain: "person" };
+  kind = String(kind || "").trim();
+  for (var i = 0; i < SUBPAGE_KIND_PRESET_DEFINITIONS.length; i++) {
+    var definition = SUBPAGE_KIND_PRESET_DEFINITIONS[i];
+    if (definition.value === kind) return definition.preset || null;
   }
   return null;
 }

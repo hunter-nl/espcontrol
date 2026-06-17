@@ -451,6 +451,12 @@ int main() {
   assert(subpage_climate.options == "subpage_kind=climate");
   auto subpage_presence = parse_cfg("person.jane;Presence;Account;Auto;indicator;;subpage;;subpage_kind=presence");
   assert(subpage_presence.options == "subpage_kind=presence");
+  auto subpage_alarm = parse_cfg("alarm_control_panel.home;Alarm;Security;Auto;indicator;;subpage;;subpage_kind=alarm");
+  assert(subpage_alarm.options == "subpage_kind=alarm");
+  auto subpage_vacuum = parse_cfg("vacuum.downstairs;Vacuum;Robot Vacuum;Auto;indicator;;subpage;;subpage_kind=vacuum");
+  assert(subpage_vacuum.options == "subpage_kind=vacuum");
+  auto subpage_weather = parse_cfg("weather.home;Weather;Weather Partly Cloudy;Auto;indicator;;subpage;;subpage_kind=weather");
+  assert(subpage_weather.options == "subpage_kind=weather");
   auto subpage_bad_kind = parse_cfg("media_player.bad;Bad;Speaker;Auto;indicator;;subpage;;subpage_kind=audio");
   assert(subpage_bad_kind.options == "");
 

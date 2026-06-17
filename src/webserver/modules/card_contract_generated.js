@@ -1128,10 +1128,19 @@ var CARD_CONTRACT_CARDS = {
         "kind": "choice",
         "values": [
           "",
+          "switch",
           "lights",
           "climate",
           "presence",
-          "media"
+          "media",
+          "alarm",
+          "cover",
+          "garage",
+          "lock",
+          "vacuum",
+          "weather",
+          "sensor",
+          "image"
         ],
         "defaultValue": ""
       },

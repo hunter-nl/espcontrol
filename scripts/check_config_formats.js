@@ -222,6 +222,29 @@ current.generatedContract.requiredCards.forEach((type) => {
 });
 assert.strictEqual(hooks.cardContractCardLabel("media"), "Media", "generated contract exposes card labels");
 assert.strictEqual(hooks.cardContractAllowInSubpage("subpage"), false, "generated contract exposes subpage placement rules");
+const subpageKindOption = Array.from(hooks.cardContractOptions("subpage"))
+  .find((option) => option.name === "subpage_kind");
+assert.deepStrictEqual(Array.from(subpageKindOption.values), [
+  "",
+  "switch",
+  "lights",
+  "climate",
+  "presence",
+  "media",
+  "alarm",
+  "cover",
+  "garage",
+  "lock",
+  "vacuum",
+  "weather",
+  "sensor",
+  "image",
+], "subpage type options include status presets for newer card styles");
+assert.strictEqual(
+  hooks.subpageKind({ options: "subpage_kind=vacuum" }),
+  "vacuum",
+  "vacuum subpage type is accepted by the web config normalizer"
+);
 assert.deepStrictEqual(Array.from(hooks.cardContractDomains("climate")), ["climate"], "generated contract exposes card domains");
 assert.deepStrictEqual(buttonShape(hooks.cardContractDefaultConfig("climate")), buttonShape({
   entity: "",

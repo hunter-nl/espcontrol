@@ -495,7 +495,12 @@ inline std::string sensor_card_options_normalized(const std::string &options,
 
 inline std::string normalize_subpage_kind(const std::string &value) {
   return value == "lights" || value == "media" ||
-    value == "climate" || value == "presence" ? value : "";
+    value == "climate" || value == "presence" ||
+    value == "switch" || value == "alarm" ||
+    value == "cover" || value == "garage" ||
+    value == "lock" || value == "vacuum" ||
+    value == "weather" || value == "sensor" ||
+    value == "image" ? value : "";
 }
 
 inline std::string subpage_card_options_normalized(const std::string &options,

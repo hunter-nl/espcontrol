@@ -946,7 +946,7 @@
           "name": "subpage_kind",
           "label": "Subpage Type",
           "kind": "choice",
-          "values": ["", "lights", "climate", "presence", "media"],
+          "values": ["", "switch", "lights", "climate", "presence", "media", "alarm", "cover", "garage", "lock", "vacuum", "weather", "sensor", "image"],
           "defaultValue": ""
         },
         {
