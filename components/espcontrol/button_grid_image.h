@@ -65,6 +65,7 @@ struct ImageCardCtx {
   bool timer_only = false;
   bool modal_fit = false;
   bool diagnostics_enabled = false;
+  bool access_token_request_pending = false;
   lv_timer_t *modal_cleanup_timer = nullptr;
   uint8_t startup_download_errors = 0;
 };
@@ -618,6 +619,7 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
   int count = cfg.image_card_image_count;
   if (count > IMAGE_CARD_MAX_CONTEXTS) count = IMAGE_CARD_MAX_CONTEXTS;
   for (int i = 0; i < count; i++) {
+    image_card_clear_widget_source(contexts[i].widget);
     contexts[i].active = false;
     contexts[i].widget = nullptr;
     contexts[i].btn = nullptr;
@@ -653,6 +655,7 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
     contexts[i].timer_only = false;
     contexts[i].modal_fit = false;
     contexts[i].diagnostics_enabled = false;
+    contexts[i].access_token_request_pending = false;
     contexts[i].startup_download_errors = 0;
     contexts[i].image = cfg.image_card_images ? cfg.image_card_images[i] : nullptr;
     contexts[i].modal_image = cfg.image_card_modal_images ? cfg.image_card_modal_images[i] : nullptr;
@@ -1091,6 +1094,10 @@ inline std::string image_card_proxy_path_with_token(const std::string &proxy_pat
   return path;
 }
 
+inline bool image_card_valid_access_token(const std::string &token) {
+  return !token.empty() && token != "unknown" && token != "unavailable";
+}
+
 inline std::string image_card_cache_bust_url(const std::string &url) {
   if (url.empty()) return "";
   std::string next = url;
@@ -1187,29 +1194,41 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
       image_card_set_loading_state(ctx, "Loading", true);
       return;
     }
+    if (image_card_valid_access_token(ctx->access_token)) {
+      std::string authed_path = image_card_proxy_path_with_token(proxy_path, ctx->access_token);
+      image_card_handle_picture(ctx, esphome::StringRef(authed_path));
+      return;
+    }
+    if (ctx->access_token_request_pending) {
+      image_card_log_diagnostics(ctx, "picture-waiting-token-request");
+      image_card_schedule_picture_retry(ctx, IMAGE_CARD_RETRY_INTERVAL_MS);
+      image_card_set_loading_state(ctx, "Loading", true);
+      return;
+    }
     const uint32_t generation = ha_subscription_generation();
+    ctx->access_token_request_pending = true;
     bool requested = ha_get_attribute(
       entity_id,
       std::string("access_token"),
       std::function<void(esphome::StringRef)>(
         [ctx, entity_id, generation, proxy_path](esphome::StringRef token_ref) {
           if (!image_card_context_current(ctx, entity_id, generation)) return;
+          ctx->access_token_request_pending = false;
           std::string token = string_ref_limited(token_ref, 512);
-          if (token.empty() || token == "unknown" || token == "unavailable") {
+          if (!image_card_valid_access_token(token)) {
             ctx->access_token.clear();
             image_card_log_diagnostics(ctx, "picture-waiting-token");
             image_card_schedule_picture_retry(ctx, IMAGE_CARD_RETRY_INTERVAL_MS);
             image_card_set_loading_state(ctx, "Loading", true);
             return;
           }
-          // Home Assistant image proxy tokens can rotate, so refresh the token
-          // whenever we rebuild the proxy URL instead of reusing a stale one.
           ctx->access_token = token;
           std::string authed_path = image_card_proxy_path_with_token(proxy_path, token);
           image_card_handle_picture(ctx, esphome::StringRef(authed_path));
         })
     );
     if (!requested) {
+      ctx->access_token_request_pending = false;
       image_card_log_diagnostics(ctx, "picture-attribute-request-queued");
       image_card_schedule_picture_retry(
         ctx,
@@ -1236,6 +1255,29 @@ inline void image_card_request_picture(ImageCardCtx *ctx) {
       ctx,
       ha_api_connected() ? IMAGE_CARD_API_RETRY_INTERVAL_MS : IMAGE_CARD_RETRY_INTERVAL_MS);
   }
+}
+
+inline void subscribe_image_card_access_token(ImageCardCtx *ctx,
+                                              const std::string &entity_id) {
+  if (!ctx || image_card_entity_proxy_path(entity_id).empty()) return;
+  const uint32_t generation = ha_subscription_generation();
+  ha_subscribe_attribute(
+    entity_id,
+    std::string("access_token"),
+    std::function<void(esphome::StringRef)>(
+      [ctx, entity_id, generation](esphome::StringRef token_ref) {
+        if (!image_card_context_current(ctx, entity_id, generation)) return;
+        ctx->access_token_request_pending = false;
+        std::string token = string_ref_limited(token_ref, 512);
+        if (!image_card_valid_access_token(token)) {
+          ctx->access_token.clear();
+          return;
+        }
+        if (token == ctx->access_token) return;
+        ctx->access_token = token;
+        image_card_request_picture(ctx);
+      })
+  );
 }
 
 inline void subscribe_image_card_entity_state(ImageCardCtx *ctx,
@@ -1767,6 +1809,7 @@ inline bool bind_image_card(BtnSlot &s, const ParsedCfg &p, const GridConfig &cf
         image_card_handle_picture(ctx, picture);
       })
   );
+  subscribe_image_card_access_token(ctx, image_card_entity_id);
   subscribe_image_card_entity_state(ctx, p.entity);
   image_card_request_picture(ctx);
   return true;
