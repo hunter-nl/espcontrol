@@ -21,6 +21,10 @@ REQUIRED_SETUP_ICON_GLYPHS = {
     r'"\U000F012C"': "mdi-check",
     r'"\U000F0996"': "mdi-progress-clock",
 }
+REQUIRED_LIGHT_CONTROL_ICON_GLYPHS = {
+    r'"\U000F0425"': "mdi-power",
+    r'"\U000F0766"': "mdi-circle-outline",
+}
 REQUIRED_CLIMATE_CARD_ICON_NAMES = {
     "Air Filter",
     "Fan",
@@ -183,6 +187,8 @@ def test_setup_icon_glyphs() -> None:
     glyphs = (ROOT / "common" / "assets" / "icon_glyphs.yaml").read_text(encoding="utf-8")
     for glyph, icon_name in REQUIRED_SETUP_ICON_GLYPHS.items():
         assert glyph in glyphs, f"shared icon font missing {icon_name} for OTA update screen"
+    for glyph, icon_name in REQUIRED_LIGHT_CONTROL_ICON_GLYPHS.items():
+        assert glyph in glyphs, f"shared icon font missing {icon_name} for light control modal"
 
 
 def test_climate_card_icon_glyphs() -> None:
