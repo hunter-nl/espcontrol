@@ -1088,9 +1088,10 @@ def firmware_climate_step_errors(firmware_dir: Path, root: Path) -> list[str]:
             "CLIMATE_DEFAULT_STEP_TENTHS" not in body
             or "CLIMATE_WHOLE_NUMBER_STEP_TENTHS" not in body
             or "ctx->configured_step_tenths" not in body
-            or "ctx->step_tenths > minimum" not in body
+            or "return ctx->configured_step_tenths" not in body
+            or "ctx->step_tenths > minimum" in body
         ):
-            errors.append(f"{rel}: keep climate temperature changes at a display-appropriate minimum")
+            errors.append(f"{rel}: use the configured climate temperature step")
     if "int step = climate_effective_step_tenths(ctx);" not in text:
         errors.append(f"{rel}: round climate targets using the display-appropriate minimum step")
     if "int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;" not in text:
@@ -3183,16 +3184,16 @@ def run_self_test() -> int:
         ),
     )
     expect_climate_step_errors(
-        "climate enforces display-appropriate minimum step",
+        "climate uses configured step increment",
         "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 5;\n"
         "constexpr int CLIMATE_WHOLE_NUMBER_STEP_TENTHS = 10;\n"
         "int configured_step_tenths = CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
         "inline int climate_effective_step_tenths(ClimateControlCtx *ctx) {\n"
         "  if (!ctx) return CLIMATE_DEFAULT_STEP_TENTHS;\n"
-        "  int minimum = ctx->configured_step_tenths > 0 ? ctx->configured_step_tenths : CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-        "  if (ctx->step_tenths > minimum && ctx->step_tenths <= 100)\n"
-        "    return ctx->step_tenths;\n"
-        "  return minimum;\n"
+        "  if (ctx->configured_step_tenths == CLIMATE_DEFAULT_STEP_TENTHS ||\n"
+        "      ctx->configured_step_tenths == CLIMATE_WHOLE_NUMBER_STEP_TENTHS)\n"
+        "    return ctx->configured_step_tenths;\n"
+        "  return CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
         "}\n"
         "inline int climate_round_to_step(ClimateControlCtx *ctx, int value) {\n"
         "  int step = climate_effective_step_tenths(ctx);\n"
