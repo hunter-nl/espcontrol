@@ -887,20 +887,18 @@ async function assertBackupImportSmoke(page, posts, testCase) {
 
 async function entitySuggestionValues(page, inputSelector, query = "light", expectedValues = []) {
   await page.locator(inputSelector).fill(query);
-  await page.waitForFunction(({ selector, query, expectedValues }) => {
+  const suggestions = await page.waitForFunction(({ selector, query, expectedValues }) => {
     const input = document.querySelector(selector);
     const normalizedQuery = String(query || "").toLowerCase();
     if (!input || String(input.value || "").toLowerCase() !== normalizedQuery) return false;
     const options = Array.from(input.parentElement.querySelectorAll(".sp-entity-dropdown.sp-open .sp-entity-option"));
     if (!options.length) return false;
     const values = options.map((option) => String(option.textContent || ""));
-    return options.every((option) => String(option.textContent || "").toLowerCase().includes(normalizedQuery)) &&
-      expectedValues.every((value) => values.indexOf(value) !== -1);
+    if (!options.every((option) => String(option.textContent || "").toLowerCase().includes(normalizedQuery))) return false;
+    if (!expectedValues.every((value) => values.indexOf(value) !== -1)) return false;
+    return values;
   }, { selector: inputSelector, query, expectedValues });
-  return page.locator(inputSelector).evaluate((input) => {
-    return Array.from(input.parentElement.querySelectorAll(".sp-entity-dropdown.sp-open .sp-entity-option"))
-      .map((option) => option.textContent || "");
-  });
+  return suggestions.jsonValue();
 }
 
 async function assertEditAndApplySmoke(page, posts, errors) {
