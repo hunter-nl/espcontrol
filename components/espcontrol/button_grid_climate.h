@@ -746,7 +746,8 @@ inline void climate_send_action(const std::string &entity_id,
 
 inline std::string climate_service_temp_value(int tenths) {
   char buf[16];
-  snprintf(buf, sizeof(buf), "%d.%d", tenths / 10, std::abs(tenths % 10));
+  int abs_tenths = std::abs(tenths);
+  snprintf(buf, sizeof(buf), "%s%d.%d", tenths < 0 ? "-" : "", abs_tenths / 10, abs_tenths % 10);
   return buf;
 }
 
