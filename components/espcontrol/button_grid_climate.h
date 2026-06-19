@@ -303,13 +303,8 @@ inline int climate_constrain_selected_target(ClimateControlCtx *ctx, int value) 
 inline std::string climate_format_tenths(int value, int precision) {
   char buf[20];
   if (precision <= 0) {
-    if (value % 10 == 0) {
-      snprintf(buf, sizeof(buf), "%d", value / 10);
-    } else {
-      int sign = value < 0 ? -1 : 1;
-      int abs_v = value < 0 ? -value : value;
-      snprintf(buf, sizeof(buf), "%s%d.%d", sign < 0 ? "-" : "", abs_v / 10, abs_v % 10);
-    }
+    int rounded = (value >= 0 ? value + 5 : value - 5) / 10;
+    snprintf(buf, sizeof(buf), "%d", rounded);
   } else {
     int sign = value < 0 ? -1 : 1;
     int abs_v = value < 0 ? -value : value;
