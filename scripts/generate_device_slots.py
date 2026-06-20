@@ -39,8 +39,14 @@ def package_substitution_lines(device: dict) -> list[str]:
     ]
     if package.get("firmwareVersion"):
         lines.append(f'  firmware_version: "{package["firmwareVersion"]}"')
+    added_voice_substitutions = False
     for key, value in package["substitutions"].items():
         lines.append(f"  {key}: {value}")
+        if key == "clock_bar_visual_gap":
+            lines.extend(voice_substitution_lines(device))
+            added_voice_substitutions = True
+    if not added_voice_substitutions:
+        lines.extend(voice_substitution_lines(device))
     if package.get("ethernetSelectable"):
         frequency = package["backlightPwmFrequency"]
         lines.extend(
@@ -55,6 +61,32 @@ def package_substitution_lines(device: dict) -> list[str]:
         )
     lines.extend(cover_art_substitution_lines(device))
     return lines
+
+
+def voice_substitution_lines(device: dict) -> list[str]:
+    if device["slug"] != "esp32-p4-86":
+        return [
+            '  voice_clock_bar_hide_code: ""',
+            '  voice_clock_bar_apply_code: ""',
+            '  voice_interaction_active_condition: "false"',
+        ]
+    return [
+        "  voice_clock_bar_hide_code: |-",
+        "    lv_obj_add_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
+        "  voice_clock_bar_apply_code: |-",
+        "    lv_obj_align(id(voice_clock_bar_mute_button), LV_ALIGN_TOP_RIGHT,",
+        "                 -(clock_bar_right_x + clock_bar_item_width / 2), clock_bar_icon_y);",
+        "    lv_obj_clear_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
+        "    const bool microphone_muted = id(master_mute_switch).state;",
+        "    const bool output_muted = id(voice_media_player).is_muted();",
+        "    lv_label_set_text(id(voice_clock_bar_mute_icon_label),",
+        '                      microphone_muted ? "\\U000F036D" :',
+        '                      output_muted ? "\\U000F0581" : "\\U000F04C3");',
+        "    lv_obj_set_style_text_color(id(voice_clock_bar_mute_icon_label),",
+        "                                lv_color_hex((microphone_muted || output_muted) ? 0xFF3333 : 0xFFFFFF),",
+        "                                LV_PART_MAIN);",
+        '  voice_interaction_active_condition: "id(voice_interaction_active)"',
+    ]
 
 
 def cover_art_substitution_lines(device: dict) -> list[str]:
