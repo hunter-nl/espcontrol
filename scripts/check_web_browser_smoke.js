@@ -405,10 +405,14 @@ async function assertSettingsPage(page, label, options = {}) {
   assert.strictEqual(onColorVisible, !options.isEpaper, `${label}: color controls visibility should match display type`);
   const clockBarCard = page.locator("#sp-settings .card").filter({ hasText: "Clock Bar" }).first();
   const clockBarText = await clockBarCard.textContent();
+  const voiceServicesCard = page.locator("#sp-settings .card").filter({
+    has: page.locator(".card-header h3", { hasText: /^Voice Services$/ }),
+  }).first();
   if (options.slug === "esp32-p4-86") {
-    assert(clockBarText.includes("Voice Services"), `${label}: voice services toggle is available for the voice-capable panel`);
+    assert(await voiceServicesCard.isVisible(), `${label}: voice services settings card is available for the voice-capable panel`);
   } else {
-    assert(!clockBarText.includes("Voice Services"), `${label}: voice services toggle is hidden on panels without local voice`);
+    assert(!clockBarText.includes("Voice Services"), `${label}: voice services toggle is hidden from the clock bar`);
+    assert.strictEqual(await voiceServicesCard.count(), 0, `${label}: voice services settings card is hidden on panels without local voice`);
   }
   const nightScheduleCard = page.locator("#sp-settings .card").filter({
     has: page.locator(".card-header h3", { hasText: /^Night Schedule$/ }),

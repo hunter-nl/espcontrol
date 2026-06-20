@@ -66,6 +66,8 @@ constexpr lv_coord_t MEDIA_VOLUME_CONTROLS_DOWN_REF_PX = DISPLAY_MODAL_CONTROLS_
 constexpr lv_coord_t MEDIA_VOLUME_TITLE_GAP_REF_PX = DISPLAY_MODAL_TITLE_GAP_REF_PX;
 constexpr lv_coord_t MEDIA_VOLUME_UNIT_Y_REF_PX = -22;
 constexpr lv_coord_t MEDIA_VOLUME_JC4880P443_BUTTON_REF_PX = 96;
+constexpr lv_coord_t MEDIA_VOLUME_MIC_BUTTON_OFFSET_REF_PX = 8;
+constexpr int MEDIA_VOLUME_MIC_ICON_ZOOM = 210;
 
 struct MediaVolumeCtx {
   std::string entity_id;
@@ -2335,7 +2337,19 @@ inline void media_volume_layout_modal(MediaVolumeCtx *ctx) {
   if (ui.mic_btn) {
     lv_obj_set_size(ui.mic_btn, layout.back_size, layout.back_size);
     lv_obj_set_style_radius(ui.mic_btn, layout.back_size / 2, LV_PART_MAIN);
-    lv_obj_align(ui.mic_btn, LV_ALIGN_BOTTOM_RIGHT, -layout.inset, -layout.inset);
+    lv_coord_t mic_offset =
+      control_modal_scaled_px(MEDIA_VOLUME_MIC_BUTTON_OFFSET_REF_PX, layout.short_side);
+    lv_obj_align(ui.mic_btn, LV_ALIGN_TOP_RIGHT,
+      -layout.inset - mic_offset, layout.back_inset_y + mic_offset);
+    if (ui.mic_lbl && MEDIA_VOLUME_MIC_ICON_ZOOM != 256) {
+      lv_obj_update_layout(ui.mic_lbl);
+      lv_coord_t offset_x = lv_obj_get_width(ui.mic_lbl) *
+        (256 - MEDIA_VOLUME_MIC_ICON_ZOOM) / 512;
+      lv_coord_t offset_y = lv_obj_get_height(ui.mic_lbl) *
+        (256 - MEDIA_VOLUME_MIC_ICON_ZOOM) / 512;
+      lv_obj_set_style_transform_zoom(ui.mic_lbl, MEDIA_VOLUME_MIC_ICON_ZOOM, LV_PART_MAIN);
+      lv_obj_align(ui.mic_lbl, LV_ALIGN_CENTER, offset_x, offset_y);
+    }
   }
   lv_obj_set_style_translate_y(ui.pct_unit_lbl,
     control_modal_scaled_px(MEDIA_VOLUME_UNIT_Y_REF_PX, layout.short_side), LV_PART_MAIN);
