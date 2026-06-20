@@ -60,9 +60,7 @@ function effectiveTimezoneOptionForWeb(value) {
 
 function timezoneOptionsWithFallback(options, selected) {
   var list = Array.isArray(options) && options.length ? options.slice() : defaultTimezoneOptions();
-  var supportsAuto = list.indexOf(AUTO_TIMEZONE_OPTION) !== -1;
-  if (selected && list.indexOf(selected) === -1 &&
-      (!isHomeAssistantAutoTimezone(selected) || supportsAuto)) {
+  if (selected && list.indexOf(selected) === -1) {
     list.unshift(selected);
   }
   return list;

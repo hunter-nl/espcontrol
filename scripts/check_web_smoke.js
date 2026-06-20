@@ -206,8 +206,8 @@ for (const [slug, device] of Object.entries(manifest.devices || {})) {
     `${slug}: timezone fallback must preserve the selected value`
   );
   assert(
-    !Array.from(generatedHooks.timezoneOptionsWithFallback(["UTC (GMT+0)"], "Auto (Home Assistant)")).includes("Auto (Home Assistant)"),
-    `${slug}: timezone fallback must not add Auto when firmware options do not advertise it`
+    Array.from(generatedHooks.timezoneOptionsWithFallback(["UTC (GMT+0)"], "Auto (Home Assistant)")).includes("Auto (Home Assistant)"),
+    `${slug}: timezone fallback must preserve restored Auto timezone selections`
   );
   assert(
     sandbox.__domEvents.some((event) => event.type === "DOMContentLoaded" && typeof event.listener === "function"),
