@@ -642,15 +642,26 @@ function buildSettingsPage(parent) {
     coverArtBody.appendChild(coverArtToggle.row);
     coverArtToggle.input.addEventListener("change", function () {
       state.coverArtScreensaverOn = this.checked;
-      state.mediaPlayerSleepPreventionOn = state.coverArtScreensaverOn;
-      syncMediaPlayerSleepPreventionUi();
       syncCoverArtScreensaverUi();
       postSwitch(entityName("screen_saver_cover_art"), state.coverArtScreensaverOn);
-      postSwitch(entityName("screen_saver_media_player_sleep_prevention"), state.mediaPlayerSleepPreventionOn);
     });
     els.setCoverArtToggle = coverArtToggle.input;
 
+    var sleepPreventionToggle = toggleRow(
+      "Keep Screen Awake During Playback",
+      "sp-set-ss-media-sleep-prevention",
+      state.mediaPlayerSleepPreventionOn);
+    coverArtBody.appendChild(sleepPreventionToggle.row);
+    sleepPreventionToggle.input.addEventListener("change", function () {
+      state.mediaPlayerSleepPreventionOn = this.checked;
+      syncMediaPlayerSleepPreventionUi();
+      syncCoverArtScreensaverUi();
+      postSwitch(entityName("screen_saver_media_player_sleep_prevention"), state.mediaPlayerSleepPreventionOn);
+    });
+    els.setMediaPlayerSleepPreventionToggle = sleepPreventionToggle.input;
+
     var coverArtOptions = condField();
+    var coverArtOnlyOptions = condField();
     var coverArtAdvancedBody = document.createElement("div");
 
     var coverArtEntityField = document.createElement("div");
@@ -692,7 +703,7 @@ function buildSettingsPage(parent) {
       postCoverArtDelay(state.coverArtDelay);
     });
     coverArtDelayField.appendChild(coverArtDelaySelect);
-    coverArtOptions.appendChild(coverArtDelayField);
+    coverArtOnlyOptions.appendChild(coverArtDelayField);
     els.setCoverArtDelay = coverArtDelaySelect;
 
     if (coverArtTrackOverlayDurationSupported()) {
@@ -723,7 +734,7 @@ function buildSettingsPage(parent) {
         postCoverArtTrackOverlayDuration(state.coverArtTrackOverlayDuration);
       });
       trackOverlayField.appendChild(trackOverlaySelect);
-      coverArtOptions.appendChild(trackOverlayField);
+      coverArtOnlyOptions.appendChild(trackOverlayField);
       els.setCoverArtTrackOverlayDuration = trackOverlaySelect;
     }
 
@@ -779,11 +790,13 @@ function buildSettingsPage(parent) {
     els.setCoverArtConditions = coverArtConditionsInp;
     els.setCoverArtFilterOptions = coverArtFilterOptions;
 
-    coverArtOptions.appendChild(inlineDisclosure(
+    coverArtOnlyOptions.appendChild(inlineDisclosure(
       "Advanced Options",
       coverArtAdvancedBody,
       !!state.coverArtAttributeConditions || !state.coverArtHideExternalInputOn));
 
+    els.setCoverArtOnlyOptions = coverArtOnlyOptions;
+    coverArtOptions.appendChild(coverArtOnlyOptions);
     els.setCoverArtOptions = coverArtOptions;
     coverArtBody.appendChild(coverArtOptions);
   }
@@ -1191,6 +1204,11 @@ function syncCoverArtScreensaverUi() {
   }
   if (els.setCoverArtOptions) {
     els.setCoverArtOptions.classList.toggle(
+      "sp-visible",
+      !!state.coverArtScreensaverOn || !!state.mediaPlayerSleepPreventionOn);
+  }
+  if (els.setCoverArtOnlyOptions) {
+    els.setCoverArtOnlyOptions.classList.toggle(
       "sp-visible",
       !!state.coverArtScreensaverOn);
   }

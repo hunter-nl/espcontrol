@@ -428,8 +428,18 @@ async function assertSettingsPage(page, label, options = {}) {
     );
     assert.strictEqual(
       await page.locator("#sp-set-ss-media-sleep-prevention").count(),
-      0,
-      `${label}: keep-screen-awake option should not render separately`
+      1,
+      `${label}: keep-screen-awake option should render separately`
+    );
+    await coverArtCard.locator("#sp-set-ss-media-sleep-prevention + .sp-toggle-track").click();
+    assert(
+      await coverArtCard.locator("#sp-set-ss-cover-art-player").isVisible(),
+      `${label}: media player entity field should render when keep-screen-awake is enabled`
+    );
+    assert.strictEqual(
+      await coverArtCard.locator("#sp-set-ss-cover-art-delay").isVisible(),
+      false,
+      `${label}: cover art show-after field should stay hidden until cover art is enabled`
     );
     await coverArtCard.locator("#sp-set-ss-cover-art-enable + .sp-toggle-track").click();
     assert(

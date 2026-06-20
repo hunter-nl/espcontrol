@@ -17,6 +17,7 @@ API_NAVIGATE_PATH = ROOT / "common" / "device" / "api_navigate.yaml"
 COVER_ART_PATH = ROOT / "common" / "device" / "screen_cover_art.yaml"
 ARTWORK_IMAGE_PATH = ROOT / "components" / "artwork_image" / "artwork_image.cpp"
 BACKLIGHT_PATH = ROOT / "common" / "addon" / "backlight.yaml"
+DISPLAY_CONFIG_PATH = ROOT / "common" / "config" / "display.yaml"
 TIME_ADDON_PATH = ROOT / "common" / "addon" / "time.yaml"
 SUN_CALC_PATH = ROOT / "components" / "espcontrol" / "sun_calc.h"
 S3_DEVICE_PATH = ROOT / "devices" / "guition-esp32-s3-4848s040" / "device" / "device.yaml"
@@ -708,8 +709,56 @@ def firmware_cover_art_disable_errors(path: Path, root: Path) -> list[str]:
     body = yaml_script_body(text, "cover_art_disable")
     if not body:
         errors.append(f"{rel}: missing cover_art_disable script")
-    elif "switch.turn_off: media_player_sleep_prevention_enabled" not in body:
-        errors.append(f"{rel}: turn off media sleep prevention when cover art is disabled")
+    elif "switch.turn_off: media_player_sleep_prevention_enabled" in body:
+        errors.append(f"{rel}: keep media sleep prevention independent when cover art is disabled")
+    return errors
+
+
+def firmware_media_sleep_prevention_errors(
+    backlight_path: Path, display_path: Path, cover_art_path: Path, root: Path
+) -> list[str]:
+    errors: list[str] = []
+
+    if backlight_path.exists():
+        rel = backlight_path.relative_to(root)
+        text = backlight_path.read_text(encoding="utf-8")
+        idle_body = yaml_script_body(text, "screensaver_idle_check")
+        if idle_body is None:
+            errors.append(f"{rel}: missing screensaver_idle_check script")
+        else:
+            if (
+                "id(media_player_sleep_prevention_enabled).state &&" not in idle_body
+                or "id(cover_art_media_playing)" not in idle_body
+            ):
+                errors.append(f"{rel}: keep media playback awake only through the media sleep prevention setting")
+            if re.search(
+                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,160}"
+                r"id\(cover_art_media_playing\)",
+                idle_body,
+            ):
+                errors.append(f"{rel}: do not let cover art alone keep the idle timer awake")
+
+    if display_path.exists():
+        rel = display_path.relative_to(root)
+        text = display_path.read_text(encoding="utf-8")
+        if "switch.turn_on: media_player_sleep_prevention_enabled" in text:
+            errors.append(f"{rel}: do not turn on media sleep prevention when cover art is enabled")
+
+    if cover_art_path.exists():
+        rel = cover_art_path.relative_to(root)
+        text = cover_art_path.read_text(encoding="utf-8")
+        playback_started_body = yaml_script_body(text, "cover_art_playback_started")
+        if playback_started_body is None:
+            errors.append(f"{rel}: missing cover_art_playback_started script")
+        elif (
+            "script.execute: cover_art_delay_timer" in playback_started_body
+            and (
+                "id(media_player_sleep_prevention_enabled).state" not in playback_started_body
+                or "script.execute: screensaver_idle_check" not in playback_started_body
+            )
+        ):
+            errors.append(f"{rel}: do not start cover art immediately unless media sleep prevention or screensaver is active")
+
     return errors
 
 
@@ -1235,6 +1284,7 @@ def run_scan() -> int:
     errors.extend(firmware_cover_art_stale_image_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_cover_art_refresh_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_cover_art_disable_errors(COVER_ART_PATH, ROOT))
+    errors.extend(firmware_media_sleep_prevention_errors(BACKLIGHT_PATH, DISPLAY_CONFIG_PATH, COVER_ART_PATH, ROOT))
     errors.extend(firmware_image_card_entity_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_base_url_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_image_card_quality_errors(FIRMWARE_DIR, ROOT))
@@ -1566,6 +1616,32 @@ def expect_cover_art_disable_errors(name: str, text: str, expected: tuple[str, .
         path.write_text(text, encoding="utf-8")
 
         errors = firmware_cover_art_disable_errors(path, root)
+        for item in expected:
+            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
+        if not expected:
+            assert not errors, f"{name}: expected no errors, got {errors!r}"
+
+
+def expect_media_sleep_prevention_errors(
+    name: str,
+    backlight_text: str,
+    display_text: str,
+    cover_art_text: str,
+    expected: tuple[str, ...],
+) -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        backlight_path = root / "common" / "addon" / "backlight.yaml"
+        display_path = root / "common" / "config" / "display.yaml"
+        cover_art_path = root / "common" / "device" / "screen_cover_art.yaml"
+        backlight_path.parent.mkdir(parents=True)
+        display_path.parent.mkdir(parents=True)
+        cover_art_path.parent.mkdir(parents=True)
+        backlight_path.write_text(backlight_text, encoding="utf-8")
+        display_path.write_text(display_text, encoding="utf-8")
+        cover_art_path.write_text(cover_art_text, encoding="utf-8")
+
+        errors = firmware_media_sleep_prevention_errors(backlight_path, display_path, cover_art_path, root)
         for item in expected:
             assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
         if not expected:
@@ -2673,19 +2749,76 @@ def run_self_test() -> int:
         (),
     )
     expect_cover_art_disable_errors(
-        "missing sleep prevention reset when cover art is disabled",
+        "independent media sleep prevention when cover art is disabled",
         "script:\n"
         "  - id: cover_art_disable\n"
         "    then:\n"
         "      - script.stop: cover_art_delay_timer\n",
-        ("turn off media sleep prevention",),
+        (),
     )
     expect_cover_art_disable_errors(
-        "sleep prevention reset when cover art is disabled",
+        "coupled media sleep prevention when cover art is disabled",
         "script:\n"
         "  - id: cover_art_disable\n"
         "    then:\n"
         "      - switch.turn_off: media_player_sleep_prevention_enabled\n",
+        ("keep media sleep prevention independent",),
+    )
+    expect_media_sleep_prevention_errors(
+        "cover art alone keeps media awake",
+        "script:\n"
+        "  - id: screensaver_idle_check\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(cover_art_screensaver_active) ||\n"
+        "                     ((id(media_player_sleep_prevention_enabled).state ||\n"
+        "                       id(cover_art_screensaver_enabled).state) &&\n"
+        "                      id(cover_art_media_playing));\n",
+        "switch:\n"
+        "  - platform: template\n"
+        "    id: cover_art_screensaver_enabled\n"
+        "    on_turn_on:\n"
+        "      - switch.turn_on: media_player_sleep_prevention_enabled\n",
+        "script:\n"
+        "  - id: cover_art_playback_started\n"
+        "    then:\n"
+        "      - script.execute: cover_art_delay_timer\n",
+        (
+            "do not let cover art alone keep the idle timer awake",
+            "do not turn on media sleep prevention",
+            "do not start cover art immediately",
+        ),
+    )
+    expect_media_sleep_prevention_errors(
+        "media sleep prevention is independent from cover art",
+        "script:\n"
+        "  - id: screensaver_idle_check\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(cover_art_screensaver_active) ||\n"
+        "                     (id(media_player_sleep_prevention_enabled).state &&\n"
+        "                      id(cover_art_media_playing));\n",
+        "switch:\n"
+        "  - platform: template\n"
+        "    id: cover_art_screensaver_enabled\n"
+        "    on_turn_on:\n"
+        "      - script.execute: cover_art_resubscribe\n",
+        "script:\n"
+        "  - id: cover_art_playback_started\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(media_player_sleep_prevention_enabled).state ||\n"
+        "                     id(display_asleep);\n"
+        "          then:\n"
+        "            - script.execute: cover_art_delay_timer\n"
+        "          else:\n"
+        "            - script.execute: screensaver_idle_check\n",
         (),
     )
     expect_image_card_entity_errors(

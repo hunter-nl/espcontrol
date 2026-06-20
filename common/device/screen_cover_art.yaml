@@ -758,7 +758,6 @@ script:
   - id: cover_art_disable
     mode: restart
     then:
-      - switch.turn_off: media_player_sleep_prevention_enabled
       - script.stop: cover_art_delay_timer
       - script.stop: cover_art_show_track_overlay
       - script.stop: cover_art_download
@@ -807,6 +806,12 @@ script:
       - script.wait: cover_art_clear_image_source
       - artwork_image.release: cover_art_downloaded_image
       - script.execute: hide_cover_art_view
+      - if:
+          condition:
+            lambda: 'return id(media_player_sleep_prevention_enabled).state;'
+          then:
+            - script.execute: cover_art_resubscribe
+            - script.execute: screensaver_idle_check
 
   - id: cover_art_download
     mode: restart
@@ -1332,7 +1337,19 @@ script:
               return true;
           then:
             - delay: 5s
-            - script.execute: cover_art_delay_timer
+            - if:
+                condition:
+                  lambda: |-
+                    return id(media_player_sleep_prevention_enabled).state ||
+                           id(display_asleep) ||
+                           id(screen_schedule_asleep) ||
+                           id(screensaver_display_off_active) ||
+                           id(screensaver_dimmed_active) ||
+                           id(is_clock_showing);
+                then:
+                  - script.execute: cover_art_delay_timer
+                else:
+                  - script.execute: screensaver_idle_check
             - script.stop: cover_art_delay_timer
       - if:
           condition:
@@ -1957,7 +1974,19 @@ script:
                   id(cover_art_retry_count) = 0;
                   ESP_LOGI("cover_art", "Playback resumed without artwork; refreshing Home Assistant artwork URL");
                 }
-            - script.execute: cover_art_delay_timer
+            - if:
+                condition:
+                  lambda: |-
+                    return id(media_player_sleep_prevention_enabled).state ||
+                           id(display_asleep) ||
+                           id(screen_schedule_asleep) ||
+                           id(screensaver_display_off_active) ||
+                           id(screensaver_dimmed_active) ||
+                           id(is_clock_showing);
+                then:
+                  - script.execute: cover_art_delay_timer
+                else:
+                  - script.execute: screensaver_idle_check
 
   - id: cover_art_playback_stopped
     mode: restart
