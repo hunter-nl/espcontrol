@@ -314,12 +314,17 @@ inline std::string effective_timezone_option(const std::string &tz_option) {
   if (!timezone_is_homeassistant_auto(tz_option)) return tz_option;
 
 #if defined(USE_TIME_TIMEZONE)
+  const char *matched_tz = nullptr;
+  int match_count = 0;
   for (int i = 0; i < TZ_COORDS_COUNT; i++) {
     const char *posix = current_posix_tz(TZ_COORDS[i].tz);
     if (posix_timezone_matches_global(posix)) {
-      return TZ_COORDS[i].tz;
+      matched_tz = TZ_COORDS[i].tz;
+      match_count++;
+      if (match_count > 1) break;
     }
   }
+  if (match_count == 1) return matched_tz;
 #endif
 
   return ESPCONTROL_FALLBACK_TIMEZONE_OPTION;

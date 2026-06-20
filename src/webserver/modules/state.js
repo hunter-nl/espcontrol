@@ -44,7 +44,6 @@ function epaperPreviewFillColor() {
 
 function defaultTimezoneOptions() {
   var options = (CFG && Array.isArray(CFG.timezoneOptions)) ? CFG.timezoneOptions.slice() : [];
-  if (options.indexOf(AUTO_TIMEZONE_OPTION) === -1) options.unshift(AUTO_TIMEZONE_OPTION);
   return options;
 }
 
@@ -58,8 +57,11 @@ function effectiveTimezoneOptionForWeb(value) {
 
 function timezoneOptionsWithFallback(options, selected) {
   var list = Array.isArray(options) && options.length ? options.slice() : defaultTimezoneOptions();
-  if (list.indexOf(AUTO_TIMEZONE_OPTION) === -1) list.unshift(AUTO_TIMEZONE_OPTION);
-  if (selected && list.indexOf(selected) === -1) list.unshift(selected);
+  var supportsAuto = list.indexOf(AUTO_TIMEZONE_OPTION) !== -1;
+  if (selected && list.indexOf(selected) === -1 &&
+      (!isHomeAssistantAutoTimezone(selected) || supportsAuto)) {
+    list.unshift(selected);
+  }
   return list;
 }
 

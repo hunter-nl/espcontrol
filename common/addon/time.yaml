@@ -10,10 +10,6 @@ globals:
   - id: clock_format_12h
     type: bool
     initial_value: 'false'
-  - id: timezone_auto_default_migrated
-    type: bool
-    restore_value: true
-    initial_value: 'false'
 
 esphome:
   on_boot:
@@ -21,13 +17,6 @@ esphome:
     then:
       - lambda: |-
           id(clock_format_12h) = id(clock_format_select).current_option() == "12h";
-          if (!id(timezone_auto_default_migrated)) {
-            auto call = id(timezone_select).make_call();
-            call.set_option(ESPCONTROL_AUTO_TIMEZONE_OPTION);
-            call.perform();
-            id(timezone_auto_default_migrated) = true;
-            global_preferences->sync();
-          }
           std::string timezone_option = id(timezone_select).current_option();
           const char *posix = apply_configured_timezone(timezone_option);
           set_espcontrol_language(id(language_select).current_option());
