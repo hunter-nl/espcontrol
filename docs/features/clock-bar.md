@@ -21,6 +21,6 @@ The clock bar layout is not customizable. Hidden items stay greyed in the web pr
 
 Tap the network status icon on the panel to see device details, including the device name, IP address, WiFi strength, uptime, and firmware version.
 
-On devices with local voice controls, enable the clock bar to show the speaker shortcut. Tap it to adjust the device volume and access the microphone mute control. A greyed-out microphone-off icon means voice listening is muted; a greyed-out volume-off icon means speaker output is muted. These controls and indicators are not shown when the clock bar is disabled.
+On devices with local voice controls, enable the clock bar to show the microphone shortcut. Tap it to adjust the device volume and access the microphone mute control. A greyed-out microphone-off icon means voice listening is muted; a greyed-out volume-off icon means speaker output is muted. These controls and indicators are not shown when the clock bar is disabled.
 
 The time format and timezone are configured separately in [Time Settings](/features/clock). The temperature unit is configured in [Temperature Settings](/features/temperature).

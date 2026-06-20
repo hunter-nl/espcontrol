@@ -98,7 +98,7 @@ lvgl:
           widgets:
             - label:
                 id: voice_clock_bar_mute_icon_label
-                text: "\U000F04C3"
+                text: "\U000F036C"
                 text_font: font_icon_status
                 align: center
                 text_align: center

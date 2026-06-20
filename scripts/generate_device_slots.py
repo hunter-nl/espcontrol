@@ -81,7 +81,7 @@ def voice_substitution_lines(device: dict) -> list[str]:
         "    const bool output_muted = id(voice_media_player).is_muted();",
         "    lv_label_set_text(id(voice_clock_bar_mute_icon_label),",
         '                      microphone_muted ? "\\U000F036D" :',
-        '                      output_muted ? "\\U000F0581" : "\\U000F04C3");',
+        '                      output_muted ? "\\U000F0581" : "\\U000F036C");',
         "    lv_obj_set_style_text_color(id(voice_clock_bar_mute_icon_label),",
         "                                lv_color_hex((microphone_muted || output_muted) ? DARK_TEXT_MUTED : 0xFFFFFF),",
         "                                LV_PART_MAIN);",
