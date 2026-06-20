@@ -44,9 +44,9 @@ substitutions:
     const bool output_muted = id(voice_media_player).is_muted();
     lv_label_set_text(id(voice_clock_bar_mute_icon_label),
                       microphone_muted ? "\U000F036D" :
-                      output_muted ? "\U000F0581" : "\U000F036C");
+                      output_muted ? "\U000F071E" : "\U000F036C");
     lv_obj_set_style_text_color(id(voice_clock_bar_mute_icon_label),
-                                lv_color_hex((microphone_muted || output_muted) ? DARK_TEXT_MUTED : 0xFFFFFF),
+                                lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN);
   voice_interaction_active_condition: "id(voice_interaction_active)"
   clock_font_size: "224"

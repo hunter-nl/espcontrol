@@ -2227,7 +2227,7 @@ inline void media_volume_apply_mic_button_state(MediaVolumeCtx *ctx) {
   bool muted = ctx->mic_muted();
   lv_label_set_text(ui.mic_lbl, muted ? "\U000F036D" : "\U000F036C");
   lv_obj_set_style_text_color(ui.mic_lbl,
-    lv_color_hex(muted ? DARK_TEXT_MUTED : DARK_TEXT_PRIMARY), LV_PART_MAIN);
+    lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
 }
 
 inline void media_volume_refresh_active_mic_button() {
