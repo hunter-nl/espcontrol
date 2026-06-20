@@ -491,7 +491,7 @@ inline lv_obj_t *light_control_create_tab_button(lv_obj_t *parent, const char *i
     lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
-    lv_obj_set_style_transform_zoom(label, 210, LV_PART_MAIN);
+    lv_obj_set_style_transform_zoom(label, 180, LV_PART_MAIN);
     light_control_center_icon_label(label);
   }
   lv_obj_add_event_cb(btn, [](lv_event_t *e) {
@@ -718,22 +718,22 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
 
   int tab_count = static_cast<int>(visible_tabs.count);
   if (tab_count < 1) tab_count = 1;
-  lv_coord_t tab_size = layout.back_size;
-  if (tab_size < 68) tab_size = 68;
-  if (tab_size > 88) tab_size = 88;
-  lv_coord_t selected_tab_size = tab_size + tab_size / 7;
-  lv_coord_t tab_frame_pad = tab_size / 4;
-  lv_coord_t tab_gap = tab_size / 3;
+  lv_coord_t tab_size = layout.back_size * 7 / 10;
+  if (tab_size < 48) tab_size = 48;
+  if (tab_size > 68) tab_size = 68;
+  lv_coord_t selected_tab_size = tab_size + tab_size / 8;
+  lv_coord_t tab_frame_pad = tab_size / 5;
+  lv_coord_t tab_gap = tab_size / 4;
   lv_coord_t tabs_total_w = tab_size * tab_count + tab_gap * (tab_count - 1);
   lv_coord_t tab_frame_w = tabs_total_w + tab_frame_pad * 2;
   lv_coord_t tab_frame_h = tab_size + tab_frame_pad * 2;
   lv_coord_t tab_safe_left = layout.back_inset_x + layout.back_size + layout.inset / 2;
   lv_coord_t centered_left = (layout.panel_w - tab_frame_w) / 2;
-  while (centered_left < tab_safe_left && tab_size > 60) {
+  while (centered_left < tab_safe_left && tab_size > 48) {
     tab_size--;
-    selected_tab_size = tab_size + tab_size / 7;
-    tab_frame_pad = tab_size / 4;
-    tab_gap = tab_size / 3;
+    selected_tab_size = tab_size + tab_size / 8;
+    tab_frame_pad = tab_size / 5;
+    tab_gap = tab_size / 4;
     tabs_total_w = tab_size * tab_count + tab_gap * (tab_count - 1);
     tab_frame_w = tabs_total_w + tab_frame_pad * 2;
     tab_frame_h = tab_size + tab_frame_pad * 2;
