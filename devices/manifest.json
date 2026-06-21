@@ -102,7 +102,7 @@
           "volumeWidthCompensationPercent": 95
         },
         "package": {
-          "firmwareVersion": "dev-jc1060p470-20260611-livecheck",
+          "firmwareVersion": "dev",
           "substitutions": {
             "screen_width": "\"1024\"",
             "screen_height": "\"600\"",
@@ -247,7 +247,7 @@
           "subpageChevronTextWidthPercent": 96
         },
         "package": {
-          "firmwareVersion": "dev-jc4880p443-20260611-livecheck",
+          "firmwareVersion": "dev",
           "substitutions": {
             "screen_width": "\"480\"",
             "screen_height": "\"800\"",
@@ -386,7 +386,7 @@
           "subpageChevronY": -2
         },
         "package": {
-          "firmwareVersion": "dev-jc8012p4a1-20260611-livecheck",
+          "firmwareVersion": "dev",
           "substitutions": {
             "screen_width": "\"1280\"",
             "screen_height": "\"800\"",
@@ -528,7 +528,7 @@
           "wrapTallLabels": false
         },
         "package": {
-          "firmwareVersion": "dev-esp32-p4-86-20260611-livecheck",
+          "firmwareVersion": "dev",
           "substitutions": {
             "screen_width": "\"720\"",
             "screen_height": "\"720\"",
@@ -687,7 +687,7 @@
           "subpageChevronTextWidthPercent": 96
         },
         "package": {
-          "firmwareVersion": "dev-4848s040-20260611-livecheck",
+          "firmwareVersion": "dev",
           "subpageConfigChunks": 4,
           "substitutions": {
             "screen_width": "\"480\"",

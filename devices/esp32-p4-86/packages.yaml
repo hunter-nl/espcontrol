@@ -9,7 +9,7 @@
 substitutions:
   device_slug: "esp32-p4-86"
   firmware_manifest_slug: "esp32-p4-86"
-  firmware_version: "dev-esp32-p4-86-20260611-livecheck"
+  firmware_version: "dev"
   screen_width: "720"
   screen_height: "720"
   content_width: "570"

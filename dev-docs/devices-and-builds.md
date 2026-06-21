@@ -63,12 +63,10 @@ Build and upload local firmware from the repo root with the local ESPHome helper
 python3 scripts/local_esphome.py devices/<slug>/dev.yaml run
 ```
 
-The helper injects a dynamic `firmware_version` such as
-`fix-issue-581-esp32-p4-86-a1b566c`. That version appears in ESPHome logs,
-Home Assistant diagnostics, and the firmware version sensor, which makes local
-test builds easier to identify in bug reports. Running `esphome run dev.yaml`
-directly still works, but it uses the static fallback version from
-`devices/<slug>/packages.yaml`.
+The helper injects `dev` as the `firmware_version`. That version appears in
+ESPHome logs, Home Assistant diagnostics, and the firmware version sensor.
+Running `esphome run dev.yaml` directly still works, and it uses the same static
+fallback version from `devices/<slug>/packages.yaml`.
 
 If both USB and over-the-air upload targets are available, ESPHome prompts for a
 choice. In scripts or background runs, that prompt can stop the upload, so pass

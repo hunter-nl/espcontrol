@@ -9,7 +9,7 @@
 substitutions:
   device_slug: "guition-esp32-p4-jc4880p443"
   firmware_manifest_slug: "guition-esp32-p4-jc4880p443"
-  firmware_version: "dev-jc4880p443-20260611-livecheck"
+  firmware_version: "dev"
   screen_width: "480"
   screen_height: "800"
   content_width: "440"
