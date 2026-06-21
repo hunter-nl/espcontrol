@@ -248,12 +248,12 @@ function createClockBarItemElement(item, section) {
   } else if (item === "network") {
     var group = document.createElement("span");
     group.className = "sp-network-preview-group";
-    var network = document.createElement("span");
-    network.className = "sp-network-preview mdi mdi-wifi-strength-4";
-    group.appendChild(network);
     var voice = document.createElement("span");
     voice.className = "sp-voice-preview mdi mdi-microphone";
     group.appendChild(voice);
+    var network = document.createElement("span");
+    network.className = "sp-network-preview mdi mdi-wifi-strength-4";
+    group.appendChild(network);
     button.appendChild(group);
     els.networkPreview = network;
     els.voicePreview = voice;
