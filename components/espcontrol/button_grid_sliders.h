@@ -726,6 +726,19 @@ inline void light_control_layout_power(lv_obj_t *group, lv_obj_t *on_btn,
   }
 }
 
+inline lv_coord_t light_control_modal_control_width(const ControlModalLayout &layout,
+                                                    lv_coord_t card_width,
+                                                    lv_coord_t content_height) {
+  lv_coord_t width = card_width;
+  if (control_modal_uses_jc1060p470_tuning(layout)) {
+    lv_coord_t max_width = content_height * 9 / 16;
+    if (max_width < control_modal_scaled_px(160, layout.short_side))
+      max_width = control_modal_scaled_px(160, layout.short_side);
+    if (width > max_width) width = max_width;
+  }
+  return width;
+}
+
 inline void light_control_layout_modal(LightControlCtx *ctx) {
   LightControlModalUi &ui = light_control_modal_ui();
   if (!ctx || !ui.panel) return;
@@ -758,7 +771,6 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
     centered_left = (layout.panel_w - tab_frame_w) / 2;
   }
   if (!show_tab_bar) tab_frame_h = 0;
-  lv_coord_t slider_w = control_modal_home_card_width(ctx->btn, layout);
   if (ui.tab_row) {
     if (show_tab_bar) {
       lv_obj_clear_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
@@ -790,6 +802,8 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
   lv_coord_t content_bottom = layout.panel_h - layout.inset;
   lv_coord_t slider_h = content_bottom - content_top;
   if (slider_h < 160) slider_h = layout.panel_h / 2;
+  lv_coord_t slider_w = light_control_modal_control_width(
+    layout, control_modal_home_card_width(ctx->btn, layout), slider_h);
   lv_coord_t content_center_y = content_top + slider_h / 2 - layout.panel_h / 2;
   light_control_layout_power(
     ui.power_group, ui.power_on_btn, ui.power_off_btn, slider_w, slider_h, content_center_y);
