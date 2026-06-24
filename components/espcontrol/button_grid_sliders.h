@@ -1779,6 +1779,7 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
       if (label) lv_obj_center(label);
     }
   }
+  lv_obj_move_foreground(ui.back_btn);
 }
 
 inline void cover_control_hide_modal() {
