@@ -385,6 +385,8 @@ assert.deepStrictEqual(Array.from(hooks.alarmVisibleActions(hooks.parseButtonCon
 ))), ["away", "home", "night"]);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", false), true);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_speed", true), true);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", false), false);
+assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_control", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_switch", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("fan_oscillate", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("option_select", false), false);
@@ -791,6 +793,15 @@ const fanSpeedPreview = hooks.buttonTypePreviewFor("fan_speed", {
 });
 assert(fanSpeedPreview.iconHtml.includes("sp-slider-preview"), "fan speed preview keeps the slider preview");
 assert(fanSpeedPreview.labelHtml.includes("mdi-fan-speed-2"), "fan speed preview uses the speed badge");
+
+const fanControlPreview = hooks.buttonTypePreviewFor("fan_control", {
+  entity: "fan.bedroom",
+  label: "Bedroom Fan",
+  icon: "Fan",
+  type: "fan_control",
+});
+assert(!fanControlPreview.iconHtml.includes("sp-slider-preview"), "fan control preview is not an inline slider");
+assert(fanControlPreview.labelHtml.includes("mdi-fan"), "fan control preview uses the fan badge");
 
 const fanSwitchPreview = hooks.buttonTypePreviewFor("fan_switch", {
   entity: "fan.bedroom",

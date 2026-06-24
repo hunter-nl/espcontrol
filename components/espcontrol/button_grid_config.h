@@ -134,6 +134,8 @@ constexpr const char *LIGHT_CONTROL_TABS_OPTION = "light_tabs";
 constexpr const char *LIGHT_CONTROL_DEFAULT_TABS_VALUE = "power|brightness|temperature|color";
 constexpr const char *COVER_CONTROL_TABS_OPTION = "cover_tabs";
 constexpr const char *COVER_CONTROL_DEFAULT_TABS_VALUE = "position|controls|tilt";
+constexpr const char *FAN_CONTROL_TABS_OPTION = "fan_tabs";
+constexpr const char *FAN_CONTROL_DEFAULT_TABS_VALUE = "power|speed|preset|oscillation|direction";
 
 inline int bounded_grid_slots(int num_slots) {
   if (num_slots < 0) return 0;
@@ -542,6 +544,37 @@ inline std::string cover_card_options_normalized(const std::string &options,
     cfg_option_value(options, COVER_CONTROL_TABS_OPTION));
   if (tabs == COVER_CONTROL_DEFAULT_TABS_VALUE) return "";
   return std::string(COVER_CONTROL_TABS_OPTION) + "=" + encode_compact_field(tabs);
+}
+
+inline bool fan_control_tab_token_valid(const std::string &value) {
+  return value == "power" || value == "speed" || value == "preset" ||
+         value == "oscillation" || value == "direction";
+}
+
+inline std::string normalize_fan_control_tabs_value(const std::string &value) {
+  std::vector<std::string> parts = split_config_fields(
+    value.empty() ? std::string(FAN_CONTROL_DEFAULT_TABS_VALUE) : value, '|');
+  std::vector<std::string> tabs;
+  for (const auto &part : parts) {
+    if (!fan_control_tab_token_valid(part)) continue;
+    if (std::find(tabs.begin(), tabs.end(), part) == tabs.end()) {
+      tabs.push_back(part);
+    }
+  }
+  if (tabs.empty()) tabs.push_back("power");
+  std::string out;
+  for (const auto &tab : tabs) {
+    if (!out.empty()) out += "|";
+    out += tab;
+  }
+  return out;
+}
+
+inline std::string fan_control_card_options_normalized(const std::string &options) {
+  std::string tabs = normalize_fan_control_tabs_value(
+    cfg_option_value(options, FAN_CONTROL_TABS_OPTION));
+  if (tabs == FAN_CONTROL_DEFAULT_TABS_VALUE) return "";
+  return std::string(FAN_CONTROL_TABS_OPTION) + "=" + encode_compact_field(tabs);
 }
 
 inline uint32_t image_card_refresh_interval_ms(const ParsedCfg &p) {
@@ -958,7 +991,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.sensor.clear();
     p.unit.clear();
     p.precision.clear();
-    p.options.clear();
+    p.options = p.type == "fan_control" ? fan_control_card_options_normalized(p.options) : "";
     if (p.icon.empty() || p.icon == "Auto") p.icon = fan_card_default_icon_name(p.type);
     if (p.type == "fan_switch") {
       if (p.icon_on.empty() || p.icon_on == "Auto") p.icon_on = "Fan";

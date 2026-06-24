@@ -527,6 +527,7 @@ inline bool alarm_action_context_valid(AlarmActionCtx *action);
 struct FanCardCtx;
 inline bool fan_non_speed_card_type(const std::string &type);
 inline void fan_card_handle_click(FanCardCtx *ctx);
+inline void fan_control_open_modal(FanCardCtx *ctx);
 struct CoverControlCtx;
 inline void cover_control_open_modal(CoverControlCtx *ctx);
 struct LightControlCtx;
@@ -573,6 +574,9 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
   } else if (fan_non_speed_card_type(p.type)) {
     FanCardCtx *ctx = (FanCardCtx *)lv_obj_get_user_data(btn_obj);
     if (ctx) fan_card_handle_click(ctx);
+  } else if (p.type == "fan_control") {
+    FanCardCtx *ctx = (FanCardCtx *)lv_obj_get_user_data(btn_obj);
+    if (ctx) fan_control_open_modal(ctx);
   } else if (p.type == "cover" && cover_modal_mode(p.sensor)) {
     CoverControlCtx *ctx = (CoverControlCtx *)lv_obj_get_user_data(btn_obj);
     if (ctx) cover_control_open_modal(ctx);
