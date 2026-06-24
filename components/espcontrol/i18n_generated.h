@@ -81,6 +81,7 @@ inline const char *espcontrol_i18n_cs(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Nečinné";
   if (std::strcmp(text, "Lightning") == 0) return "Blesky";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Blesky a déšť";
+  if (std::strcmp(text, "Light") == 0) return "Světlo";
   if (std::strcmp(text, "Loading") == 0) return "Načítání";
   if (std::strcmp(text, "Locate") == 0) return "Najít";
   if (std::strcmp(text, "Lock") == 0) return "Zamknout";
@@ -135,7 +136,10 @@ inline const char *espcontrol_i18n_cs(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Deštivo";
   if (std::strcmp(text, "Relay") == 0) return "Relé";
   if (std::strcmp(text, "Returning") == 0) return "Vrací se";
+  if (std::strcmp(text, "Run this script?") == 0) return "Spustit tento skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka ztlumena";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(text, "Skip Next") == 0) return "Přeskočit další";
   if (std::strcmp(text, "Skip Previous") == 0) return "Přeskočit předchozí";
   if (std::strcmp(text, "Snowy") == 0) return "Sněží";
@@ -192,6 +196,7 @@ inline const char *espcontrol_i18n_cs(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Kontrola aktualizací";
   if (std::strcmp(text, "Latest installed") == 0) return "Nejnovější verze nainstalována";
   if (std::strcmp(text, "Update available") == 0) return "Aktualizace k dispozici";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Aktuální";
   if (std::strcmp(text, "Install") == 0) return "Aktualizovat firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otevřete 192.168.4.1";
@@ -277,6 +282,7 @@ inline const char *espcontrol_i18n_da(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inaktiv";
   if (std::strcmp(text, "Lightning") == 0) return "Lyn";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Lyn og regn";
+  if (std::strcmp(text, "Light") == 0) return "Lys";
   if (std::strcmp(text, "Loading") == 0) return "Indlæser";
   if (std::strcmp(text, "Locate") == 0) return "Find";
   if (std::strcmp(text, "Lock") == 0) return "Lås";
@@ -328,7 +334,10 @@ inline const char *espcontrol_i18n_da(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Regnfuldt";
   if (std::strcmp(text, "Relay") == 0) return "Relæ";
   if (std::strcmp(text, "Returning") == 0) return "Vender tilbage";
+  if (std::strcmp(text, "Run this script?") == 0) return "Kør dette script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skærm neddæmpet";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Skærm låst";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(text, "Skip Next") == 0) return "Spring til næste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Spring til forrige";
   if (std::strcmp(text, "Snowy") == 0) return "Sne";
@@ -383,6 +392,7 @@ inline const char *espcontrol_i18n_da(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Søger efter opdateringer";
   if (std::strcmp(text, "Latest installed") == 0) return "Seneste version installeret";
   if (std::strcmp(text, "Update available") == 0) return "Opdatering tilgængelig";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Opdateret";
   if (std::strcmp(text, "Install") == 0) return "Opdater firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åbn 192.168.4.1";
@@ -470,6 +480,7 @@ inline const char *espcontrol_i18n_de(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inaktiv";
   if (std::strcmp(text, "Lightning") == 0) return "Gewitter";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Gewitter und Regen";
+  if (std::strcmp(text, "Light") == 0) return "Licht";
   if (std::strcmp(text, "Loading") == 0) return "Laden";
   if (std::strcmp(text, "Locate") == 0) return "Orten";
   if (std::strcmp(text, "Lock") == 0) return "Sperren";
@@ -517,7 +528,10 @@ inline const char *espcontrol_i18n_de(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Regnerisch";
   if (std::strcmp(text, "Relay") == 0) return "Relais";
   if (std::strcmp(text, "Returning") == 0) return "Kehrt zurück";
+  if (std::strcmp(text, "Run this script?") == 0) return "Dieses Skript ausführen?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Bildschirm gedimmt";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(text, "Skip Next") == 0) return "Weiter springen";
   if (std::strcmp(text, "Skip Previous") == 0) return "Zurück springen";
   if (std::strcmp(text, "Snowy") == 0) return "Schneereich";
@@ -571,6 +585,7 @@ inline const char *espcontrol_i18n_de(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Suche nach Updates";
   if (std::strcmp(text, "Latest installed") == 0) return "Neueste Version installiert";
   if (std::strcmp(text, "Update available") == 0) return "Update verfügbar";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Aktuell";
   if (std::strcmp(text, "Install") == 0) return "Firmware aktualisieren";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 öffnen";
@@ -657,6 +672,7 @@ inline const char *espcontrol_i18n_es(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inactivo";
   if (std::strcmp(text, "Lightning") == 0) return "Rayos";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Rayos y lluvia";
+  if (std::strcmp(text, "Light") == 0) return "Luz";
   if (std::strcmp(text, "Loading") == 0) return "Cargando";
   if (std::strcmp(text, "Locate") == 0) return "Localizar";
   if (std::strcmp(text, "Lock") == 0) return "Bloquear";
@@ -710,7 +726,10 @@ inline const char *espcontrol_i18n_es(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Lluvioso";
   if (std::strcmp(text, "Relay") == 0) return "Relé";
   if (std::strcmp(text, "Returning") == 0) return "Volviendo";
+  if (std::strcmp(text, "Run this script?") == 0) return "¿Ejecutar este script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Pantalla atenuada";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar siguiente";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
   if (std::strcmp(text, "Snowy") == 0) return "Nevado";
@@ -766,6 +785,7 @@ inline const char *espcontrol_i18n_es(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Buscando actualizaciones";
   if (std::strcmp(text, "Latest installed") == 0) return "Última versión instalada";
   if (std::strcmp(text, "Update available") == 0) return "Actualización disponible";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Actualizado";
   if (std::strcmp(text, "Install") == 0) return "Actualizar firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abre 192.168.4.1";
@@ -856,6 +876,7 @@ inline const char *espcontrol_i18n_fi(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Valmiustila";
   if (std::strcmp(text, "Lightning") == 0) return "Ukkonen";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Ukkosta ja sadetta";
+  if (std::strcmp(text, "Light") == 0) return "Valo";
   if (std::strcmp(text, "Loading") == 0) return "Ladataan";
   if (std::strcmp(text, "Locate") == 0) return "Paikanna";
   if (std::strcmp(text, "Lock") == 0) return "Lukko";
@@ -913,7 +934,10 @@ inline const char *espcontrol_i18n_fi(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Sateista";
   if (std::strcmp(text, "Relay") == 0) return "Rele";
   if (std::strcmp(text, "Returning") == 0) return "Palaa";
+  if (std::strcmp(text, "Run this script?") == 0) return "Suoritetaanko tämä skripti?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Näyttö himmennetty";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(text, "Skip Next") == 0) return "Seuraava kappale";
   if (std::strcmp(text, "Skip Previous") == 0) return "Edellinen kappale";
   if (std::strcmp(text, "Snowy") == 0) return "Lumisadetta";
@@ -971,6 +995,7 @@ inline const char *espcontrol_i18n_fi(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Tarkistetaan päivityksiä";
   if (std::strcmp(text, "Latest installed") == 0) return "Uusin versio asennettu";
   if (std::strcmp(text, "Update available") == 0) return "Päivitys saatavilla";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Ajan tasalla";
   if (std::strcmp(text, "Install") == 0) return "Päivitä laiteohjelmisto";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Avaa 192.168.4.1";
@@ -1055,6 +1080,7 @@ inline const char *espcontrol_i18n_fr(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inactif";
   if (std::strcmp(text, "Lightning") == 0) return "Orage";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Orage et pluie";
+  if (std::strcmp(text, "Light") == 0) return "Lumière";
   if (std::strcmp(text, "Loading") == 0) return "Chargement";
   if (std::strcmp(text, "Locate") == 0) return "Localiser";
   if (std::strcmp(text, "Lock") == 0) return "Verrouiller";
@@ -1104,7 +1130,10 @@ inline const char *espcontrol_i18n_fr(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Pluvieux";
   if (std::strcmp(text, "Relay") == 0) return "Relais";
   if (std::strcmp(text, "Returning") == 0) return "Retour";
+  if (std::strcmp(text, "Run this script?") == 0) return "Exécuter ce script ?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Écran tamisé";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(text, "Skip Next") == 0) return "Passer au suivant";
   if (std::strcmp(text, "Skip Previous") == 0) return "Passer au précédent";
   if (std::strcmp(text, "Snowy") == 0) return "Neigeux";
@@ -1160,6 +1189,7 @@ inline const char *espcontrol_i18n_fr(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Recherche de mises à jour";
   if (std::strcmp(text, "Latest installed") == 0) return "Dernière version installée";
   if (std::strcmp(text, "Update available") == 0) return "Mise à jour disponible";
+  if (std::strcmp(text, "Up-to-date") == 0) return "À jour";
   if (std::strcmp(text, "Install") == 0) return "Mettre à jour le firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Ouvrez 192.168.4.1";
@@ -1250,6 +1280,7 @@ inline const char *espcontrol_i18n_hu(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Tétlen";
   if (std::strcmp(text, "Lightning") == 0) return "Villámlás";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Villámlás és eső";
+  if (std::strcmp(text, "Light") == 0) return "Fény";
   if (std::strcmp(text, "Loading") == 0) return "Betöltés";
   if (std::strcmp(text, "Locate") == 0) return "Keresés";
   if (std::strcmp(text, "Lock") == 0) return "Zár";
@@ -1306,7 +1337,10 @@ inline const char *espcontrol_i18n_hu(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Esős";
   if (std::strcmp(text, "Relay") == 0) return "Relé";
   if (std::strcmp(text, "Returning") == 0) return "Visszatérés";
+  if (std::strcmp(text, "Run this script?") == 0) return "Futtatja ezt a szkriptet?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Képernyő halványítva";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(text, "Skip Next") == 0) return "Ugrás a következőre";
   if (std::strcmp(text, "Skip Previous") == 0) return "Ugrás az előzőre";
   if (std::strcmp(text, "Snowy") == 0) return "Havas";
@@ -1365,6 +1399,7 @@ inline const char *espcontrol_i18n_hu(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Frissítések keresése";
   if (std::strcmp(text, "Latest installed") == 0) return "Legújabb verzió telepítve";
   if (std::strcmp(text, "Update available") == 0) return "Frissítés elérhető";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Naprakész";
   if (std::strcmp(text, "Install") == 0) return "Firmware frissítése";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Nyissa meg: 192.168.4.1";
@@ -1452,6 +1487,7 @@ inline const char *espcontrol_i18n_it(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inattivo";
   if (std::strcmp(text, "Lightning") == 0) return "Fulmini";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Fulmini e pioggia";
+  if (std::strcmp(text, "Light") == 0) return "Luce";
   if (std::strcmp(text, "Loading") == 0) return "Caricamento";
   if (std::strcmp(text, "Locate") == 0) return "Localizza";
   if (std::strcmp(text, "Lock") == 0) return "Blocca";
@@ -1507,7 +1543,10 @@ inline const char *espcontrol_i18n_it(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Piovoso";
   if (std::strcmp(text, "Relay") == 0) return "Relè";
   if (std::strcmp(text, "Returning") == 0) return "Ritorno";
+  if (std::strcmp(text, "Run this script?") == 0) return "Eseguire questo script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Schermo attenuato";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(text, "Skip Next") == 0) return "Salta avanti";
   if (std::strcmp(text, "Skip Previous") == 0) return "Salta indietro";
   if (std::strcmp(text, "Snowy") == 0) return "Nevoso";
@@ -1563,6 +1602,7 @@ inline const char *espcontrol_i18n_it(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Controllo aggiornamenti";
   if (std::strcmp(text, "Latest installed") == 0) return "Ultima versione installata";
   if (std::strcmp(text, "Update available") == 0) return "Aggiornamento disponibile";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Aggiornato";
   if (std::strcmp(text, "Install") == 0) return "Aggiorna firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Apri 192.168.4.1";
@@ -1649,6 +1689,7 @@ inline const char *espcontrol_i18n_nb(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inaktiv";
   if (std::strcmp(text, "Lightning") == 0) return "Lyn";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Lyn og regn";
+  if (std::strcmp(text, "Light") == 0) return "Lys";
   if (std::strcmp(text, "Loading") == 0) return "Laster";
   if (std::strcmp(text, "Locate") == 0) return "Finn";
   if (std::strcmp(text, "Lock") == 0) return "Lås";
@@ -1701,7 +1742,10 @@ inline const char *espcontrol_i18n_nb(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Regn";
   if (std::strcmp(text, "Relay") == 0) return "Relé";
   if (std::strcmp(text, "Returning") == 0) return "Returnerer";
+  if (std::strcmp(text, "Run this script?") == 0) return "Kjør dette skriptet?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skjerm neddimmet";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Skjerm låst";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(text, "Skip Next") == 0) return "Hopp til neste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hopp til forrige";
   if (std::strcmp(text, "Snowy") == 0) return "Snø";
@@ -1756,6 +1800,7 @@ inline const char *espcontrol_i18n_nb(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Ser etter oppdateringer";
   if (std::strcmp(text, "Latest installed") == 0) return "Nyeste versjon installert";
   if (std::strcmp(text, "Update available") == 0) return "Oppdatering tilgjengelig";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Oppdatert";
   if (std::strcmp(text, "Install") == 0) return "Oppdater firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åpne 192.168.4.1";
@@ -1844,6 +1889,7 @@ inline const char *espcontrol_i18n_nl(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inactief";
   if (std::strcmp(text, "Lightning") == 0) return "Bliksem";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Bliksem en regen";
+  if (std::strcmp(text, "Light") == 0) return "Licht";
   if (std::strcmp(text, "Loading") == 0) return "Laden";
   if (std::strcmp(text, "Locate") == 0) return "Lokaliseren";
   if (std::strcmp(text, "Lock") == 0) return "Vergrendelen";
@@ -1897,7 +1943,10 @@ inline const char *espcontrol_i18n_nl(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Regenachtig";
   if (std::strcmp(text, "Relay") == 0) return "Relais";
   if (std::strcmp(text, "Returning") == 0) return "Keert terug";
+  if (std::strcmp(text, "Run this script?") == 0) return "Dit script uitvoeren?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Scherm gedimd";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(text, "Skip Next") == 0) return "Volgende overslaan";
   if (std::strcmp(text, "Skip Previous") == 0) return "Vorige overslaan";
   if (std::strcmp(text, "Snowy") == 0) return "Sneeuwachtig";
@@ -1951,6 +2000,7 @@ inline const char *espcontrol_i18n_nl(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Controleren op updates";
   if (std::strcmp(text, "Latest installed") == 0) return "Nieuwste versie geïnstalleerd";
   if (std::strcmp(text, "Update available") == 0) return "Update beschikbaar";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Bijgewerkt";
   if (std::strcmp(text, "Install") == 0) return "Firmware bijwerken";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Open uw browser en\nconfigureer uw display";
@@ -2036,6 +2086,7 @@ inline const char *espcontrol_i18n_pl(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Bezczynny";
   if (std::strcmp(text, "Lightning") == 0) return "Błyskawice";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Błyskawice i deszcz";
+  if (std::strcmp(text, "Light") == 0) return "Światło";
   if (std::strcmp(text, "Loading") == 0) return "Ładowanie";
   if (std::strcmp(text, "Locate") == 0) return "Zlokalizuj";
   if (std::strcmp(text, "Lock") == 0) return "Zablokuj";
@@ -2088,7 +2139,10 @@ inline const char *espcontrol_i18n_pl(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Deszczowo";
   if (std::strcmp(text, "Relay") == 0) return "Przekaźnik";
   if (std::strcmp(text, "Returning") == 0) return "Powraca";
+  if (std::strcmp(text, "Run this script?") == 0) return "Uruchomić ten skrypt?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran przyciemniony";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(text, "Skip Next") == 0) return "Pomiń następny";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pomiń poprzedni";
   if (std::strcmp(text, "Snowy") == 0) return "Śnieżnie";
@@ -2143,6 +2197,7 @@ inline const char *espcontrol_i18n_pl(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Sprawdzanie aktualizacji";
   if (std::strcmp(text, "Latest installed") == 0) return "Najnowsza wersja zainstalowana";
   if (std::strcmp(text, "Update available") == 0) return "Aktualizacja dostępna";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Aktualne";
   if (std::strcmp(text, "Install") == 0) return "Aktualizuj firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otwórz 192.168.4.1";
@@ -2229,6 +2284,7 @@ inline const char *espcontrol_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inativo";
   if (std::strcmp(text, "Lightning") == 0) return "Raios";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Raios e chuva";
+  if (std::strcmp(text, "Light") == 0) return "Luz";
   if (std::strcmp(text, "Loading") == 0) return "Carregando";
   if (std::strcmp(text, "Locate") == 0) return "Localizar";
   if (std::strcmp(text, "Lock") == 0) return "Bloquear";
@@ -2283,7 +2339,10 @@ inline const char *espcontrol_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Chuvoso";
   if (std::strcmp(text, "Relay") == 0) return "Relé";
   if (std::strcmp(text, "Returning") == 0) return "Retornando";
+  if (std::strcmp(text, "Run this script?") == 0) return "Executar este script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Tela escurecida";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Pular próximo";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pular anterior";
   if (std::strcmp(text, "Snowy") == 0) return "Nevado";
@@ -2338,6 +2397,7 @@ inline const char *espcontrol_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Verificando atualizações";
   if (std::strcmp(text, "Latest installed") == 0) return "Versão mais recente instalada";
   if (std::strcmp(text, "Update available") == 0) return "Atualização disponível";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Atualizado";
   if (std::strcmp(text, "Install") == 0) return "Atualizar firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
@@ -2425,6 +2485,7 @@ inline const char *espcontrol_i18n_pt(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inativo";
   if (std::strcmp(text, "Lightning") == 0) return "Relâmpagos";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Relâmpagos e chuva";
+  if (std::strcmp(text, "Light") == 0) return "Luz";
   if (std::strcmp(text, "Loading") == 0) return "A carregar";
   if (std::strcmp(text, "Locate") == 0) return "Localizar";
   if (std::strcmp(text, "Lock") == 0) return "Bloquear";
@@ -2479,7 +2540,10 @@ inline const char *espcontrol_i18n_pt(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Chuvoso";
   if (std::strcmp(text, "Relay") == 0) return "Relé";
   if (std::strcmp(text, "Returning") == 0) return "A regressar";
+  if (std::strcmp(text, "Run this script?") == 0) return "Executar este script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecrã escurecido";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar seguinte";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
   if (std::strcmp(text, "Snowy") == 0) return "Nevado";
@@ -2534,6 +2598,7 @@ inline const char *espcontrol_i18n_pt(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "A procurar atualizações";
   if (std::strcmp(text, "Latest installed") == 0) return "Versão mais recente instalada";
   if (std::strcmp(text, "Update available") == 0) return "Atualização disponível";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Atualizado";
   if (std::strcmp(text, "Install") == 0) return "Atualizar firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
@@ -2624,6 +2689,7 @@ inline const char *espcontrol_i18n_ro(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inactiv";
   if (std::strcmp(text, "Lightning") == 0) return "Fulger";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Fulger și ploaie";
+  if (std::strcmp(text, "Light") == 0) return "Lumină";
   if (std::strcmp(text, "Loading") == 0) return "Se încarcă";
   if (std::strcmp(text, "Locate") == 0) return "Localizare";
   if (std::strcmp(text, "Lock") == 0) return "Încuietoare";
@@ -2680,7 +2746,10 @@ inline const char *espcontrol_i18n_ro(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Ploios";
   if (std::strcmp(text, "Relay") == 0) return "Releu";
   if (std::strcmp(text, "Returning") == 0) return "Revine";
+  if (std::strcmp(text, "Run this script?") == 0) return "Rulați acest script?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecran estompat";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Ecran blocat";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(text, "Skip Next") == 0) return "Următorul";
   if (std::strcmp(text, "Skip Previous") == 0) return "Anteriorul";
   if (std::strcmp(text, "Snowy") == 0) return "Ninsoare";
@@ -2739,6 +2808,7 @@ inline const char *espcontrol_i18n_ro(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Se verifică actualizările";
   if (std::strcmp(text, "Latest installed") == 0) return "Cea mai recentă versiune instalată";
   if (std::strcmp(text, "Update available") == 0) return "Actualizare disponibilă";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Actualizat";
   if (std::strcmp(text, "Install") == 0) return "Actualizează firmware-ul";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Deschideți 192.168.4.1";
@@ -2825,6 +2895,7 @@ inline const char *espcontrol_i18n_sk(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Nečinné";
   if (std::strcmp(text, "Lightning") == 0) return "Blesky";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Blesky a dážď";
+  if (std::strcmp(text, "Light") == 0) return "Svetlo";
   if (std::strcmp(text, "Loading") == 0) return "Načítanie";
   if (std::strcmp(text, "Locate") == 0) return "Nájsť";
   if (std::strcmp(text, "Lock") == 0) return "Zamknúť";
@@ -2879,7 +2950,10 @@ inline const char *espcontrol_i18n_sk(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Daždivo";
   if (std::strcmp(text, "Relay") == 0) return "Relé";
   if (std::strcmp(text, "Returning") == 0) return "Vracia sa";
+  if (std::strcmp(text, "Run this script?") == 0) return "Spustiť tento skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka stlmená";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskočiť predchádzajúce";
   if (std::strcmp(text, "Snowy") == 0) return "Sneží";
@@ -2936,6 +3010,7 @@ inline const char *espcontrol_i18n_sk(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Kontrola aktualizácií";
   if (std::strcmp(text, "Latest installed") == 0) return "Najnovšia verzia nainštalovaná";
   if (std::strcmp(text, "Update available") == 0) return "Aktualizácia dostupná";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Aktuálne";
   if (std::strcmp(text, "Install") == 0) return "Aktualizovať firmvér";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otvorte 192.168.4.1";
@@ -3025,6 +3100,7 @@ inline const char *espcontrol_i18n_sl(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Nedejaven";
   if (std::strcmp(text, "Lightning") == 0) return "Strele";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Strele in dež";
+  if (std::strcmp(text, "Light") == 0) return "Luč";
   if (std::strcmp(text, "Loading") == 0) return "Nalaganje";
   if (std::strcmp(text, "Locate") == 0) return "Poišči";
   if (std::strcmp(text, "Lock") == 0) return "Ključavnica";
@@ -3079,7 +3155,10 @@ inline const char *espcontrol_i18n_sl(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Deževno";
   if (std::strcmp(text, "Relay") == 0) return "Rele";
   if (std::strcmp(text, "Returning") == 0) return "Vračanje";
+  if (std::strcmp(text, "Run this script?") == 0) return "Zagnati ta skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Zaslon zatemnjen";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskoči naprej";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskoči nazaj";
   if (std::strcmp(text, "Snowy") == 0) return "Snežno";
@@ -3137,6 +3216,7 @@ inline const char *espcontrol_i18n_sl(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Preverjanje posodobitev";
   if (std::strcmp(text, "Latest installed") == 0) return "Najnovejša različica nameščena";
   if (std::strcmp(text, "Update available") == 0) return "Posodobitev je na voljo";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Posodobljeno";
   if (std::strcmp(text, "Install") == 0) return "Posodobi firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Odprite 192.168.4.1";
@@ -3224,6 +3304,7 @@ inline const char *espcontrol_i18n_sv(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Inaktiv";
   if (std::strcmp(text, "Lightning") == 0) return "Blixtar";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Blixtar och regn";
+  if (std::strcmp(text, "Light") == 0) return "Ljus";
   if (std::strcmp(text, "Loading") == 0) return "Laddar";
   if (std::strcmp(text, "Locate") == 0) return "Hitta";
   if (std::strcmp(text, "Lock") == 0) return "Lås";
@@ -3275,7 +3356,10 @@ inline const char *espcontrol_i18n_sv(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Regnigt";
   if (std::strcmp(text, "Relay") == 0) return "Relä";
   if (std::strcmp(text, "Returning") == 0) return "Återvänder";
+  if (std::strcmp(text, "Run this script?") == 0) return "Kör detta skript?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skärm nedtonad";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Skärm låst";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(text, "Skip Next") == 0) return "Hoppa till nästa";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hoppa till föregående";
   if (std::strcmp(text, "Snowy") == 0) return "Snöigt";
@@ -3330,6 +3414,7 @@ inline const char *espcontrol_i18n_sv(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Söker efter uppdateringar";
   if (std::strcmp(text, "Latest installed") == 0) return "Senaste versionen installerad";
   if (std::strcmp(text, "Update available") == 0) return "Uppdatering tillgänglig";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Uppdaterad";
   if (std::strcmp(text, "Install") == 0) return "Uppdatera firmware";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Öppna 192.168.4.1";
@@ -3418,6 +3503,7 @@ inline const char *espcontrol_i18n_tr(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Boşta";
   if (std::strcmp(text, "Lightning") == 0) return "Şimşek";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Şimşek ve yağmur";
+  if (std::strcmp(text, "Light") == 0) return "Işık";
   if (std::strcmp(text, "Loading") == 0) return "Yükleniyor";
   if (std::strcmp(text, "Locate") == 0) return "Bul";
   if (std::strcmp(text, "Lock") == 0) return "Kilit";
@@ -3476,7 +3562,10 @@ inline const char *espcontrol_i18n_tr(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Yağmurlu";
   if (std::strcmp(text, "Relay") == 0) return "Röle";
   if (std::strcmp(text, "Returning") == 0) return "Geri dönüyor";
+  if (std::strcmp(text, "Run this script?") == 0) return "Bu betik çalıştırılsın mı?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran kısılmış";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(text, "Skip Next") == 0) return "Sonrakine geç";
   if (std::strcmp(text, "Skip Previous") == 0) return "Öncekine geç";
   if (std::strcmp(text, "Snowy") == 0) return "Karlı";
@@ -3535,6 +3624,7 @@ inline const char *espcontrol_i18n_tr(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Güncellemeler kontrol ediliyor";
   if (std::strcmp(text, "Latest installed") == 0) return "En son sürüm yüklü";
   if (std::strcmp(text, "Update available") == 0) return "Güncelleme mevcut";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Güncel";
   if (std::strcmp(text, "Install") == 0) return "Firmware'i güncelle";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 adresini açın";
@@ -3625,6 +3715,7 @@ inline const char *espcontrol_i18n_uk(const char *text) {
   if (std::strcmp(text, "Idle") == 0) return "Бездіяльність";
   if (std::strcmp(text, "Lightning") == 0) return "Блискавка";
   if (std::strcmp(text, "Lightning And Rain") == 0) return "Блискавка і дощ";
+  if (std::strcmp(text, "Light") == 0) return "Світло";
   if (std::strcmp(text, "Loading") == 0) return "Завантаження";
   if (std::strcmp(text, "Locate") == 0) return "Знайти";
   if (std::strcmp(text, "Lock") == 0) return "Замок";
@@ -3683,7 +3774,10 @@ inline const char *espcontrol_i18n_uk(const char *text) {
   if (std::strcmp(text, "Rainy") == 0) return "Дощ";
   if (std::strcmp(text, "Relay") == 0) return "Реле";
   if (std::strcmp(text, "Returning") == 0) return "Повертається";
+  if (std::strcmp(text, "Run this script?") == 0) return "Запустити цей скрипт?";
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Екран приглушено";
+  if (std::strcmp(text, "Screen Locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(text, "Screen Unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(text, "Skip Next") == 0) return "Наступний";
   if (std::strcmp(text, "Skip Previous") == 0) return "Попередній";
   if (std::strcmp(text, "Snowy") == 0) return "Сніг";
@@ -3742,6 +3836,7 @@ inline const char *espcontrol_i18n_uk(const char *text) {
   if (std::strcmp(text, "Checking for updates") == 0) return "Перевірка оновлень";
   if (std::strcmp(text, "Latest installed") == 0) return "Останню версію встановлено";
   if (std::strcmp(text, "Update available") == 0) return "Доступне оновлення";
+  if (std::strcmp(text, "Up-to-date") == 0) return "Актуально";
   if (std::strcmp(text, "Install") == 0) return "Оновити прошивку";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Відкрийте 192.168.4.1";
@@ -3835,6 +3930,7 @@ inline const char *espcontrol_i18n_key_en(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Idle";
   if (std::strcmp(key, "lightning") == 0) return "Lightning";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Lightning And Rain";
+  if (std::strcmp(key, "light") == 0) return "Light";
   if (std::strcmp(key, "loading") == 0) return "Loading";
   if (std::strcmp(key, "locate") == 0) return "Locate";
   if (std::strcmp(key, "lock") == 0) return "Lock";
@@ -3895,7 +3991,10 @@ inline const char *espcontrol_i18n_key_en(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Rainy";
   if (std::strcmp(key, "relay") == 0) return "Relay";
   if (std::strcmp(key, "returning") == 0) return "Returning";
+  if (std::strcmp(key, "run_this_script") == 0) return "Run this script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Screen Dimmed";
+  if (std::strcmp(key, "screen_locked") == 0) return "Screen Locked";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Screen Unlocked";
   if (std::strcmp(key, "skip_next") == 0) return "Skip Next";
   if (std::strcmp(key, "skip_previous") == 0) return "Skip Previous";
   if (std::strcmp(key, "snowy") == 0) return "Snowy";
@@ -3956,6 +4055,7 @@ inline const char *espcontrol_i18n_key_en(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Checking for updates";
   if (std::strcmp(key, "latest_installed") == 0) return "Latest installed";
   if (std::strcmp(key, "update_available") == 0) return "Update available";
+  if (std::strcmp(key, "up_to_date") == 0) return "Up-to-date";
   if (std::strcmp(key, "update_firmware") == 0) return "Install";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No saved WiFi connection\nReinstall by USB to reconfigure";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Open 192.168.4.1";
@@ -4042,6 +4142,7 @@ inline const char *espcontrol_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Nečinné";
   if (std::strcmp(key, "lightning") == 0) return "Blesky";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Blesky a déšť";
+  if (std::strcmp(key, "light") == 0) return "Světlo";
   if (std::strcmp(key, "loading") == 0) return "Načítání";
   if (std::strcmp(key, "locate") == 0) return "Najít";
   if (std::strcmp(key, "lock") == 0) return "Zamknout";
@@ -4097,7 +4198,10 @@ inline const char *espcontrol_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Deštivo";
   if (std::strcmp(key, "relay") == 0) return "Relé";
   if (std::strcmp(key, "returning") == 0) return "Vrací se";
+  if (std::strcmp(key, "run_this_script") == 0) return "Spustit tento skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka ztlumena";
+  if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(key, "skip_next") == 0) return "Přeskočit další";
   if (std::strcmp(key, "skip_previous") == 0) return "Přeskočit předchozí";
   if (std::strcmp(key, "snowy") == 0) return "Sněží";
@@ -4154,6 +4258,7 @@ inline const char *espcontrol_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Kontrola aktualizací";
   if (std::strcmp(key, "latest_installed") == 0) return "Nejnovější verze nainstalována";
   if (std::strcmp(key, "update_available") == 0) return "Aktualizace k dispozici";
+  if (std::strcmp(key, "up_to_date") == 0) return "Aktuální";
   if (std::strcmp(key, "update_firmware") == 0) return "Aktualizovat firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otevřete 192.168.4.1";
@@ -4239,6 +4344,7 @@ inline const char *espcontrol_i18n_key_da(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inaktiv";
   if (std::strcmp(key, "lightning") == 0) return "Lyn";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Lyn og regn";
+  if (std::strcmp(key, "light") == 0) return "Lys";
   if (std::strcmp(key, "loading") == 0) return "Indlæser";
   if (std::strcmp(key, "locate") == 0) return "Find";
   if (std::strcmp(key, "lock") == 0) return "Lås";
@@ -4291,7 +4397,10 @@ inline const char *espcontrol_i18n_key_da(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Regnfuldt";
   if (std::strcmp(key, "relay") == 0) return "Relæ";
   if (std::strcmp(key, "returning") == 0) return "Vender tilbage";
+  if (std::strcmp(key, "run_this_script") == 0) return "Kør dette script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skærm neddæmpet";
+  if (std::strcmp(key, "screen_locked") == 0) return "Skærm låst";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(key, "skip_next") == 0) return "Spring til næste";
   if (std::strcmp(key, "skip_previous") == 0) return "Spring til forrige";
   if (std::strcmp(key, "snowy") == 0) return "Sne";
@@ -4346,6 +4455,7 @@ inline const char *espcontrol_i18n_key_da(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Søger efter opdateringer";
   if (std::strcmp(key, "latest_installed") == 0) return "Seneste version installeret";
   if (std::strcmp(key, "update_available") == 0) return "Opdatering tilgængelig";
+  if (std::strcmp(key, "up_to_date") == 0) return "Opdateret";
   if (std::strcmp(key, "update_firmware") == 0) return "Opdater firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åbn 192.168.4.1";
@@ -4433,6 +4543,7 @@ inline const char *espcontrol_i18n_key_de(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inaktiv";
   if (std::strcmp(key, "lightning") == 0) return "Gewitter";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Gewitter und Regen";
+  if (std::strcmp(key, "light") == 0) return "Licht";
   if (std::strcmp(key, "loading") == 0) return "Laden";
   if (std::strcmp(key, "locate") == 0) return "Orten";
   if (std::strcmp(key, "lock") == 0) return "Sperren";
@@ -4481,7 +4592,10 @@ inline const char *espcontrol_i18n_key_de(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Regnerisch";
   if (std::strcmp(key, "relay") == 0) return "Relais";
   if (std::strcmp(key, "returning") == 0) return "Kehrt zurück";
+  if (std::strcmp(key, "run_this_script") == 0) return "Dieses Skript ausführen?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Bildschirm gedimmt";
+  if (std::strcmp(key, "screen_locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(key, "skip_next") == 0) return "Weiter springen";
   if (std::strcmp(key, "skip_previous") == 0) return "Zurück springen";
   if (std::strcmp(key, "snowy") == 0) return "Schneereich";
@@ -4535,6 +4649,7 @@ inline const char *espcontrol_i18n_key_de(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Suche nach Updates";
   if (std::strcmp(key, "latest_installed") == 0) return "Neueste Version installiert";
   if (std::strcmp(key, "update_available") == 0) return "Update verfügbar";
+  if (std::strcmp(key, "up_to_date") == 0) return "Aktuell";
   if (std::strcmp(key, "update_firmware") == 0) return "Firmware aktualisieren";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 öffnen";
@@ -4621,6 +4736,7 @@ inline const char *espcontrol_i18n_key_es(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inactivo";
   if (std::strcmp(key, "lightning") == 0) return "Rayos";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Rayos y lluvia";
+  if (std::strcmp(key, "light") == 0) return "Luz";
   if (std::strcmp(key, "loading") == 0) return "Cargando";
   if (std::strcmp(key, "locate") == 0) return "Localizar";
   if (std::strcmp(key, "lock") == 0) return "Bloquear";
@@ -4675,7 +4791,10 @@ inline const char *espcontrol_i18n_key_es(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Lluvioso";
   if (std::strcmp(key, "relay") == 0) return "Relé";
   if (std::strcmp(key, "returning") == 0) return "Volviendo";
+  if (std::strcmp(key, "run_this_script") == 0) return "¿Ejecutar este script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Pantalla atenuada";
+  if (std::strcmp(key, "screen_locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar siguiente";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
   if (std::strcmp(key, "snowy") == 0) return "Nevado";
@@ -4731,6 +4850,7 @@ inline const char *espcontrol_i18n_key_es(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Buscando actualizaciones";
   if (std::strcmp(key, "latest_installed") == 0) return "Última versión instalada";
   if (std::strcmp(key, "update_available") == 0) return "Actualización disponible";
+  if (std::strcmp(key, "up_to_date") == 0) return "Actualizado";
   if (std::strcmp(key, "update_firmware") == 0) return "Actualizar firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abre 192.168.4.1";
@@ -4821,6 +4941,7 @@ inline const char *espcontrol_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Valmiustila";
   if (std::strcmp(key, "lightning") == 0) return "Ukkonen";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Ukkosta ja sadetta";
+  if (std::strcmp(key, "light") == 0) return "Valo";
   if (std::strcmp(key, "loading") == 0) return "Ladataan";
   if (std::strcmp(key, "locate") == 0) return "Paikanna";
   if (std::strcmp(key, "lock") == 0) return "Lukko";
@@ -4879,7 +5000,10 @@ inline const char *espcontrol_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Sateista";
   if (std::strcmp(key, "relay") == 0) return "Rele";
   if (std::strcmp(key, "returning") == 0) return "Palaa";
+  if (std::strcmp(key, "run_this_script") == 0) return "Suoritetaanko tämä skripti?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Näyttö himmennetty";
+  if (std::strcmp(key, "screen_locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(key, "skip_next") == 0) return "Seuraava kappale";
   if (std::strcmp(key, "skip_previous") == 0) return "Edellinen kappale";
   if (std::strcmp(key, "snowy") == 0) return "Lumisadetta";
@@ -4937,6 +5061,7 @@ inline const char *espcontrol_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Tarkistetaan päivityksiä";
   if (std::strcmp(key, "latest_installed") == 0) return "Uusin versio asennettu";
   if (std::strcmp(key, "update_available") == 0) return "Päivitys saatavilla";
+  if (std::strcmp(key, "up_to_date") == 0) return "Ajan tasalla";
   if (std::strcmp(key, "update_firmware") == 0) return "Päivitä laiteohjelmisto";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Avaa 192.168.4.1";
@@ -5021,6 +5146,7 @@ inline const char *espcontrol_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inactif";
   if (std::strcmp(key, "lightning") == 0) return "Orage";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Orage et pluie";
+  if (std::strcmp(key, "light") == 0) return "Lumière";
   if (std::strcmp(key, "loading") == 0) return "Chargement";
   if (std::strcmp(key, "locate") == 0) return "Localiser";
   if (std::strcmp(key, "lock") == 0) return "Verrouiller";
@@ -5071,7 +5197,10 @@ inline const char *espcontrol_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Pluvieux";
   if (std::strcmp(key, "relay") == 0) return "Relais";
   if (std::strcmp(key, "returning") == 0) return "Retour";
+  if (std::strcmp(key, "run_this_script") == 0) return "Exécuter ce script ?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Écran tamisé";
+  if (std::strcmp(key, "screen_locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(key, "skip_next") == 0) return "Passer au suivant";
   if (std::strcmp(key, "skip_previous") == 0) return "Passer au précédent";
   if (std::strcmp(key, "snowy") == 0) return "Neigeux";
@@ -5127,6 +5256,7 @@ inline const char *espcontrol_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Recherche de mises à jour";
   if (std::strcmp(key, "latest_installed") == 0) return "Dernière version installée";
   if (std::strcmp(key, "update_available") == 0) return "Mise à jour disponible";
+  if (std::strcmp(key, "up_to_date") == 0) return "À jour";
   if (std::strcmp(key, "update_firmware") == 0) return "Mettre à jour le firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Ouvrez 192.168.4.1";
@@ -5217,6 +5347,7 @@ inline const char *espcontrol_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Tétlen";
   if (std::strcmp(key, "lightning") == 0) return "Villámlás";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Villámlás és eső";
+  if (std::strcmp(key, "light") == 0) return "Fény";
   if (std::strcmp(key, "loading") == 0) return "Betöltés";
   if (std::strcmp(key, "locate") == 0) return "Keresés";
   if (std::strcmp(key, "lock") == 0) return "Zár";
@@ -5274,7 +5405,10 @@ inline const char *espcontrol_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Esős";
   if (std::strcmp(key, "relay") == 0) return "Relé";
   if (std::strcmp(key, "returning") == 0) return "Visszatérés";
+  if (std::strcmp(key, "run_this_script") == 0) return "Futtatja ezt a szkriptet?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Képernyő halványítva";
+  if (std::strcmp(key, "screen_locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(key, "skip_next") == 0) return "Ugrás a következőre";
   if (std::strcmp(key, "skip_previous") == 0) return "Ugrás az előzőre";
   if (std::strcmp(key, "snowy") == 0) return "Havas";
@@ -5333,6 +5467,7 @@ inline const char *espcontrol_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Frissítések keresése";
   if (std::strcmp(key, "latest_installed") == 0) return "Legújabb verzió telepítve";
   if (std::strcmp(key, "update_available") == 0) return "Frissítés elérhető";
+  if (std::strcmp(key, "up_to_date") == 0) return "Naprakész";
   if (std::strcmp(key, "update_firmware") == 0) return "Firmware frissítése";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Nyissa meg: 192.168.4.1";
@@ -5420,6 +5555,7 @@ inline const char *espcontrol_i18n_key_it(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inattivo";
   if (std::strcmp(key, "lightning") == 0) return "Fulmini";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Fulmini e pioggia";
+  if (std::strcmp(key, "light") == 0) return "Luce";
   if (std::strcmp(key, "loading") == 0) return "Caricamento";
   if (std::strcmp(key, "locate") == 0) return "Localizza";
   if (std::strcmp(key, "lock") == 0) return "Blocca";
@@ -5476,7 +5612,10 @@ inline const char *espcontrol_i18n_key_it(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Piovoso";
   if (std::strcmp(key, "relay") == 0) return "Relè";
   if (std::strcmp(key, "returning") == 0) return "Ritorno";
+  if (std::strcmp(key, "run_this_script") == 0) return "Eseguire questo script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Schermo attenuato";
+  if (std::strcmp(key, "screen_locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(key, "skip_next") == 0) return "Salta avanti";
   if (std::strcmp(key, "skip_previous") == 0) return "Salta indietro";
   if (std::strcmp(key, "snowy") == 0) return "Nevoso";
@@ -5532,6 +5671,7 @@ inline const char *espcontrol_i18n_key_it(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Controllo aggiornamenti";
   if (std::strcmp(key, "latest_installed") == 0) return "Ultima versione installata";
   if (std::strcmp(key, "update_available") == 0) return "Aggiornamento disponibile";
+  if (std::strcmp(key, "up_to_date") == 0) return "Aggiornato";
   if (std::strcmp(key, "update_firmware") == 0) return "Aggiorna firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Apri 192.168.4.1";
@@ -5618,6 +5758,7 @@ inline const char *espcontrol_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inaktiv";
   if (std::strcmp(key, "lightning") == 0) return "Lyn";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Lyn og regn";
+  if (std::strcmp(key, "light") == 0) return "Lys";
   if (std::strcmp(key, "loading") == 0) return "Laster";
   if (std::strcmp(key, "locate") == 0) return "Finn";
   if (std::strcmp(key, "lock") == 0) return "Lås";
@@ -5671,7 +5812,10 @@ inline const char *espcontrol_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Regn";
   if (std::strcmp(key, "relay") == 0) return "Relé";
   if (std::strcmp(key, "returning") == 0) return "Returnerer";
+  if (std::strcmp(key, "run_this_script") == 0) return "Kjør dette skriptet?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skjerm neddimmet";
+  if (std::strcmp(key, "screen_locked") == 0) return "Skjerm låst";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(key, "skip_next") == 0) return "Hopp til neste";
   if (std::strcmp(key, "skip_previous") == 0) return "Hopp til forrige";
   if (std::strcmp(key, "snowy") == 0) return "Snø";
@@ -5726,6 +5870,7 @@ inline const char *espcontrol_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Ser etter oppdateringer";
   if (std::strcmp(key, "latest_installed") == 0) return "Nyeste versjon installert";
   if (std::strcmp(key, "update_available") == 0) return "Oppdatering tilgjengelig";
+  if (std::strcmp(key, "up_to_date") == 0) return "Oppdatert";
   if (std::strcmp(key, "update_firmware") == 0) return "Oppdater firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åpne 192.168.4.1";
@@ -5814,6 +5959,7 @@ inline const char *espcontrol_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inactief";
   if (std::strcmp(key, "lightning") == 0) return "Bliksem";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Bliksem en regen";
+  if (std::strcmp(key, "light") == 0) return "Licht";
   if (std::strcmp(key, "loading") == 0) return "Laden";
   if (std::strcmp(key, "locate") == 0) return "Lokaliseren";
   if (std::strcmp(key, "lock") == 0) return "Vergrendelen";
@@ -5867,7 +6013,10 @@ inline const char *espcontrol_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Regenachtig";
   if (std::strcmp(key, "relay") == 0) return "Relais";
   if (std::strcmp(key, "returning") == 0) return "Keert terug";
+  if (std::strcmp(key, "run_this_script") == 0) return "Dit script uitvoeren?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Scherm gedimd";
+  if (std::strcmp(key, "screen_locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(key, "skip_next") == 0) return "Volgende overslaan";
   if (std::strcmp(key, "skip_previous") == 0) return "Vorige overslaan";
   if (std::strcmp(key, "snowy") == 0) return "Sneeuwachtig";
@@ -5921,6 +6070,7 @@ inline const char *espcontrol_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Controleren op updates";
   if (std::strcmp(key, "latest_installed") == 0) return "Nieuwste versie geïnstalleerd";
   if (std::strcmp(key, "update_available") == 0) return "Update beschikbaar";
+  if (std::strcmp(key, "up_to_date") == 0) return "Bijgewerkt";
   if (std::strcmp(key, "update_firmware") == 0) return "Firmware bijwerken";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Open uw browser en\nconfigureer uw display";
@@ -6006,6 +6156,7 @@ inline const char *espcontrol_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Bezczynny";
   if (std::strcmp(key, "lightning") == 0) return "Błyskawice";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Błyskawice i deszcz";
+  if (std::strcmp(key, "light") == 0) return "Światło";
   if (std::strcmp(key, "loading") == 0) return "Ładowanie";
   if (std::strcmp(key, "locate") == 0) return "Zlokalizuj";
   if (std::strcmp(key, "lock") == 0) return "Zablokuj";
@@ -6059,7 +6210,10 @@ inline const char *espcontrol_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Deszczowo";
   if (std::strcmp(key, "relay") == 0) return "Przekaźnik";
   if (std::strcmp(key, "returning") == 0) return "Powraca";
+  if (std::strcmp(key, "run_this_script") == 0) return "Uruchomić ten skrypt?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran przyciemniony";
+  if (std::strcmp(key, "screen_locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(key, "skip_next") == 0) return "Pomiń następny";
   if (std::strcmp(key, "skip_previous") == 0) return "Pomiń poprzedni";
   if (std::strcmp(key, "snowy") == 0) return "Śnieżnie";
@@ -6114,6 +6268,7 @@ inline const char *espcontrol_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Sprawdzanie aktualizacji";
   if (std::strcmp(key, "latest_installed") == 0) return "Najnowsza wersja zainstalowana";
   if (std::strcmp(key, "update_available") == 0) return "Aktualizacja dostępna";
+  if (std::strcmp(key, "up_to_date") == 0) return "Aktualne";
   if (std::strcmp(key, "update_firmware") == 0) return "Aktualizuj firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otwórz 192.168.4.1";
@@ -6200,6 +6355,7 @@ inline const char *espcontrol_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inativo";
   if (std::strcmp(key, "lightning") == 0) return "Raios";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Raios e chuva";
+  if (std::strcmp(key, "light") == 0) return "Luz";
   if (std::strcmp(key, "loading") == 0) return "Carregando";
   if (std::strcmp(key, "locate") == 0) return "Localizar";
   if (std::strcmp(key, "lock") == 0) return "Bloquear";
@@ -6255,7 +6411,10 @@ inline const char *espcontrol_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Chuvoso";
   if (std::strcmp(key, "relay") == 0) return "Relé";
   if (std::strcmp(key, "returning") == 0) return "Retornando";
+  if (std::strcmp(key, "run_this_script") == 0) return "Executar este script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Tela escurecida";
+  if (std::strcmp(key, "screen_locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Pular próximo";
   if (std::strcmp(key, "skip_previous") == 0) return "Pular anterior";
   if (std::strcmp(key, "snowy") == 0) return "Nevado";
@@ -6310,6 +6469,7 @@ inline const char *espcontrol_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Verificando atualizações";
   if (std::strcmp(key, "latest_installed") == 0) return "Versão mais recente instalada";
   if (std::strcmp(key, "update_available") == 0) return "Atualização disponível";
+  if (std::strcmp(key, "up_to_date") == 0) return "Atualizado";
   if (std::strcmp(key, "update_firmware") == 0) return "Atualizar firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
@@ -6397,6 +6557,7 @@ inline const char *espcontrol_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inativo";
   if (std::strcmp(key, "lightning") == 0) return "Relâmpagos";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Relâmpagos e chuva";
+  if (std::strcmp(key, "light") == 0) return "Luz";
   if (std::strcmp(key, "loading") == 0) return "A carregar";
   if (std::strcmp(key, "locate") == 0) return "Localizar";
   if (std::strcmp(key, "lock") == 0) return "Bloquear";
@@ -6452,7 +6613,10 @@ inline const char *espcontrol_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Chuvoso";
   if (std::strcmp(key, "relay") == 0) return "Relé";
   if (std::strcmp(key, "returning") == 0) return "A regressar";
+  if (std::strcmp(key, "run_this_script") == 0) return "Executar este script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecrã escurecido";
+  if (std::strcmp(key, "screen_locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar seguinte";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
   if (std::strcmp(key, "snowy") == 0) return "Nevado";
@@ -6507,6 +6671,7 @@ inline const char *espcontrol_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "A procurar atualizações";
   if (std::strcmp(key, "latest_installed") == 0) return "Versão mais recente instalada";
   if (std::strcmp(key, "update_available") == 0) return "Atualização disponível";
+  if (std::strcmp(key, "up_to_date") == 0) return "Atualizado";
   if (std::strcmp(key, "update_firmware") == 0) return "Atualizar firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
@@ -6597,6 +6762,7 @@ inline const char *espcontrol_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inactiv";
   if (std::strcmp(key, "lightning") == 0) return "Fulger";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Fulger și ploaie";
+  if (std::strcmp(key, "light") == 0) return "Lumină";
   if (std::strcmp(key, "loading") == 0) return "Se încarcă";
   if (std::strcmp(key, "locate") == 0) return "Localizare";
   if (std::strcmp(key, "lock") == 0) return "Încuietoare";
@@ -6654,7 +6820,10 @@ inline const char *espcontrol_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Ploios";
   if (std::strcmp(key, "relay") == 0) return "Releu";
   if (std::strcmp(key, "returning") == 0) return "Revine";
+  if (std::strcmp(key, "run_this_script") == 0) return "Rulați acest script?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecran estompat";
+  if (std::strcmp(key, "screen_locked") == 0) return "Ecran blocat";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(key, "skip_next") == 0) return "Următorul";
   if (std::strcmp(key, "skip_previous") == 0) return "Anteriorul";
   if (std::strcmp(key, "snowy") == 0) return "Ninsoare";
@@ -6713,6 +6882,7 @@ inline const char *espcontrol_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Se verifică actualizările";
   if (std::strcmp(key, "latest_installed") == 0) return "Cea mai recentă versiune instalată";
   if (std::strcmp(key, "update_available") == 0) return "Actualizare disponibilă";
+  if (std::strcmp(key, "up_to_date") == 0) return "Actualizat";
   if (std::strcmp(key, "update_firmware") == 0) return "Actualizează firmware-ul";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Deschideți 192.168.4.1";
@@ -6799,6 +6969,7 @@ inline const char *espcontrol_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Nečinné";
   if (std::strcmp(key, "lightning") == 0) return "Blesky";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Blesky a dážď";
+  if (std::strcmp(key, "light") == 0) return "Svetlo";
   if (std::strcmp(key, "loading") == 0) return "Načítanie";
   if (std::strcmp(key, "locate") == 0) return "Nájsť";
   if (std::strcmp(key, "lock") == 0) return "Zamknúť";
@@ -6854,7 +7025,10 @@ inline const char *espcontrol_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Daždivo";
   if (std::strcmp(key, "relay") == 0) return "Relé";
   if (std::strcmp(key, "returning") == 0) return "Vracia sa";
+  if (std::strcmp(key, "run_this_script") == 0) return "Spustiť tento skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka stlmená";
+  if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(key, "skip_next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskočiť predchádzajúce";
   if (std::strcmp(key, "snowy") == 0) return "Sneží";
@@ -6911,6 +7085,7 @@ inline const char *espcontrol_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Kontrola aktualizácií";
   if (std::strcmp(key, "latest_installed") == 0) return "Najnovšia verzia nainštalovaná";
   if (std::strcmp(key, "update_available") == 0) return "Aktualizácia dostupná";
+  if (std::strcmp(key, "up_to_date") == 0) return "Aktuálne";
   if (std::strcmp(key, "update_firmware") == 0) return "Aktualizovať firmvér";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otvorte 192.168.4.1";
@@ -7000,6 +7175,7 @@ inline const char *espcontrol_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Nedejaven";
   if (std::strcmp(key, "lightning") == 0) return "Strele";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Strele in dež";
+  if (std::strcmp(key, "light") == 0) return "Luč";
   if (std::strcmp(key, "loading") == 0) return "Nalaganje";
   if (std::strcmp(key, "locate") == 0) return "Poišči";
   if (std::strcmp(key, "lock") == 0) return "Ključavnica";
@@ -7055,7 +7231,10 @@ inline const char *espcontrol_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Deževno";
   if (std::strcmp(key, "relay") == 0) return "Rele";
   if (std::strcmp(key, "returning") == 0) return "Vračanje";
+  if (std::strcmp(key, "run_this_script") == 0) return "Zagnati ta skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Zaslon zatemnjen";
+  if (std::strcmp(key, "screen_locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(key, "skip_next") == 0) return "Preskoči naprej";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskoči nazaj";
   if (std::strcmp(key, "snowy") == 0) return "Snežno";
@@ -7113,6 +7292,7 @@ inline const char *espcontrol_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Preverjanje posodobitev";
   if (std::strcmp(key, "latest_installed") == 0) return "Najnovejša različica nameščena";
   if (std::strcmp(key, "update_available") == 0) return "Posodobitev je na voljo";
+  if (std::strcmp(key, "up_to_date") == 0) return "Posodobljeno";
   if (std::strcmp(key, "update_firmware") == 0) return "Posodobi firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Odprite 192.168.4.1";
@@ -7200,6 +7380,7 @@ inline const char *espcontrol_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Inaktiv";
   if (std::strcmp(key, "lightning") == 0) return "Blixtar";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Blixtar och regn";
+  if (std::strcmp(key, "light") == 0) return "Ljus";
   if (std::strcmp(key, "loading") == 0) return "Laddar";
   if (std::strcmp(key, "locate") == 0) return "Hitta";
   if (std::strcmp(key, "lock") == 0) return "Lås";
@@ -7252,7 +7433,10 @@ inline const char *espcontrol_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Regnigt";
   if (std::strcmp(key, "relay") == 0) return "Relä";
   if (std::strcmp(key, "returning") == 0) return "Återvänder";
+  if (std::strcmp(key, "run_this_script") == 0) return "Kör detta skript?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skärm nedtonad";
+  if (std::strcmp(key, "screen_locked") == 0) return "Skärm låst";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(key, "skip_next") == 0) return "Hoppa till nästa";
   if (std::strcmp(key, "skip_previous") == 0) return "Hoppa till föregående";
   if (std::strcmp(key, "snowy") == 0) return "Snöigt";
@@ -7307,6 +7491,7 @@ inline const char *espcontrol_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Söker efter uppdateringar";
   if (std::strcmp(key, "latest_installed") == 0) return "Senaste versionen installerad";
   if (std::strcmp(key, "update_available") == 0) return "Uppdatering tillgänglig";
+  if (std::strcmp(key, "up_to_date") == 0) return "Uppdaterad";
   if (std::strcmp(key, "update_firmware") == 0) return "Uppdatera firmware";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Öppna 192.168.4.1";
@@ -7395,6 +7580,7 @@ inline const char *espcontrol_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Boşta";
   if (std::strcmp(key, "lightning") == 0) return "Şimşek";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Şimşek ve yağmur";
+  if (std::strcmp(key, "light") == 0) return "Işık";
   if (std::strcmp(key, "loading") == 0) return "Yükleniyor";
   if (std::strcmp(key, "locate") == 0) return "Bul";
   if (std::strcmp(key, "lock") == 0) return "Kilit";
@@ -7454,7 +7640,10 @@ inline const char *espcontrol_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Yağmurlu";
   if (std::strcmp(key, "relay") == 0) return "Röle";
   if (std::strcmp(key, "returning") == 0) return "Geri dönüyor";
+  if (std::strcmp(key, "run_this_script") == 0) return "Bu betik çalıştırılsın mı?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran kısılmış";
+  if (std::strcmp(key, "screen_locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(key, "skip_next") == 0) return "Sonrakine geç";
   if (std::strcmp(key, "skip_previous") == 0) return "Öncekine geç";
   if (std::strcmp(key, "snowy") == 0) return "Karlı";
@@ -7513,6 +7702,7 @@ inline const char *espcontrol_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Güncellemeler kontrol ediliyor";
   if (std::strcmp(key, "latest_installed") == 0) return "En son sürüm yüklü";
   if (std::strcmp(key, "update_available") == 0) return "Güncelleme mevcut";
+  if (std::strcmp(key, "up_to_date") == 0) return "Güncel";
   if (std::strcmp(key, "update_firmware") == 0) return "Firmware'i güncelle";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 adresini açın";
@@ -7603,6 +7793,7 @@ inline const char *espcontrol_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "idle") == 0) return "Бездіяльність";
   if (std::strcmp(key, "lightning") == 0) return "Блискавка";
   if (std::strcmp(key, "lightning_and_rain") == 0) return "Блискавка і дощ";
+  if (std::strcmp(key, "light") == 0) return "Світло";
   if (std::strcmp(key, "loading") == 0) return "Завантаження";
   if (std::strcmp(key, "locate") == 0) return "Знайти";
   if (std::strcmp(key, "lock") == 0) return "Замок";
@@ -7662,7 +7853,10 @@ inline const char *espcontrol_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "rainy") == 0) return "Дощ";
   if (std::strcmp(key, "relay") == 0) return "Реле";
   if (std::strcmp(key, "returning") == 0) return "Повертається";
+  if (std::strcmp(key, "run_this_script") == 0) return "Запустити цей скрипт?";
   if (std::strcmp(key, "screen_dimmed") == 0) return "Екран приглушено";
+  if (std::strcmp(key, "screen_locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(key, "screen_unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(key, "skip_next") == 0) return "Наступний";
   if (std::strcmp(key, "skip_previous") == 0) return "Попередній";
   if (std::strcmp(key, "snowy") == 0) return "Сніг";
@@ -7721,6 +7915,7 @@ inline const char *espcontrol_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "checking_for_updates") == 0) return "Перевірка оновлень";
   if (std::strcmp(key, "latest_installed") == 0) return "Останню версію встановлено";
   if (std::strcmp(key, "update_available") == 0) return "Доступне оновлення";
+  if (std::strcmp(key, "up_to_date") == 0) return "Актуально";
   if (std::strcmp(key, "update_firmware") == 0) return "Оновити прошивку";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Відкрийте 192.168.4.1";
