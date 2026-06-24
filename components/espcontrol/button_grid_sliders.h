@@ -750,6 +750,7 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
     tab_frame_h = tab_size + tab_frame_pad * 2;
     centered_left = (layout.panel_w - tab_frame_w) / 2;
   }
+  if (!show_tab_bar) tab_frame_h = 0;
   lv_coord_t slider_w = control_modal_home_card_width(ctx->btn, layout);
   if (ui.tab_row) {
     if (show_tab_bar) {
@@ -803,11 +804,19 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
     ui.temp_slider, ui.temp_slider_handle, light_control_kelvin_to_pct(ctx, ctx->current_kelvin));
   if (ui.color_grid) {
     lv_coord_t grid_side = layout.panel_w - layout.inset * 3;
-    lv_coord_t max_grid_h = layout.panel_h - layout.inset * 4 - tab_frame_h - 24;
+    lv_coord_t color_safe_top = content_top;
+    if (!show_tab_bar) {
+      lv_coord_t chrome_safe_top = layout.back_inset_y + layout.back_size + layout.inset / 2;
+      if (color_safe_top < chrome_safe_top) color_safe_top = chrome_safe_top;
+    }
+    lv_coord_t max_grid_h = content_bottom - color_safe_top;
     if (grid_side > max_grid_h) grid_side = max_grid_h;
     if (grid_side < 180) grid_side = 180;
     lv_obj_set_size(ui.color_grid, grid_side, grid_side);
-    lv_obj_align(ui.color_grid, LV_ALIGN_CENTER, 0, content_center_y);
+    lv_coord_t color_center_y = content_center_y;
+    lv_coord_t color_top = layout.panel_h / 2 + color_center_y - grid_side / 2;
+    if (!show_tab_bar && color_top < color_safe_top) color_center_y += color_safe_top - color_top;
+    lv_obj_align(ui.color_grid, LV_ALIGN_CENTER, 0, color_center_y);
     lv_coord_t gap = 14;
     lv_coord_t swatch = (grid_side - gap * 3) / 4;
     for (uint32_t i = 0; i < 16; i++) {
