@@ -232,6 +232,10 @@ inline bool control_modal_uses_4848_tuning(const ControlModalLayout &layout) {
   return display_modal_is_4848_size(layout.sw, layout.sh);
 }
 
+inline bool control_modal_uses_p4_86_tuning(const ControlModalLayout &layout) {
+  return display_modal_is_p4_86_size(layout.sw, layout.sh);
+}
+
 inline bool control_modal_uses_large_landscape_tuning(const ControlModalLayout &layout) {
   return display_modal_is_large_landscape_size(layout.sw, layout.sh);
 }

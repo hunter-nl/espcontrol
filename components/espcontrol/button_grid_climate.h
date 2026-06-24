@@ -515,7 +515,7 @@ inline bool climate_control_uses_4848_modal_tuning(const ControlModalLayout &lay
 }
 
 inline bool climate_control_uses_p4_86_modal_tuning(const ControlModalLayout &layout) {
-  return layout.sw == 720 && layout.sh == 720;
+  return control_modal_uses_p4_86_tuning(layout);
 }
 
 inline bool climate_control_uses_large_landscape_modal_tuning(const ControlModalLayout &layout) {
