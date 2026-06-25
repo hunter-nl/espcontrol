@@ -1464,7 +1464,7 @@ inline void grid_phase2(
         has_on ? on_val : DEFAULT_SLIDER_COLOR,
         has_off ? off_val : DEFAULT_OFF_COLOR,
         display_icon_font(display),
-        display_main_width_percent(display));
+        display_volume_width_percent(display));
       grid_track_runtime_allocation(s.btn, ctx);
       subscribe_cover_control_state(ctx);
       continue;
@@ -1731,7 +1731,7 @@ inline void grid_phase2(
             has_on ? on_val : DEFAULT_SLIDER_COLOR,
             has_off ? off_val : DEFAULT_OFF_COLOR,
             display_icon_font(display),
-            display_main_width_percent(display));
+            display_volume_width_percent(display));
           grid_delete_with_owner(sb_btn, ctx);
           subscribe_cover_control_state(ctx);
           add_parent_indicator(sb_cfg.entity);
