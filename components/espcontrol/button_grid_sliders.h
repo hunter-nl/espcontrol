@@ -1696,7 +1696,7 @@ inline lv_obj_t *cover_control_create_tab_button(lv_obj_t *parent, const char *i
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (font) lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
     lv_obj_set_style_transform_zoom(label, 210, LV_PART_MAIN);
-    lv_obj_center(label);
+    light_control_center_icon_label(label);
   }
   lv_obj_add_event_cb(btn, [](lv_event_t *e) {
     CoverControlTab tab = static_cast<CoverControlTab>(
@@ -1898,11 +1898,12 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
     bool active = (visible_tabs.tabs[i] == ui.tab);
     lv_coord_t tab_btn_size = active ? selected_tab_size : tab_size;
     lv_obj_set_size(tab_btn, tab_btn_size, tab_btn_size);
+    apply_width_compensation(tab_btn, ctx->width_compensation_percent);
     lv_obj_set_style_radius(tab_btn, tab_btn_size / 2, LV_PART_MAIN);
     lv_coord_t tab_x = first_tab_x + i * (tab_size + tab_gap);
     lv_obj_align(tab_btn, LV_ALIGN_LEFT_MID, tab_x - (tab_btn_size - tab_size) / 2, 0);
     lv_obj_t *label = lv_obj_get_child(tab_btn, 0);
-    if (label) lv_obj_align(label, LV_ALIGN_CENTER, tab_btn_size / 16, tab_btn_size / 16);
+    light_control_center_icon_label(label);
   }
 
   lv_coord_t content_top = show_tab_bar
