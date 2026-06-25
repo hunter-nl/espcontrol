@@ -444,7 +444,8 @@ def firmware_climate_step_errors(root: Path) -> list[str]:
         "int step = climate_effective_step_tenths(ctx);",
         "int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;",
         "climate_round_to_step(ctx, climate_constrain_selected_target(ctx, value))",
-        "climate_preview_selected_target(ui.active, lv_arc_get_value(arc));",
+        "climate_preview_selected_target(ui.active,",
+        "climate_target_from_modal_arc_value(ui.active, lv_arc_get_value(arc))",
         "climate_apply_selected_target(ui.active, value, true, false);",
         "climate_selected_target(ui.active) - climate_effective_step_tenths(ui.active)",
         "climate_selected_target(ui.active) + climate_effective_step_tenths(ui.active)",
@@ -462,6 +463,16 @@ def firmware_climate_step_errors(root: Path) -> list[str]:
     for needle in forbidden:
         if needle in text:
             errors.append(f"{rel}: do not allow 0.1C climate modal temperature steps")
+            break
+
+    cooling_drag_required = (
+        "inline int climate_target_from_modal_arc_value(ClimateControlCtx *ctx, int value)",
+        "if (climate_uses_cooling_arc(ctx)) return ctx->min_tenths + ctx->max_tenths - value;",
+        "climate_target_from_modal_arc_value(ui.active, lv_arc_get_value(arc))",
+    )
+    for needle in cooling_drag_required:
+        if needle not in text:
+            errors.append(f"{rel}: keep cooling-mode climate arc drags aligned with the touch direction")
             break
 
     return errors
@@ -796,8 +807,13 @@ def run_self_test() -> int:
             "      ? CLIMATE_DEFAULT_STEP_TENTHS\n"
             "      : CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
             "}\n"
+            "inline int climate_target_from_modal_arc_value(ClimateControlCtx *ctx, int value) {\n"
+            "  if (climate_uses_cooling_arc(ctx)) return ctx->min_tenths + ctx->max_tenths - value;\n"
+            "  return value;\n"
+            "}\n"
             "inline void climate_control_open_modal(ClimateControlCtx *ctx) {\n"
-            "  climate_preview_selected_target(ui.active, lv_arc_get_value(arc));\n"
+            "  climate_preview_selected_target(ui.active,\n"
+            "    climate_target_from_modal_arc_value(ui.active, lv_arc_get_value(arc)));\n"
             "  climate_apply_selected_target(ui.active, value, true, false);\n"
             "  climate_selected_target(ui.active) - climate_effective_step_tenths(ui.active);\n"
             "  climate_selected_target(ui.active) + climate_effective_step_tenths(ui.active);\n"
