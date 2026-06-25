@@ -1856,30 +1856,9 @@ inline void apply_weather_forecast_card_text(const WeatherForecastCardRef &ref,
   lv_label_set_text(ref.unit_lbl, normalized_unit.c_str());
 }
 
-inline lv_timer_t *&weather_forecast_visual_refresh_timer() {
-  static lv_timer_t *timer = nullptr;
-  return timer;
-}
-
-inline void weather_forecast_apply_visuals_cb(lv_timer_t *timer) {
-  lv_timer_t *&active_timer = weather_forecast_visual_refresh_timer();
-  if (active_timer == timer) active_timer = nullptr;
-  lv_timer_del(timer);
-
-  WeatherForecastCardRef *refs = weather_forecast_card_refs();
-  int count = weather_forecast_card_count();
-  for (int i = 0; i < count; i++) {
-    apply_control_availability(refs[i].btn, refs[i].btn, refs[i].valid, false);
-    apply_weather_forecast_card_text(refs[i], refs[i].valid, refs[i].high,
-                                     refs[i].low, refs[i].source_unit);
-  }
-  if (count > 0) notify_dashboard_content_changed();
-}
-
 inline void weather_forecast_schedule_visual_refresh() {
-  lv_timer_t *&timer = weather_forecast_visual_refresh_timer();
-  if (timer) lv_timer_reset(timer);
-  else timer = lv_timer_create(weather_forecast_apply_visuals_cb, 1, nullptr);
+  // Forecast callbacks can arrive while the grid is rebuilding. Keep the parsed
+  // values cached, but avoid touching LVGL objects from this async path.
 }
 
 inline void apply_weather_forecast_to_entity(const std::string &entity_id,
