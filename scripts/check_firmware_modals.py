@@ -181,6 +181,30 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
             errors.append("common/addon/backlight.yaml: track display-takeover suspension explicitly")
         if "screensaver_sensor_sleep_pending" not in text:
             errors.append("common/addon/backlight.yaml: preserve pending sensor-mode sleep while image modals are active")
+        resume_restore_body = yaml_script_body(text, "display_takeover_resume_restore")
+        if resume_restore_body is None:
+            errors.append("common/addon/backlight.yaml: restore deferred display takeover targets after modal close")
+        else:
+            if (
+                "id(screensaver_sensor_sleep_pending)" not in resume_restore_body
+                or "script.execute: screensaver_sleep_sensor" not in resume_restore_body
+                or "!id(presence_detected)" not in resume_restore_body
+            ):
+                errors.append(
+                    "common/addon/backlight.yaml: re-check pending sensor-mode sleep when display takeover resumes"
+                )
+            if (
+                "id(cover_art_media_playing)" not in resume_restore_body
+                or "show_cover_art_view" not in resume_restore_body
+            ):
+                errors.append("common/addon/backlight.yaml: restore cover art when display takeover resumes")
+            if (
+                "home_screen_idle_restore" not in resume_restore_body
+                or "screensaver_idle_check" not in resume_restore_body
+            ):
+                errors.append(
+                    "common/addon/backlight.yaml: restore home and screensaver timers when display takeover resumes"
+                )
         sleep_timer_body = yaml_script_body(text, "screensaver_sleep_timer")
         if sleep_timer_body is None:
             errors.append("common/addon/backlight.yaml: keep the screensaver sleep timer script")
@@ -221,18 +245,11 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
                 "scripts/generate_device_slots.py: image modal display guard must not stop the home-return timer"
             )
         if (
-            "id(screensaver_sensor_sleep_pending)" not in text
-            or "id(screensaver_sleep_sensor).execute();" not in text
-            or "!id(presence_detected)" not in text
-        ):
-            errors.append(
-                "scripts/generate_device_slots.py: re-check pending sensor-mode sleep when image modals close"
-            )
-        if (
             "cfg.suspend_display_takeover" not in text
             or "cfg.resume_display_takeover" not in text
             or "id(display_takeover_suspended) = true;" not in text
             or "id(display_takeover_suspended) = false;" not in text
+            or "id(display_takeover_resume_restore).execute();" not in text
         ):
             errors.append("scripts/generate_device_slots.py: generate explicit display-takeover guard hooks")
 
@@ -598,6 +615,22 @@ def valid_sleep_takeover_files() -> dict[str, str]:
             "  - id: display_takeover_suspended\n"
             "  - id: screensaver_sensor_sleep_pending\n"
             "script:\n"
+            "  - id: display_takeover_resume_restore\n"
+            "    then:\n"
+            "      - if:\n"
+            "          condition:\n"
+            "            lambda: |-\n"
+            "              return id(screensaver_sensor_sleep_pending) && !id(presence_detected);\n"
+            "          then:\n"
+            "            - script.execute: screensaver_sleep_sensor\n"
+            "      - if:\n"
+            "          condition:\n"
+            "            lambda: 'return id(cover_art_media_playing);'\n"
+            "          then:\n"
+            "            - script.execute: show_cover_art_view\n"
+            "          else:\n"
+            "            - script.execute: home_screen_idle_restore\n"
+            "            - script.execute: screensaver_idle_check\n"
             "  - id: screensaver_sleep_timer\n"
             "    then:\n"
             "      - if:\n"
@@ -623,10 +656,7 @@ def valid_sleep_takeover_files() -> dict[str, str]:
             "};\n"
             "cfg.resume_display_takeover = []() {\n"
             "  id(display_takeover_suspended) = false;\n"
-            "  if (id(screensaver_sensor_sleep_pending) && !id(presence_detected)) {\n"
-            "    id(screensaver_sleep_sensor).execute();\n"
-            "  }\n"
-            "  id(home_screen_idle_check).execute();\n"
+            "  id(display_takeover_resume_restore).execute();\n"
             "};\n"
         ),
     }
@@ -839,10 +869,7 @@ def run_self_test() -> int:
         "};\n"
         "cfg.resume_display_takeover = []() {\n"
         "  id(display_takeover_suspended) = false;\n"
-        "  if (id(screensaver_sensor_sleep_pending) && !id(presence_detected)) {\n"
-        "    id(screensaver_sleep_sensor).execute();\n"
-        "  }\n"
-        "  id(home_screen_idle_check).execute();\n"
+        "  id(display_takeover_resume_restore).execute();\n"
         "};\n"
     )
     expect_sleep_takeover_errors(
@@ -851,15 +878,10 @@ def run_self_test() -> int:
         ("must not stop the home-return timer",),
     )
     missing_sensor_resume = valid_sleep_takeover_files()
-    missing_sensor_resume["scripts/generate_device_slots.py"] = (
-        "cfg.suspend_display_takeover = []() {\n"
-        "  id(display_takeover_suspended) = true;\n"
-        "  id(screensaver_idle_check).stop();\n"
-        "};\n"
-        "cfg.resume_display_takeover = []() {\n"
-        "  id(display_takeover_suspended) = false;\n"
-        "  id(home_screen_idle_check).execute();\n"
-        "};\n"
+    missing_sensor_resume["common/addon/backlight.yaml"] = (
+        missing_sensor_resume["common/addon/backlight.yaml"]
+        .replace("              return id(screensaver_sensor_sleep_pending) && !id(presence_detected);\n", "              return false;\n")
+        .replace("            - script.execute: screensaver_sleep_sensor\n", "")
     )
     expect_sleep_takeover_errors(
         "image modal close misses pending sensor sleep",

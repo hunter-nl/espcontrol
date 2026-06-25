@@ -1235,6 +1235,16 @@ script:
     then:
       - if:
           condition:
+            lambda: 'return alarm_display_takeover_active();'
+          then:
+            - logger.log:
+                level: DEBUG
+                tag: cover_art
+                format: "Skipping cover art while alarm display takeover is active"
+            - script.execute: hide_cover_art_view
+            - script.stop: show_cover_art_view
+      - if:
+          condition:
             lambda: |-
               return id(cover_art_manual_pause_until_ms) != 0 &&
                      (int32_t)(id(cover_art_manual_pause_until_ms) - millis()) > 0;
@@ -1384,7 +1394,8 @@ script:
             lambda: |-
               bool voice_active = ${voice_interaction_active_condition};
               auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-              return id(cover_art_screensaver_enabled).state &&
+              return !alarm_display_takeover_active() &&
+                     id(cover_art_screensaver_enabled).state &&
                      id(cover_art_media_playing) &&
                      !voice_active &&
                      (id(cover_art_manual_pause_until_ms) == 0 ||
@@ -2054,7 +2065,8 @@ script:
           condition:
             lambda: |-
               auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-              return id(cover_art_screensaver_enabled).state &&
+              return !alarm_display_takeover_active() &&
+                     id(cover_art_screensaver_enabled).state &&
                      !screen_schedule_blocks_cover_art(
                        id(screen_schedule_trigger).state,
                        id(schedule_enabled).state,
