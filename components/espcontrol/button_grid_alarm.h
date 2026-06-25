@@ -1233,7 +1233,7 @@ inline void alarm_control_create_arming_view(AlarmControlModalUi &ui,
 
   ui.arming_title = lv_label_create(ui.arming_view);
   lv_label_set_text(ui.arming_title, espcontrol_i18n("Arming"));
-  lv_obj_set_style_text_color(ui.arming_title, lv_color_hex(primary_color), LV_PART_MAIN);
+  lv_obj_set_style_text_color(ui.arming_title, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
   lv_obj_set_style_text_align(ui.arming_title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (title_font) lv_obj_set_style_text_font(ui.arming_title, title_font, LV_PART_MAIN);
   apply_width_compensation(ui.arming_title, ctx ? ctx->width_compensation_percent : 100);
@@ -1244,7 +1244,7 @@ inline void alarm_control_create_arming_view(AlarmControlModalUi &ui,
 
   ui.arming_countdown = lv_label_create(ui.arming_view);
   lv_label_set_text(ui.arming_countdown, "");
-  lv_obj_set_style_text_color(ui.arming_countdown, lv_color_hex(primary_color), LV_PART_MAIN);
+  lv_obj_set_style_text_color(ui.arming_countdown, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
   lv_obj_set_style_text_align(ui.arming_countdown, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   if (countdown_font) lv_obj_set_style_text_font(ui.arming_countdown, countdown_font, LV_PART_MAIN);
   apply_width_compensation(ui.arming_countdown, ctx ? ctx->width_compensation_percent : 100);
