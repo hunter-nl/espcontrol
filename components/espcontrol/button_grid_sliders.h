@@ -508,6 +508,12 @@ inline lv_coord_t control_modal_card_tab_size(const ControlModalLayout &layout) 
   return control_modal_control_tab_size(layout);
 }
 
+inline lv_coord_t control_modal_prominent_card_tab_size(const ControlModalLayout &layout) {
+  if (control_modal_uses_compact_portrait_tuning(layout))
+    return control_modal_scaled_px(58, layout.short_side);
+  return control_modal_card_tab_size(layout);
+}
+
 inline lv_coord_t control_modal_control_tab_gap(const ControlModalLayout &layout,
                                                 lv_coord_t tab_size) {
   lv_coord_t gap = control_modal_uses_large_landscape_tuning(layout)
@@ -529,6 +535,12 @@ inline lv_coord_t control_modal_card_tab_content_gap(const ControlModalLayout &l
   if (control_modal_uses_jc1060p470_tuning(layout))
     return control_modal_scaled_px(28, layout.short_side);
   return control_modal_control_tab_content_gap(layout);
+}
+
+inline lv_coord_t control_modal_prominent_card_tab_content_gap(const ControlModalLayout &layout) {
+  if (control_modal_uses_compact_portrait_tuning(layout))
+    return control_modal_scaled_px(30, layout.short_side);
+  return control_modal_card_tab_content_gap(layout);
 }
 
 inline void light_control_center_icon_label(lv_obj_t *label) {
@@ -809,7 +821,7 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
   int tab_count = static_cast<int>(visible_tabs.count);
   if (tab_count < 1) tab_count = 1;
   bool show_tab_bar = tab_count > 1;
-  lv_coord_t tab_size = control_modal_card_tab_size(layout);
+  lv_coord_t tab_size = control_modal_prominent_card_tab_size(layout);
   lv_coord_t selected_tab_size = tab_size + tab_size / 8;
   lv_coord_t tab_frame_pad = tab_size / 5;
   lv_coord_t tab_gap = control_modal_control_tab_gap(layout, tab_size);
@@ -855,7 +867,7 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
   }
 
   lv_coord_t content_top = show_tab_bar
-    ? layout.inset + tab_frame_h + control_modal_card_tab_content_gap(layout)
+    ? layout.inset + tab_frame_h + control_modal_prominent_card_tab_content_gap(layout)
     : layout.inset * 2;
   lv_coord_t content_bottom = layout.panel_h - layout.inset;
   lv_coord_t slider_h = content_bottom - content_top;
@@ -1879,7 +1891,7 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
   int tab_count = static_cast<int>(visible_tabs.count);
   if (tab_count < 1) tab_count = 1;
   bool show_tab_bar = tab_count > 1;
-  lv_coord_t tab_size = control_modal_card_tab_size(layout);
+  lv_coord_t tab_size = control_modal_prominent_card_tab_size(layout);
   lv_coord_t selected_tab_size = tab_size + tab_size / 8;
   lv_coord_t tab_frame_pad = tab_size / 5;
   lv_coord_t tab_frame_h = tab_size + tab_frame_pad * 2;
@@ -1909,7 +1921,7 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
   }
 
   lv_coord_t content_top = show_tab_bar
-    ? layout.inset + tab_frame_h + control_modal_card_tab_content_gap(layout)
+    ? layout.inset + tab_frame_h + control_modal_prominent_card_tab_content_gap(layout)
     : layout.inset * 2;
   lv_coord_t content_bottom = layout.panel_h - layout.inset;
   lv_coord_t content_h = content_bottom - content_top;
@@ -1936,12 +1948,11 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
     lv_coord_t total_w = btn_size * 3 + gap * 2;
     lv_coord_t start_x = (box_w - total_w) / 2;
     if (start_x < 0) start_x = 0;
-    lv_coord_t btn_radius = control_modal_card_radius(ctx->btn);
     lv_obj_t *buttons[3] = {ui.up_btn, ui.stop_btn, ui.down_btn};
     for (int i = 0; i < 3; i++) {
       if (!buttons[i]) continue;
       lv_obj_set_size(buttons[i], btn_size, btn_size);
-      lv_obj_set_style_radius(buttons[i], btn_radius, LV_PART_MAIN);
+      lv_obj_set_style_radius(buttons[i], 0, LV_PART_MAIN);
       lv_obj_align(buttons[i], LV_ALIGN_LEFT_MID, start_x + i * (btn_size + gap), 0);
       lv_obj_t *label = lv_obj_get_child(buttons[i], 0);
       if (label) lv_obj_center(label);
