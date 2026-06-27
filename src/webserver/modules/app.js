@@ -32,6 +32,7 @@ function addSupportButton() {
 function init() {
   setViewportMeta();
   setFavicon();
+  applyPageTitle("");
 
   // Set CSS custom properties from the active device orientation.
   syncPreviewOrientation();

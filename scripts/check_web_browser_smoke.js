@@ -127,6 +127,12 @@ async function installFakeEventSource(page) {
         source.dispatch("state", { data: JSON.stringify(event) });
       });
     };
+    window.__seedEspPing = function (payload) {
+      if (!window.__eventSources.length) throw new Error("No EventSource instance was created");
+      window.__eventSources[0].dispatch("ping", {
+        data: typeof payload === "string" ? payload : JSON.stringify(payload),
+      });
+    };
 
     window.EventSource = class FakeEventSource {
       constructor(url) {
@@ -314,6 +320,39 @@ function assertPortraitGridLayout(result, label) {
   assert(result.screenHeight > result.screenWidth, `${label}: preview should end in portrait orientation`);
   assert.strictEqual(gridTrackCount(result.gridTemplateColumns), 3, `${label}: portrait grid should use 3 columns`);
   assert.strictEqual(gridTrackCount(result.gridTemplateRows), 5, `${label}: portrait grid should use 5 rows`);
+}
+
+async function assertPageTitleEvents(browser) {
+  const slug = "guition-esp32-p4-jc1060p470";
+  const context = await browser.newContext({ viewport: { width: 1100, height: 1000 } });
+  await installRoutes(context, slug);
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espcontrol.test/${slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+
+    assert.strictEqual(await page.title(), "EspControl", "page should start with EspControl fallback title");
+
+    await page.evaluate(() => window.__seedEspPing({ title: "EspControl 7inch P4" }));
+    assert.strictEqual(await page.title(), "EspControl 7inch P4", "ping title should set browser title");
+
+    await page.evaluate(() => window.__seedEspPing({ uptime: 12 }));
+    assert.strictEqual(await page.title(), "EspControl 7inch P4", "keepalive ping should preserve browser title");
+
+    await page.evaluate(() => window.__seedEspPing({ title: "   " }));
+    assert.strictEqual(await page.title(), "EspControl", "blank ping title should restore fallback title");
+
+    await page.evaluate(() => window.__seedEspPing({ title: "EspControl 7inch P4" }));
+    await page.evaluate(() => window.__seedEspPing({}));
+    assert.strictEqual(await page.title(), "EspControl 7inch P4", "missing ping title should preserve current title");
+
+    await page.evaluate(() => window.__seedEspPing("not-json"));
+    assert.strictEqual(await page.title(), "EspControl", "malformed ping payload should not break title fallback");
+  } finally {
+    await context.close();
+  }
 }
 
 async function assertRotationStartupOrdering(browser) {
@@ -1358,6 +1397,7 @@ async function runCase(browser, testCase) {
 (async function main() {
   const browser = await chromium.launch();
   try {
+    await assertPageTitleEvents(browser);
     await assertRotationStartupOrdering(browser);
     for (const testCase of CASES) {
       await runCase(browser, testCase);

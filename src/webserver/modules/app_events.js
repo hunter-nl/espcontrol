@@ -33,6 +33,24 @@ var SSE_ALIAS_GROUPS = {
   ntpServer3: ["text-screen__ntp_server_3", "text-ntp_server_3"],
 };
 
+function applyPageTitle(title) {
+  var text = typeof title === "string" ? title.trim() : "";
+  document.title = text || "EspControl";
+}
+
+function handleWebServerPingEvent(e) {
+  var data = null;
+  try {
+    data = e && e.data ? JSON.parse(e.data) : null;
+  } catch (_) {
+    applyPageTitle("");
+    return;
+  }
+  if (data && Object.prototype.hasOwnProperty.call(data, "title")) {
+    applyPageTitle(data.title);
+  }
+}
+
 function applyClockBarStateValue(val, d, matchedKey) {
   var keys = entityStateKeys(d);
   uniquePush(keys, matchedKey);
@@ -670,6 +688,7 @@ function connectEvents() {
   source.addEventListener("error", function () {
     handleDisconnected(source);
   });
+  source.addEventListener("ping", handleWebServerPingEvent);
   source.addEventListener("state", function (e) {
     var d;
     try { d = JSON.parse(e.data); } catch (_) { return; }
