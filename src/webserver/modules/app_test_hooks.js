@@ -138,6 +138,8 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
     actionScriptConfirmationMessage: actionScriptConfirmationMessage,
     actionScriptConfirmationYesText: actionScriptConfirmationYesText,
     actionScriptConfirmationNoText: actionScriptConfirmationNoText,
+    actionScriptFields: actionScriptFields,
+    setActionScriptFields: setActionScriptFields,
     alarmPinRequired: alarmPinRequired,
     alarmIconDisplayMode: alarmIconDisplayMode,
     alarmLabelDisplayMode: alarmLabelDisplayMode,
