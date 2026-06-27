@@ -940,6 +940,12 @@ inline std::string action_card_options_normalized(const std::string &options,
       append_config_token(out, "confirm_no=" + encode_compact_field(no));
     }
   }
+  if (action == "script.turn_on") {
+    std::string fields = cfg_option_value(options, "script_fields");
+    if (!fields.empty()) {
+      append_config_token(out, "script_fields=" + encode_compact_field(fields));
+    }
+  }
   return out;
 }
 
@@ -1311,6 +1317,12 @@ inline bool switch_confirmation_enabled(const ParsedCfg &p) {
 inline bool action_script_confirmation_enabled(const ParsedCfg &p) {
   return p.type == "action" && p.sensor == "script.turn_on" &&
          cfg_option_enabled(p.options, "confirm_on");
+}
+
+inline std::string action_script_fields(const ParsedCfg &p) {
+  return p.type == "action" && p.sensor == "script.turn_on"
+    ? cfg_option_value(p.options, "script_fields")
+    : "";
 }
 
 inline bool switch_confirmation_required(const ParsedCfg &p, bool currently_on) {

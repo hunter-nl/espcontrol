@@ -95,6 +95,11 @@
           "storage": ["confirm_on"]
         },
         {
+          "name": "script_fields",
+          "label": "Fields",
+          "kind": "text"
+        },
+        {
           "name": "confirm_message",
           "label": "Message",
           "kind": "text",

@@ -270,6 +270,7 @@ var SWITCH_CONFIRM_BOTH_DEFAULT_MESSAGE = "Toggle this device?";
 var SWITCH_CONFIRM_DEFAULT_YES = "Yes";
 var SWITCH_CONFIRM_DEFAULT_NO = "No";
 var ACTION_SCRIPT_CONFIRM_DEFAULT_MESSAGE = "Run this script?";
+var ACTION_SCRIPT_FIELDS_OPTION = "script_fields";
 var ALARM_PIN_ARM_OPTION = cardContractOptionName("pin_arm");
 var ALARM_PIN_DISARM_OPTION = cardContractOptionName("pin_disarm");
 var ALARM_ACTIONS_OPTION = cardContractOptionName("actions");
@@ -1344,6 +1345,10 @@ function actionScriptConfirmationNoText(b) {
     cardContractOptionDefaultValue("action", SWITCH_CONFIRM_NO_OPTION, SWITCH_CONFIRM_DEFAULT_NO);
 }
 
+function actionScriptFields(b) {
+  return actionCardIsScript(b) ? configOptionValue(b && b.options, ACTION_SCRIPT_FIELDS_OPTION) : "";
+}
+
 function copyActionCardStateOptions(out, options) {
   var stateEntity = configOptionValue(options, ACTION_CARD_STATE_ENTITY_OPTION);
   if (!stateEntity) return out;
@@ -1369,9 +1374,12 @@ function copyActionCardStateOptions(out, options) {
 function normalizeActionOptions(options, action) {
   if (action === ACTION_CARD_LOCAL_ACTION) return "";
   var out = copyActionCardStateOptions("", options);
-  if (action !== "script.turn_on" || !configOptionEnabled(options, SWITCH_CONFIRM_ON_OPTION)) {
+  if (action !== "script.turn_on") {
     return out;
   }
+  var fields = configOptionValue(options, ACTION_SCRIPT_FIELDS_OPTION);
+  if (fields) out = setConfigOptionValue(out, ACTION_SCRIPT_FIELDS_OPTION, fields);
+  if (!configOptionEnabled(options, SWITCH_CONFIRM_ON_OPTION)) return out;
   out = setConfigOption(out, SWITCH_CONFIRM_ON_OPTION, true);
   var msg = configOptionValue(options, SWITCH_CONFIRM_MESSAGE_OPTION);
   var yes = configOptionValue(options, SWITCH_CONFIRM_YES_OPTION);
@@ -1391,6 +1399,8 @@ function normalizeActionOptions(options, action) {
 function setActionScriptConfirmationOptions(b, enabled, message, yesText, noText) {
   if (!b) return "";
   var out = copyActionCardStateOptions("", b.options);
+  var fields = actionScriptFields(b);
+  if (fields) out = setConfigOptionValue(out, ACTION_SCRIPT_FIELDS_OPTION, fields);
   if (enabled && actionCardIsScript(b)) {
     out = setConfigOption(out, SWITCH_CONFIRM_ON_OPTION, true);
     if (message && message !== actionScriptConfirmationDefaultMessage()) {
@@ -1404,6 +1414,13 @@ function setActionScriptConfirmationOptions(b, enabled, message, yesText, noText
     }
   }
   b.options = out;
+  return b.options;
+}
+
+function setActionScriptFields(b, fields) {
+  if (!b) return "";
+  b.options = setConfigOptionValue(b.options, ACTION_SCRIPT_FIELDS_OPTION, fields || "");
+  b.options = normalizeActionOptions(b.options, b.sensor);
   return b.options;
 }
 

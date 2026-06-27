@@ -60,6 +60,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_NUMBER_DISPLAY = "number_display
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ON_PATTERN = "on_pattern";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_PIN_ARM = "pin_arm";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_PIN_DISARM = "pin_disarm";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_SCRIPT_FIELDS = "script_fields";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_HIGH_LABEL = "state_high_label";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT = "state_input";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT_2 = "state_input_2";

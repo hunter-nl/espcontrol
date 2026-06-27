@@ -2242,6 +2242,31 @@ const parsedActionIconState = hooks.parseButtonConfig(hooks.serializeButtonConfi
 assert.strictEqual(hooks.actionCardStateDisplayMode(parsedActionIconState), "icon", "action card icon state mode");
 assert.strictEqual(hooks.actionCardStatePrecision(parsedActionIconState), "icon", "action card icon state precision");
 
+const scriptActionFieldsCard = {
+  entity: "script.goodnight",
+  label: "Goodnight",
+  icon: "Flash",
+  icon_on: "Auto",
+  sensor: "script.turn_on",
+  unit: "",
+  type: "action",
+  precision: "",
+  options: "script_fields=room%3A kitchen\nmode=night",
+};
+assertButtonRoundTrip(hooks, "script action card with fields", scriptActionFieldsCard, false);
+const parsedScriptActionFields = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionFieldsCard));
+assert.strictEqual(
+  hooks.actionScriptFields(parsedScriptActionFields),
+  "room: kitchen\nmode=night",
+  "script action fields round-trip"
+);
+hooks.setActionScriptFields(parsedScriptActionFields, "level: 4");
+assert.strictEqual(hooks.actionScriptFields(parsedScriptActionFields), "level: 4", "script action fields update");
+parsedScriptActionFields.options = "script_fields=level: 4,confirm_on,confirm_message=Run level?";
+parsedScriptActionFields.sensor = "scene.turn_on";
+const parsedNonScriptActionFields = hooks.parseButtonConfig(hooks.serializeButtonConfig(parsedScriptActionFields));
+assert.strictEqual(parsedNonScriptActionFields.options || "", "", "script-only options are removed from non-script actions");
+
 assertButtonRoundTrip(hooks, "automation action card", {
   entity: "automation.goodnight",
   label: "Goodnight Automation",

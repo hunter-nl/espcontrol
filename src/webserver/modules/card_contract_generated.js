@@ -110,6 +110,11 @@ var CARD_CONTRACT_CARDS = {
         ]
       },
       {
+        "name": "script_fields",
+        "label": "Fields",
+        "kind": "text"
+      },
+      {
         "name": "confirm_message",
         "label": "Message",
         "kind": "text",
@@ -1555,6 +1560,7 @@ var CARD_CONTRACT_OPTION_NAMES = {
   "on_pattern": "on_pattern",
   "pin_arm": "pin_arm",
   "pin_disarm": "pin_disarm",
+  "script_fields": "script_fields",
   "state_high_label": "state_high_label",
   "state_input": "state_input",
   "state_input_2": "state_input_2",

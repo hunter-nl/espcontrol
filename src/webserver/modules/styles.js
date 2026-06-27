@@ -294,6 +294,7 @@ var CSS =
   "border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.875rem;" +
   "font-family:inherit;box-sizing:border-box;outline:none;" +
   "transition:border-color .25s,box-shadow .25s}" +
+  ".sp-textarea{min-height:84px;resize:vertical;line-height:1.35}" +
   ".sp-input[type=number]{color-scheme:dark}" +
   ".sp-input--no-stepper{-moz-appearance:textfield}" +
   ".sp-input--no-stepper::-webkit-outer-spin-button,.sp-input--no-stepper::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}" +

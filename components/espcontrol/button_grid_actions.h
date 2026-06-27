@@ -31,6 +31,78 @@ inline const char *action_card_value_key(const std::string &action) {
   return nullptr;
 }
 
+inline std::string action_card_trim_text(const std::string &value) {
+  size_t start = 0;
+  while (start < value.size() &&
+         std::isspace(static_cast<unsigned char>(value[start]))) {
+    start++;
+  }
+  size_t end = value.size();
+  while (end > start &&
+         std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+    end--;
+  }
+  return value.substr(start, end - start);
+}
+
+inline bool action_card_script_field_name_valid(const std::string &name) {
+  if (name.empty() || name == "entity_id") return false;
+  for (char ch : name) {
+    unsigned char c = static_cast<unsigned char>(ch);
+    if (!(std::isalnum(c) || ch == '_')) return false;
+  }
+  return true;
+}
+
+inline bool action_card_parse_script_field(const std::string &line,
+                                           std::string &key,
+                                           std::string &value) {
+  size_t sep = line.find(':');
+  size_t equals = line.find('=');
+  if (sep == std::string::npos || (equals != std::string::npos && equals < sep)) {
+    sep = equals;
+  }
+  if (sep == std::string::npos) return false;
+  key = action_card_trim_text(line.substr(0, sep));
+  value = action_card_trim_text(line.substr(sep + 1));
+  return action_card_script_field_name_valid(key) && !value.empty();
+}
+
+inline size_t action_card_script_field_count(const std::string &options) {
+  std::string fields = cfg_option_value(options, "script_fields");
+  if (fields.empty()) return 0;
+  size_t count = 0;
+  size_t start = 0;
+  while (start <= fields.size()) {
+    size_t end = fields.find('\n', start);
+    if (end == std::string::npos) end = fields.size();
+    std::string key;
+    std::string value;
+    if (action_card_parse_script_field(fields.substr(start, end - start), key, value)) {
+      count++;
+    }
+    start = end + 1;
+  }
+  return count;
+}
+
+inline void action_card_add_script_fields(esphome::api::HomeassistantActionRequest &req,
+                                          const std::string &options) {
+  std::string fields = cfg_option_value(options, "script_fields");
+  if (fields.empty()) return;
+  size_t start = 0;
+  while (start <= fields.size()) {
+    size_t end = fields.find('\n', start);
+    if (end == std::string::npos) end = fields.size();
+    std::string key;
+    std::string value;
+    if (action_card_parse_script_field(fields.substr(start, end - start), key, value)) {
+      ha_action_add_data(req, key.c_str(), value.c_str());
+    }
+    start = end + 1;
+  }
+}
+
 inline bool action_card_action_allowed(const std::string &action) {
   return action == "scene.turn_on" ||
          action == "script.turn_on" ||
@@ -55,13 +127,18 @@ inline void send_action_card_action(const ParsedCfg &p) {
   if (action_card_option_select(p)) return;
   const char *value_key = action_card_value_key(p.sensor);
   if (value_key && p.unit.empty()) return;
+  const size_t script_field_count = p.sensor == "script.turn_on"
+    ? action_card_script_field_count(p.options)
+    : 0;
 
   esphome::api::HomeassistantActionRequest req;
-  if (!ha_action_begin(req, p.sensor.c_str(), false, value_key ? 2 : 1)) return;
+  if (!ha_action_begin(req, p.sensor.c_str(), false,
+                       1 + (value_key ? 1 : 0) + script_field_count)) return;
   ha_action_add_entity(req, p.entity);
   if (value_key) {
     ha_action_add_data(req, value_key, p.unit.c_str());
   }
+  if (script_field_count > 0) action_card_add_script_fields(req, p.options);
   ha_action_send(req);
 }
 
