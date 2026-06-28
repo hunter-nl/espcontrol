@@ -75,6 +75,11 @@ function normalizeButtonConfig(b) {
     b.precision = weatherAlias && weatherAlias.precision || "tomorrow";
     if (b.label === "Weather") b.label = "";
   }
+  if (b && b.type === "weather") {
+    b.sensor = "";
+    b.precision = normalizeWeatherCardMode(b.precision);
+    b.options = cardLargeNumbersSupported(b) ? copyLargeNumbersOption("", b.options) : "";
+  }
   if (b && b.type === "text_sensor") {
     var textSensorAlias = cardContractMigrationAlias(b.type);
     b.type = textSensorAlias && textSensorAlias.type || "sensor";
@@ -1966,6 +1971,10 @@ function buttonConfigFields(b) {
   }
   if (type === "climate") precision = normalizeClimatePrecisionConfig(precision);
   if (type === "calendar" && precision !== "datetime") precision = "";
+  if (type === "weather") {
+    sensor = "";
+    precision = normalizeWeatherCardMode(precision);
+  }
   if (type === "todo") {
     sensor = "";
     unit = "";
@@ -1995,6 +2004,8 @@ function buttonConfigFields(b) {
     options = normalizeClimateOptions(options);
   } else if (type === "media") {
     options = normalizeMediaOptions(options, sensor);
+  } else if (type === "weather") {
+    options = cardLargeNumbersSupported({ type: type, precision: precision }) ? copyLargeNumbersOption("", options) : "";
   } else if (type === "subpage") {
     options = normalizeSubpageOptions(options, sensor, precision);
   } else if (type === "webhook" && typeof normalizeWebhookConfig === "function") {
