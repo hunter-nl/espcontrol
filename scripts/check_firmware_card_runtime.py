@@ -28,7 +28,8 @@ MODE_ARRAY_PATTERN = re.compile(
     r"open|close|stop|set_position|tilt|toggle|lock|unlock|away|home|night|vacation|disarm)\""
 )
 SERVICE_MAPPING_PATTERN = re.compile(
-    r"\"(?:cover\.(?:open_cover|close_cover|stop_cover|set_cover_position)|"
+    r"\"(?:cover\.(?:open_cover|close_cover|stop_cover|set_cover_position|"
+    r"open_cover_tilt|close_cover_tilt|stop_cover_tilt|set_cover_tilt_position)|"
     r"lock\.(?:lock|unlock)|"
     r"media_player\.(?:media_play_pause|media_previous_track|media_next_track)|"
     r"alarm_control_panel\.(?:alarm_arm_away|alarm_arm_home|alarm_arm_night|alarm_arm_vacation|alarm_disarm))\""
@@ -41,7 +42,7 @@ GRID_HEADER = "button_grid_grid.h"
 def service_mapping_line_allowed(line: str) -> bool:
     if "ESP_LOGW" in line:
         return True
-    if "cover.set_cover_tilt_position" in line:
+    if "cover." in line and "_tilt" in line:
         return True
     return False
 
@@ -139,6 +140,10 @@ def run_self_test() -> None:
         ),
         (
             {"button_grid_actions.h": "cover_tilt ? \"cover.set_cover_tilt_position\" : \"cover.set_cover_position\";\n"},
+            (),
+        ),
+        (
+            {"button_grid_actions.h": "if (sensor == \"open\") return \"cover.open_cover_tilt\";\n"},
             (),
         ),
         (

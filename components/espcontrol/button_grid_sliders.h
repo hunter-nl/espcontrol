@@ -1531,6 +1531,15 @@ struct CoverControlCtx {
   bool dragging_tilt = false;
   bool updating_position = false;
   bool updating_tilt = false;
+  bool supported_features_known = false;
+  int supported_features = 0;
+  bool supports_position = true;
+  bool supports_open = true;
+  bool supports_close = true;
+  bool supports_stop = true;
+  bool supports_open_tilt = false;
+  bool supports_close_tilt = false;
+  bool supports_stop_tilt = false;
   bool supports_tilt = false;
 };
 
@@ -1576,6 +1585,32 @@ inline bool cover_control_tab_from_token(const std::string &value, CoverControlT
   return false;
 }
 
+inline bool cover_control_supports_position(CoverControlCtx *ctx) {
+  return !ctx || !ctx->supported_features_known || ctx->supports_position;
+}
+
+inline bool cover_control_command_available(CoverControlCtx *ctx, const std::string &mode) {
+  if (!ctx || !ctx->supported_features_known) return true;
+  if (mode == "open") return ctx->supports_open || ctx->supports_open_tilt;
+  if (mode == "close") return ctx->supports_close || ctx->supports_close_tilt;
+  if (mode == "stop") return ctx->supports_stop || ctx->supports_stop_tilt;
+  return false;
+}
+
+inline bool cover_control_supports_controls(CoverControlCtx *ctx) {
+  return cover_control_command_available(ctx, "open") ||
+         cover_control_command_available(ctx, "close") ||
+         cover_control_command_available(ctx, "stop");
+}
+
+inline bool cover_control_command_uses_tilt(CoverControlCtx *ctx, const std::string &mode) {
+  if (!ctx || !ctx->supported_features_known) return false;
+  if (mode == "open") return !ctx->supports_open && ctx->supports_open_tilt;
+  if (mode == "close") return !ctx->supports_close && ctx->supports_close_tilt;
+  if (mode == "stop") return !ctx->supports_stop && ctx->supports_stop_tilt;
+  return false;
+}
+
 inline CoverControlVisibleTabs cover_control_visible_tabs(CoverControlCtx *ctx) {
   CoverControlVisibleTabs visible;
   std::string value = cfg_option_value(ctx ? ctx->options : "", COVER_CONTROL_TABS_OPTION);
@@ -1587,13 +1622,19 @@ inline CoverControlVisibleTabs cover_control_visible_tabs(CoverControlCtx *ctx) 
     std::string token = value.substr(start, end == std::string::npos ? std::string::npos : end - start);
     CoverControlTab tab = CoverControlTab::POSITION;
     if (cover_control_tab_from_token(token, tab) &&
+        (tab != CoverControlTab::POSITION || cover_control_supports_position(ctx)) &&
+        (tab != CoverControlTab::CONTROLS || cover_control_supports_controls(ctx)) &&
         (tab != CoverControlTab::TILT || !ctx || ctx->supports_tilt)) {
       visible.add(tab);
     }
     if (end == std::string::npos) break;
     start = end + 1;
   }
-  if (visible.count == 0) visible.add(CoverControlTab::POSITION);
+  if (visible.count == 0) {
+    if (ctx && ctx->supports_tilt) visible.add(CoverControlTab::TILT);
+    else if (cover_control_supports_controls(ctx)) visible.add(CoverControlTab::CONTROLS);
+    else visible.add(CoverControlTab::POSITION);
+  }
   return visible;
 }
 
@@ -1670,8 +1711,8 @@ inline void cover_control_apply_tab_visibility() {
   cover_control_ensure_visible_tab(ctx);
   CoverControlVisibleTabs visible_tabs = cover_control_visible_tabs(ctx);
   bool show_tab_bar = visible_tabs.count > 1;
-  bool show_controls = ui.tab == CoverControlTab::CONTROLS;
-  bool show_position = ui.tab == CoverControlTab::POSITION;
+  bool show_controls = cover_control_supports_controls(ctx) && ui.tab == CoverControlTab::CONTROLS;
+  bool show_position = cover_control_supports_position(ctx) && ui.tab == CoverControlTab::POSITION;
   bool show_tilt = ctx->supports_tilt && ui.tab == CoverControlTab::TILT;
   if (ui.tab_row) {
     if (show_tab_bar) lv_obj_clear_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
@@ -1692,6 +1733,18 @@ inline void cover_control_apply_tab_visibility() {
   if (ui.controls_box) {
     if (show_controls) lv_obj_clear_flag(ui.controls_box, LV_OBJ_FLAG_HIDDEN);
     else lv_obj_add_flag(ui.controls_box, LV_OBJ_FLAG_HIDDEN);
+  }
+  if (ui.up_btn) {
+    if (show_controls && cover_control_command_available(ctx, "open")) lv_obj_clear_flag(ui.up_btn, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(ui.up_btn, LV_OBJ_FLAG_HIDDEN);
+  }
+  if (ui.stop_btn) {
+    if (show_controls && cover_control_command_available(ctx, "stop")) lv_obj_clear_flag(ui.stop_btn, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(ui.stop_btn, LV_OBJ_FLAG_HIDDEN);
+  }
+  if (ui.down_btn) {
+    if (show_controls && cover_control_command_available(ctx, "close")) lv_obj_clear_flag(ui.down_btn, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(ui.down_btn, LV_OBJ_FLAG_HIDDEN);
   }
   if (ui.position_slider) {
     if (show_position) lv_obj_clear_flag(ui.position_slider, LV_OBJ_FLAG_HIDDEN);
@@ -1964,21 +2017,28 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
     lv_obj_set_size(ui.controls_box, box_w, box_h);
     lv_obj_align(ui.controls_box, LV_ALIGN_CENTER, 0, content_center_y);
     lv_coord_t gap = cover_control_home_grid_row_gap(layout);
-    lv_coord_t btn_size = (box_w - gap * 2) / 3;
-    if (btn_size > box_h) btn_size = box_h;
-    if (btn_size < 56) btn_size = 56;
-    lv_coord_t total_w = btn_size * 3 + gap * 2;
-    lv_coord_t start_x = (box_w - total_w) / 2;
-    if (start_x < 0) start_x = 0;
-    lv_obj_t *buttons[3] = {ui.up_btn, ui.stop_btn, ui.down_btn};
-    lv_coord_t button_radius = control_modal_card_radius(ctx->btn);
-    for (int i = 0; i < 3; i++) {
-      if (!buttons[i]) continue;
-      lv_obj_set_size(buttons[i], btn_size, btn_size);
-      lv_obj_set_style_radius(buttons[i], button_radius, LV_PART_MAIN);
-      lv_obj_align(buttons[i], LV_ALIGN_LEFT_MID, start_x + i * (btn_size + gap), 0);
-      lv_obj_t *label = lv_obj_get_child(buttons[i], 0);
-      if (label) lv_obj_center(label);
+    lv_obj_t *buttons[3] = {nullptr, nullptr, nullptr};
+    int button_count = 0;
+    if (cover_control_command_available(ctx, "open")) buttons[button_count++] = ui.up_btn;
+    if (cover_control_command_available(ctx, "stop")) buttons[button_count++] = ui.stop_btn;
+    if (cover_control_command_available(ctx, "close")) buttons[button_count++] = ui.down_btn;
+    if (button_count > 0) {
+      lv_coord_t total_gap = gap * (button_count - 1);
+      lv_coord_t btn_size = (box_w - total_gap) / button_count;
+      if (btn_size > box_h) btn_size = box_h;
+      if (btn_size < 56) btn_size = 56;
+      lv_coord_t total_w = btn_size * button_count + total_gap;
+      lv_coord_t start_x = (box_w - total_w) / 2;
+      if (start_x < 0) start_x = 0;
+      lv_coord_t button_radius = control_modal_card_radius(ctx->btn);
+      for (int i = 0; i < button_count; i++) {
+        if (!buttons[i]) continue;
+        lv_obj_set_size(buttons[i], btn_size, btn_size);
+        lv_obj_set_style_radius(buttons[i], button_radius, LV_PART_MAIN);
+        lv_obj_align(buttons[i], LV_ALIGN_LEFT_MID, start_x + i * (btn_size + gap), 0);
+        lv_obj_t *label = lv_obj_get_child(buttons[i], 0);
+        if (label) lv_obj_center(label);
+      }
     }
   }
   lv_obj_move_foreground(ui.back_btn);
@@ -2016,19 +2076,31 @@ inline void cover_control_set_tilt_value(CoverControlCtx *ctx, int pct) {
   if (!ctx->dragging_tilt) cover_control_update_slider_handle(ui.tilt_slider, ui.tilt_handle, pct);
 }
 
-inline bool cover_control_parse_supported_features(esphome::StringRef val, int &features) {
-  if (slider_attribute_missing_ref(val)) return false;
-  std::string value = string_ref_limited(val, 16);
-  char *end = nullptr;
-  long parsed = std::strtol(value.c_str(), &end, 10);
-  if (end == value.c_str()) return false;
-  features = static_cast<int>(parsed);
-  return true;
-}
-
-inline void cover_control_set_tilt_supported(CoverControlCtx *ctx, bool supported) {
-  if (!ctx || ctx->supports_tilt == supported) return;
-  ctx->supports_tilt = supported;
+inline void cover_control_apply_supported_features(CoverControlCtx *ctx,
+                                                   bool known,
+                                                   int features = 0) {
+  if (!ctx) return;
+  ctx->supported_features_known = known;
+  ctx->supported_features = known ? features : 0;
+  if (!known) {
+    ctx->supports_position = true;
+    ctx->supports_open = true;
+    ctx->supports_close = true;
+    ctx->supports_stop = true;
+    ctx->supports_open_tilt = false;
+    ctx->supports_close_tilt = false;
+    ctx->supports_stop_tilt = false;
+    ctx->supports_tilt = false;
+  } else {
+    ctx->supports_position = (features & COVER_SUPPORT_SET_POSITION) != 0;
+    ctx->supports_open = (features & COVER_SUPPORT_OPEN) != 0;
+    ctx->supports_close = (features & COVER_SUPPORT_CLOSE) != 0;
+    ctx->supports_stop = (features & COVER_SUPPORT_STOP) != 0;
+    ctx->supports_open_tilt = (features & COVER_SUPPORT_OPEN_TILT) != 0;
+    ctx->supports_close_tilt = (features & COVER_SUPPORT_CLOSE_TILT) != 0;
+    ctx->supports_stop_tilt = (features & COVER_SUPPORT_STOP_TILT) != 0;
+    ctx->supports_tilt = (features & COVER_SUPPORT_SET_TILT_POSITION) != 0;
+  }
   CoverControlModalUi &ui = cover_control_modal_ui();
   if (ui.active == ctx) {
     cover_control_apply_tab_visibility();
@@ -2117,21 +2189,36 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
     lv_obj_add_event_cb(ui.up_btn, [](lv_event_t *e) {
       (void) e;
       CoverControlModalUi &ui = cover_control_modal_ui();
-      if (ui.active && ui.active->available) send_cover_command_action(ui.active->entity_id, "open");
+      if (ui.active && ui.active->available &&
+          cover_control_command_available(ui.active, "open")) {
+        send_cover_command_action(
+          ui.active->entity_id, "open",
+          cover_control_command_uses_tilt(ui.active, "open"));
+      }
     }, LV_EVENT_CLICKED, nullptr);
   }
   if (ui.stop_btn) {
     lv_obj_add_event_cb(ui.stop_btn, [](lv_event_t *e) {
       (void) e;
       CoverControlModalUi &ui = cover_control_modal_ui();
-      if (ui.active && ui.active->available) send_cover_command_action(ui.active->entity_id, "stop");
+      if (ui.active && ui.active->available &&
+          cover_control_command_available(ui.active, "stop")) {
+        send_cover_command_action(
+          ui.active->entity_id, "stop",
+          cover_control_command_uses_tilt(ui.active, "stop"));
+      }
     }, LV_EVENT_CLICKED, nullptr);
   }
   if (ui.down_btn) {
     lv_obj_add_event_cb(ui.down_btn, [](lv_event_t *e) {
       (void) e;
       CoverControlModalUi &ui = cover_control_modal_ui();
-      if (ui.active && ui.active->available) send_cover_command_action(ui.active->entity_id, "close");
+      if (ui.active && ui.active->available &&
+          cover_control_command_available(ui.active, "close")) {
+        send_cover_command_action(
+          ui.active->entity_id, "close",
+          cover_control_command_uses_tilt(ui.active, "close"));
+      }
     }, LV_EVENT_CLICKED, nullptr);
   }
 
@@ -2158,7 +2245,7 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
     CoverControlModalUi &ui = cover_control_modal_ui();
     if (!ui.active) return;
     ui.active->dragging_position = false;
-    if (!ui.active->available) return;
+    if (!ui.active->available || !cover_control_supports_position(ui.active)) return;
     lv_obj_t *slider = static_cast<lv_obj_t *>(lv_event_get_target(e));
     int pct = lv_slider_get_value(slider);
     ui.active->current_position_known = true;
@@ -2279,12 +2366,11 @@ inline void subscribe_cover_control_state(CoverControlCtx *ctx) {
     std::function<void(esphome::StringRef)>(
       [ctx](esphome::StringRef val) {
         int features = 0;
-        if (!cover_control_parse_supported_features(val, features)) {
-          cover_control_set_tilt_supported(ctx, false);
+        if (!cover_parse_supported_features(val, features)) {
+          cover_control_apply_supported_features(ctx, false);
           return;
         }
-        constexpr int COVER_SUPPORT_SET_TILT_POSITION = 128;
-        cover_control_set_tilt_supported(ctx, (features & COVER_SUPPORT_SET_TILT_POSITION) != 0);
+        cover_control_apply_supported_features(ctx, true, features);
       })
   );
   if (ctx->label.empty()) {

@@ -1273,6 +1273,10 @@ inline void grid_phase2(
         if (p.label.empty())
           subscribe_friendly_name(s.text_lbl, p.entity);
         subscribe_control_availability(s.btn, s.btn, p.entity);
+        CoverCommandCtx *ctx = create_cover_command_context(p);
+        grid_track_runtime_allocation(s.btn, ctx);
+        lv_obj_set_user_data(s.btn, ctx);
+        subscribe_cover_command_features(ctx);
       }
       continue;
     }
@@ -1765,9 +1769,10 @@ inline void grid_phase2(
           if (sb_cfg.label.empty())
             subscribe_friendly_name(sub_slot.text_lbl, sb_cfg.entity);
           subscribe_control_availability(sub_slot.btn, sub_slot.btn, sb_cfg.entity);
-          ParsedCfg *ctx = grid_delete_with_owner(sb_btn, new ParsedCfg(sb_cfg));
+          CoverCommandCtx *ctx = grid_delete_with_owner(sb_btn, create_cover_command_context(sb_cfg));
+          subscribe_cover_command_features(ctx);
           lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-            ParsedCfg *c = (ParsedCfg *)lv_event_get_user_data(e);
+            CoverCommandCtx *c = (CoverCommandCtx *)lv_event_get_user_data(e);
             if (c) send_cover_command_action(*c);
           }, LV_EVENT_CLICKED, ctx);
         }
