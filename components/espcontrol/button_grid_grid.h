@@ -1269,6 +1269,7 @@ inline void grid_phase2(
       continue;
     }
     if (p.type == "cover" && cover_command_mode(p.sensor)) {
+      lv_obj_set_user_data(s.btn, nullptr);
       if (!p.entity.empty()) {
         if (p.label.empty())
           subscribe_friendly_name(s.text_lbl, p.entity);
