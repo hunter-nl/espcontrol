@@ -8,6 +8,7 @@ export const SSE_ALIAS_GROUPS = {
   clockBarTime: ["switch-screen__clock_bar_time", "switch-screen_clock_bar_time", "switch-clock_bar_time_enabled"],
   clockBarTemperatureEntities: ["text-clock_bar_temperature_entities", "text-clock_bar__temperature_entities"],
   networkStatus: ["switch-screen__network_status_icon", "switch-screen_network_status_icon", "switch-network_status_enabled"],
+  batteryStatus: ["switch-screen__battery_status", "switch-screen_battery_status", "switch-battery_status_enabled"],
   voiceServices: ["switch-voice_services", "switch-voice_services_enabled"],
   alarmDelayAudio: ["switch-alarm_delay__audio", "switch-alarm_delay_audio", "switch-alarm_delay_audio_enabled"],
   alarmDelayTts: ["switch-alarm_delay__tts", "switch-alarm_delay_tts", "switch-alarm_delay_tts_enabled"],
@@ -58,6 +59,7 @@ export function applySseHandlerAliases(handlers: SseHandlers): void {
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockBarTime, "switch-screen__clock_bar_time");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockBarTemperatureEntities, "text-clock_bar_temperature_entities");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.networkStatus, "switch-screen__network_status_icon");
+  addSseAliases(handlers, SSE_ALIAS_GROUPS.batteryStatus, "switch-screen__battery_status");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.voiceServices, "switch-voice_services");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayAudio, "switch-alarm_delay__audio");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayTts, "switch-alarm_delay__tts");

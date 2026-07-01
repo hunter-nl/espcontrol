@@ -27,6 +27,10 @@ export function installClockBarPostApiModule(): GlobalDescriptors {
     function postNetworkStatusIcon(this: any, on?: any) {
         postSwitchWithObjectIds(entityName("screen_network_status_icon"), entityObjectIds("screen_network_status_icon"), on, NETWORK_STATUS_ICON_UNAVAILABLE);
     }
+    var BATTERY_STATUS_UNAVAILABLE: any = "Battery status setting is not available on this firmware. Update the device firmware, then reload this page.";
+    function postBatteryStatus(this: any, on?: any) {
+        postSwitchWithObjectIds(entityName("screen_battery_status"), entityObjectIds("screen_battery_status"), on, BATTERY_STATUS_UNAVAILABLE);
+    }
     var VOICE_SERVICES_UNAVAILABLE: any = "Voice services setting is not available on this firmware. Update the device firmware, then reload this page.";
     function voiceServicesPostUrls(this: any, on?: any) {
         return entityPostUrls("switch", entityName("voice_services"), entityObjectIds("voice_services"), on ? "turn_on" : "turn_off");
@@ -71,6 +75,8 @@ export function installClockBarPostApiModule(): GlobalDescriptors {
         "postClockBarTime": staticGlobal(postClockBarTime),
         "NETWORK_STATUS_ICON_UNAVAILABLE": liveGlobal(() => NETWORK_STATUS_ICON_UNAVAILABLE, (value?: any) => { NETWORK_STATUS_ICON_UNAVAILABLE = value; }),
         "postNetworkStatusIcon": staticGlobal(postNetworkStatusIcon),
+        "BATTERY_STATUS_UNAVAILABLE": liveGlobal(() => BATTERY_STATUS_UNAVAILABLE, (value?: any) => { BATTERY_STATUS_UNAVAILABLE = value; }),
+        "postBatteryStatus": staticGlobal(postBatteryStatus),
         "VOICE_SERVICES_UNAVAILABLE": liveGlobal(() => VOICE_SERVICES_UNAVAILABLE, (value?: any) => { VOICE_SERVICES_UNAVAILABLE = value; }),
         "voiceServicesPostUrls": staticGlobal(voiceServicesPostUrls),
         "postVoiceServices": staticGlobal(postVoiceServices),

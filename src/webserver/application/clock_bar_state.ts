@@ -188,8 +188,14 @@ export function installClockBarStateModule(): GlobalDescriptors {
         if (els.setVoiceServicesToggle) {
             els.setVoiceServicesToggle.checked = !!state.voiceServicesOn;
         }
+        if (els.setBatteryStatusToggle) {
+            els.setBatteryStatusToggle.checked = !!state.batteryStatusOn;
+        }
         if (els.setClockBarBadge) {
             els.setClockBarBadge.className = "sp-card-badge" + (state.clockBarOn ? "" : " sp-hidden");
+        }
+        if (els.setBatteryStatusBadge) {
+            els.setBatteryStatusBadge.className = "sp-card-badge" + (state.batteryStatusOn ? "" : " sp-hidden");
         }
         if (els.setTemperatureDegreeSymbolToggle) {
             els.setTemperatureDegreeSymbolToggle.checked = !!state.temperatureDegreeSymbolOn;

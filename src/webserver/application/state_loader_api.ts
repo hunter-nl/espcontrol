@@ -22,6 +22,9 @@ export function installStateLoaderApiModule(): GlobalDescriptors {
         if (CFG.features && CFG.features.voiceServices) {
             items = items.concat(entityStateItems(ENTITY_CATALOG.groups.settings_voice));
         }
+        if (CFG.features && CFG.features.battery) {
+            items = items.concat(entityStateItems(ENTITY_CATALOG.groups.settings_battery));
+        }
         if (CFG.features && CFG.features.alarmDelayAudio) {
             items = items.concat(entityStateItems(ENTITY_CATALOG.groups.settings_alarm_audio));
         }

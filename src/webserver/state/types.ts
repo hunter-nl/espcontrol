@@ -11,6 +11,7 @@ export interface DeviceConfigFeatures {
   screenRotationOptions?: readonly string[];
   subpageConfigChunks?: number;
   voiceServices?: boolean;
+  battery?: boolean;
   alarmDelayAudio?: boolean;
 }
 
@@ -126,6 +127,7 @@ export interface AppState {
   _clockBarStateValues: Record<string, boolean>;
   clockBarTimeOn: boolean;
   networkStatusOn: boolean;
+  batteryStatusOn: boolean;
   voiceServicesOn: boolean;
   alarmDelayAudioOn: boolean;
   alarmDelayTtsOn: boolean;

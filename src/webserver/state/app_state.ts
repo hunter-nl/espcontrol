@@ -33,7 +33,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     indoorEntity: "", outdoorEntity: "", clockBarTemperatureEntities: [],
     _clockBarTemperatureEntitiesReceived: false, _clockBarTemperatureVisibilityReceived: false,
     temperatureUnit: "Auto", clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
-    networkStatusOn: true, voiceServicesOn: false,
+    networkStatusOn: true, batteryStatusOn: false, voiceServicesOn: false,
     alarmDelayAudioOn: false, alarmDelayTtsOn: true,
     alarmDelayEntryAnnouncement: "Please disarm the alarm",
     alarmDelayExitAnnouncement: "Alarm arming, please leave the house",

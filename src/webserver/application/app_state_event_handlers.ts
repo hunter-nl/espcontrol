@@ -48,6 +48,10 @@ export function installAppStateEventHandlersModule(): GlobalDescriptors {
                 state.networkStatusOn = d.value === true || val === "ON";
                 syncClockBarUi();
             },
+            "switch-screen__battery_status": function (this: any, val?: any, d?: any) {
+                state.batteryStatusOn = d.value === true || val === "ON";
+                syncClockBarUi();
+            },
             "switch-voice_services": function (this: any, val?: any, d?: any) {
                 state.voiceServicesOn = d.value === true || val === "ON";
                 syncClockBarUi();

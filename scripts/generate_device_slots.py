@@ -61,7 +61,29 @@ def package_substitution_lines(device: dict) -> list[str]:
             ]
         )
     lines.extend(cover_art_substitution_lines(device))
+    lines.extend(battery_substitution_lines(device))
     return lines
+
+
+def battery_substitution_lines(device: dict) -> list[str]:
+    if device["slug"] != "guition-esp32-p4-jc8012p4a1":
+        return [
+            '  battery_status_apply_code: ""',
+            '  battery_status_hide_code: ""',
+        ]
+    return [
+        "  battery_status_apply_code: |-",
+        "    if (id(battery_status_enabled).state) {",
+        "      lv_obj_align(id(battery_status_button), LV_ALIGN_TOP_RIGHT,",
+        "                   -(clock_bar_right_x + clock_bar_item_width), clock_bar_icon_y);",
+        "      lv_obj_clear_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
+        "      battery_status_set_icon(id(battery_status_icon_label), id(battery_percent).state);",
+        "    } else {",
+        "      lv_obj_add_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
+        "    }",
+        "  battery_status_hide_code: |-",
+        "    lv_obj_add_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
+    ]
 
 
 def voice_substitution_lines(device: dict) -> list[str]:
