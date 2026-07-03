@@ -21,16 +21,16 @@ var CLIMATE_CARD_METADATA = {
     options: [
       ["label", "Label"],
       ["status", "Status"],
-      ["actual", "Actual Temp"],
-      ["target", "Target Temp"],
+      ["actual", "Actual"],
+      ["target", "Target"],
     ],
   },
   numberDisplay: {
     label: "Icon & Temperatures",
     options: [
       ["icon", "Icon"],
-      ["actual", "Actual Temp"],
-      ["target", "Target Temp"],
+      ["actual", "Actual"],
+      ["target", "Target"],
     ],
   },
   temperatureStep: {
