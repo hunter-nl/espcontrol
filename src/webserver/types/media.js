@@ -697,10 +697,10 @@ registerButtonType("media", {
       syncContentIdPlaceholder();
 
       var playerSourceField = helpers.renderCardTextField(playlistSourceSettings, b, helpers, {
-        label: "Playback Device",
+        label: "Player Source / Input",
         idSuffix: "playlist-player-source",
         bindName: "",
-        placeholder: "e.g. Kitchen Speaker",
+        placeholder: "Optional, e.g. Spotify or Line-in",
         value: function () { return mediaPlaylistPlayerSource(b); },
       });
       playerSourceField.input.addEventListener("change", function () {

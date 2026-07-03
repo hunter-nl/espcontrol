@@ -1160,7 +1160,7 @@ var CARD_CONTRACT_CARDS = {
       },
       {
         "name": "playlist_player_source",
-        "label": "Playback Device",
+        "label": "Player Source / Input",
         "kind": "text"
       },
       {
