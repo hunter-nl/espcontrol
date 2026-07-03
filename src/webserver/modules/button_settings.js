@@ -463,8 +463,18 @@ function renderButtonSettings(forceOpen) {
       showFieldError(rule.input, rule.message);
     }
     if (!firstInvalid) return true;
+    openDisclosureForField(firstInvalid);
     firstInvalid.focus();
     return false;
+  }
+
+  function openDisclosureForField(input) {
+    if (!input || !input.closest) return;
+    var disclosure = input.closest(".sp-disclosure");
+    if (!disclosure) return;
+    disclosure.classList.add("sp-open");
+    var button = disclosure.querySelector(".sp-disclosure-button");
+    if (button) button.setAttribute("aria-expanded", "true");
   }
 
   function validateConfigSize() {
