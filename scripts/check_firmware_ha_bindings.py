@@ -838,6 +838,16 @@ def firmware_media_sleep_prevention_errors(
                 idle_body,
             ):
                 errors.append(f"{rel}: do not let cover art alone keep the idle timer awake")
+        sleep_body = yaml_script_body(text, "screensaver_sleep_timer")
+        if sleep_body is not None:
+            cover_art_sleep_match = re.search(
+                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,360}"
+                r"id\(cover_art_media_playing\)[\s\S]{0,360}"
+                r"then:\s*\n\s*-\s*script\.execute:\s*([a-zA-Z0-9_]+)",
+                sleep_body,
+            )
+            if cover_art_sleep_match and cover_art_sleep_match.group(1) != "show_cover_art_view":
+                errors.append(f"{rel}: start cover art directly after the normal screensaver timeout")
 
     if display_path.exists():
         rel = display_path.relative_to(root)
@@ -3297,6 +3307,82 @@ def run_self_test() -> int:
         "          else:\n"
         "            - script.execute: screensaver_idle_check\n",
         (),
+    )
+    expect_media_sleep_prevention_errors(
+        "normal screensaver timeout starts cover art directly",
+        "script:\n"
+        "  - id: screensaver_idle_check\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(cover_art_screensaver_active) ||\n"
+        "                     (id(media_player_sleep_prevention_enabled).state &&\n"
+        "                      id(media_player_playing));\n"
+        "  - id: screensaver_sleep_timer\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(cover_art_screensaver_enabled).state &&\n"
+        "                     id(cover_art_media_playing) &&\n"
+        "                     !id(cover_art_media_player_entity).state.empty();\n"
+        "          then:\n"
+        "            - script.execute: show_cover_art_view\n",
+        "switch:\n"
+        "  - platform: template\n"
+        "    id: cover_art_screensaver_enabled\n",
+        "script:\n"
+        "  - id: cover_art_playback_started\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(media_player_sleep_prevention_enabled).state ||\n"
+        "                     id(display_asleep);\n"
+        "          then:\n"
+        "            - script.execute: cover_art_delay_timer\n"
+        "          else:\n"
+        "            - script.execute: screensaver_idle_check\n",
+        (),
+    )
+    expect_media_sleep_prevention_errors(
+        "normal screensaver timeout does not add cover art delay",
+        "script:\n"
+        "  - id: screensaver_idle_check\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(cover_art_screensaver_active) ||\n"
+        "                     (id(media_player_sleep_prevention_enabled).state &&\n"
+        "                      id(media_player_playing));\n"
+        "  - id: screensaver_sleep_timer\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(cover_art_screensaver_enabled).state &&\n"
+        "                     id(cover_art_media_playing) &&\n"
+        "                     !id(cover_art_media_player_entity).state.empty();\n"
+        "          then:\n"
+        "            - script.execute: cover_art_delay_timer\n",
+        "switch:\n"
+        "  - platform: template\n"
+        "    id: cover_art_screensaver_enabled\n",
+        "script:\n"
+        "  - id: cover_art_playback_started\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(media_player_sleep_prevention_enabled).state ||\n"
+        "                     id(display_asleep);\n"
+        "          then:\n"
+        "            - script.execute: cover_art_delay_timer\n"
+        "          else:\n"
+        "            - script.execute: screensaver_idle_check\n",
+        ("start cover art directly after the normal screensaver timeout",),
     )
     expect_image_card_entity_errors(
         "legacy camera-only image card guard",

@@ -224,7 +224,7 @@ script:
                                    id(cover_art_external_input_active)) &&
                                  !id(cover_art_media_player_entity).state.empty();
                       then:
-                        - script.execute: cover_art_delay_timer
+                        - script.execute: show_cover_art_view
                       else:
                         - if:
                             condition:
