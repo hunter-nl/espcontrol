@@ -556,7 +556,24 @@ registerButtonType("media", {
       });
     }
 
+    var playlistCardSettings = null;
     if (b.sensor === "playlist") {
+      var playlistSourceDisclosure = helpers.disclosureSection(
+        "Source",
+        helpers.idPrefix + "playlist-source-settings",
+        true
+      );
+      var playlistSourceSettings = playlistSourceDisclosure.section;
+      panel.appendChild(playlistSourceDisclosure.panel);
+
+      var playlistCardSettingsDisclosure = helpers.disclosureSection(
+        "Card Settings",
+        helpers.idPrefix + "playlist-card-settings",
+        true
+      );
+      playlistCardSettings = playlistCardSettingsDisclosure.section;
+      panel.appendChild(playlistCardSettingsDisclosure.panel);
+
       var playlistInfo = document.createElement("div");
       playlistInfo.className = "sp-info-panel";
       playlistInfo.setAttribute("role", "note");
@@ -574,7 +591,7 @@ registerButtonType("media", {
       playlistInfoText.appendChild(document.createTextNode("."));
       playlistInfo.appendChild(playlistInfoIcon);
       playlistInfo.appendChild(playlistInfoText);
-      panel.appendChild(playlistInfo);
+      playlistSourceSettings.appendChild(playlistInfo);
 
       var playlistContentType = mediaPlaylistContentType(b);
       var explicitPlaylistContentType = configOptionValue(b && b.options, MEDIA_PLAYLIST_CONTENT_TYPE_OPTION);
@@ -591,14 +608,14 @@ registerButtonType("media", {
         helpers.idPrefix + "playlist-source",
         mediaPlaylistSourceOptions(),
         parsedPlaylistContentId.source);
-      panel.appendChild(sourceField.field);
+      playlistSourceSettings.appendChild(sourceField.field);
 
       var contentTypeField = helpers.selectField(
         "Media Type",
         helpers.idPrefix + "playlist-content-type",
         mediaPlaylistContentTypeOptions(),
         mediaPlaylistContentTypeKnown(playlistContentType) ? playlistContentType : "__custom");
-      panel.appendChild(contentTypeField.field);
+      playlistSourceSettings.appendChild(contentTypeField.field);
 
       var customContentTypeField = helpers.textField(
         "Custom Media Content Type",
@@ -607,7 +624,7 @@ registerButtonType("media", {
         "e.g. favorite",
         "",
         false);
-      panel.appendChild(customContentTypeField.field);
+      playlistSourceSettings.appendChild(customContentTypeField.field);
 
       function updateCustomContentTypeVisibility() {
         customContentTypeField.field.hidden = contentTypeField.select.value !== "__custom";
@@ -640,7 +657,7 @@ registerButtonType("media", {
         mediaPlaylistContentIdPlaceholder(parsedPlaylistContentId.source, playlistContentType),
         "",
         false);
-      panel.appendChild(contentIdField.field);
+      playlistSourceSettings.appendChild(contentIdField.field);
       helpers.requireField(contentIdField.input, "Add a media ID before saving.");
 
       function syncContentIdPlaceholder() {
@@ -679,7 +696,7 @@ registerButtonType("media", {
       updateCustomContentTypeVisibility();
       syncContentIdPlaceholder();
 
-      var playerSourceField = helpers.renderCardTextField(panel, b, helpers, {
+      var playerSourceField = helpers.renderCardTextField(playlistSourceSettings, b, helpers, {
         label: "Playback Device",
         idSuffix: "playlist-player-source",
         bindName: "",
@@ -691,7 +708,7 @@ registerButtonType("media", {
         helpers.saveField("options", b.options);
       });
 
-      helpers.renderCardTextField(panel, b, helpers, {
+      helpers.renderCardTextField(playlistCardSettings, b, helpers, {
         label: "Label",
         idSuffix: "label",
         field: "label",
@@ -703,7 +720,7 @@ registerButtonType("media", {
     if (b.sensor !== "play_pause" && b.sensor !== "now_playing" &&
         b.sensor !== "position" && b.sensor !== "volume" &&
         b.sensor !== "control_modal") {
-      helpers.renderCardIconPicker(panel, b, helpers, {
+      helpers.renderCardIconPicker(playlistCardSettings || panel, b, helpers, {
         pickerIdSuffix: "icon-picker",
         idSuffix: "icon",
         field: "icon",

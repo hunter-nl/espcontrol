@@ -1571,6 +1571,47 @@ async function assertAlarmSettingsPanels(page, label) {
   });
 }
 
+async function assertPlaylistValidationOpensSourcePanel(page, label) {
+  await page.getByRole("tab", { name: "Screen" }).click();
+  await page.waitForSelector("#sp-screen.sp-page.active");
+  await page.locator('.sp-main [data-slot="4"]').click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  await page.locator("#sp-inp-media-mode").selectOption("playlist");
+  await page.waitForSelector("#sp-inp-playlist-content-id");
+
+  const sourceSettings = page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Source" })
+    .first();
+  assert(await sourceSettings.isVisible(), `${label}: playlist source panel should render`);
+  await page.locator("#sp-inp-playlist-content-id").fill("");
+  if ((await sourceSettings.getAttribute("class")).includes("sp-open")) {
+    await sourceSettings.locator("> .sp-disclosure-button").click();
+  }
+  assert(
+    !(await sourceSettings.getAttribute("class")).includes("sp-open"),
+    `${label}: playlist source panel should be collapsed before validation`,
+  );
+
+  await page.getByRole("button", { name: "Save" }).click();
+  await page.waitForFunction(() => {
+    var input = document.querySelector("#sp-inp-playlist-content-id");
+    var disclosure = input && input.closest(".sp-disclosure");
+    return disclosure && disclosure.classList.contains("sp-open");
+  });
+  assert(
+    await page.getByText("Add a media ID before saving.", { exact: true }).isVisible(),
+    `${label}: playlist content ID error should be visible after validation`,
+  );
+
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => {
+    var overlay = document.querySelector(".sp-settings-overlay");
+    return overlay && !overlay.classList.contains("sp-visible");
+  });
+}
+
 function postRecord(requestUrl) {
   const url = new URL(requestUrl);
   const parts = url.pathname
@@ -2544,6 +2585,7 @@ async function runCase(browser, testCase) {
     );
     await assertCoverSettingsPanels(page, testCase.name);
     await assertAlarmSettingsPanels(page, testCase.name);
+    await assertPlaylistValidationOpensSourcePanel(page, testCase.name);
     if (testCase.exerciseInteractions) {
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
     }
