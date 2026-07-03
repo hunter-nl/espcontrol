@@ -200,6 +200,25 @@ def test_p4_43_rotation_refresh_rebuilds_subpages() -> None:
     )
 
 
+def web_screen_width_percent(profile: dict) -> float:
+    width = str(profile["web"]["screen"]["width"]).strip()
+    assert width.endswith("%"), f"{profile['public']['name']}: web screen width must be a percentage"
+    return float(width[:-1])
+
+
+def test_web_grid_spacing_matches_across_screen_sizes() -> None:
+    profiles = load_device_profiles()
+    expected = None
+    for slug, profile in profiles.items():
+        grid = profile["web"]["grid"]
+        rendered_gap = float(grid["gap"]) * web_screen_width_percent(profile) / 100.0
+        if expected is None:
+            expected = rendered_gap
+        assert abs(rendered_gap - expected) <= 0.01, (
+            f"{slug}: web preview grid spacing must match the other generated screen layouts"
+        )
+
+
 def test_setup_icon_glyphs() -> None:
     glyphs = (ROOT / "common" / "assets" / "icon_glyphs.yaml").read_text(encoding="utf-8")
     for glyph, icon_name in REQUIRED_SETUP_ICON_GLYPHS.items():
@@ -493,6 +512,7 @@ def main() -> int:
     test_upgrades_do_not_reset_saved_panel_config()
     test_square_s3_reapplies_clock_bar_after_screen_changes()
     test_p4_43_rotation_refresh_rebuilds_subpages()
+    test_web_grid_spacing_matches_across_screen_sizes()
     test_setup_icon_glyphs()
     test_weather_card_visual_matches_preview()
     test_weather_card_mode_visibility_reset()
