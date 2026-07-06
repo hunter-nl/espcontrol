@@ -51,6 +51,8 @@ struct MediaNowPlayingCtx {
   lv_obj_t *artist_lbl = nullptr;
   lv_obj_t *progress_slider = nullptr;
   lv_obj_t *btn = nullptr;
+  char artist[HA_STATE_TEXT_MAX_LEN + 1] = {};
+  bool external_source = false;
   bool play_pause_background = false;
 };
 
@@ -507,77 +509,8 @@ inline void light_control_apply_tab_visibility() {
 
 inline void light_control_layout_modal(LightControlCtx *ctx);
 
-inline lv_coord_t control_modal_control_tab_min_size(const ControlModalLayout &layout) {
-  if (control_modal_uses_large_landscape_tuning(layout)) return 64;
-  if (control_modal_uses_compact_portrait_tuning(layout)) return 72;
-  return 48;
-}
-
-inline lv_coord_t control_modal_control_tab_size(const ControlModalLayout &layout) {
-  if (control_modal_uses_compact_portrait_tuning(layout)) {
-    lv_coord_t size = control_modal_scaled_px(72, layout.short_side);
-    lv_coord_t min_size = control_modal_control_tab_min_size(layout);
-    lv_coord_t max_size = 76;
-    if (size < min_size) size = min_size;
-    if (size > max_size) size = max_size;
-    return size;
-  }
-  lv_coord_t size = layout.back_size * (control_modal_uses_large_landscape_tuning(layout) ? 4 : 7) /
-                    (control_modal_uses_large_landscape_tuning(layout) ? 5 : 10);
-  lv_coord_t min_size = control_modal_control_tab_min_size(layout);
-  lv_coord_t max_size = control_modal_uses_large_landscape_tuning(layout) ? 88 : 68;
-  if (size < min_size) size = min_size;
-  if (size > max_size) size = max_size;
-  return size;
-}
-
-inline lv_coord_t control_modal_card_tab_size(const ControlModalLayout &layout) {
-  if (control_modal_uses_jc1060p470_tuning(layout))
-    return control_modal_scaled_px(54, layout.short_side);
-  return control_modal_control_tab_size(layout);
-}
-
-inline lv_coord_t control_modal_prominent_card_tab_size(const ControlModalLayout &layout) {
-  if (control_modal_uses_compact_portrait_tuning(layout))
-    return control_modal_scaled_px(58, layout.short_side);
-  return control_modal_card_tab_size(layout);
-}
-
-inline lv_coord_t control_modal_control_tab_gap(const ControlModalLayout &layout,
-                                                lv_coord_t tab_size) {
-  lv_coord_t gap = control_modal_uses_large_landscape_tuning(layout)
-    ? tab_size * 2 / 5
-    : tab_size / 4;
-  lv_coord_t min_gap = control_modal_uses_large_landscape_tuning(layout) ? 24 : 12;
-  if (gap < min_gap) gap = min_gap;
-  return gap;
-}
-
-inline lv_coord_t control_modal_control_tab_content_gap(const ControlModalLayout &layout) {
-  if (!control_modal_uses_large_landscape_tuning(layout)) return 16;
-  lv_coord_t gap = control_modal_scaled_px(22, layout.short_side);
-  if (gap < 28) gap = 28;
-  return gap;
-}
-
-inline lv_coord_t control_modal_card_tab_content_gap(const ControlModalLayout &layout) {
-  if (control_modal_uses_jc1060p470_tuning(layout))
-    return control_modal_scaled_px(28, layout.short_side);
-  return control_modal_control_tab_content_gap(layout);
-}
-
-inline lv_coord_t control_modal_prominent_card_tab_content_gap(const ControlModalLayout &layout) {
-  if (control_modal_uses_compact_portrait_tuning(layout))
-    return control_modal_scaled_px(30, layout.short_side);
-  return control_modal_card_tab_content_gap(layout);
-}
-
 inline void light_control_center_icon_label(lv_obj_t *label) {
-  if (!label) return;
-  lv_obj_update_layout(label);
-  lv_obj_set_style_transform_pivot_x(label, lv_obj_get_width(label) / 2, LV_PART_MAIN);
-  lv_obj_set_style_transform_pivot_y(label, lv_obj_get_height(label) / 2, LV_PART_MAIN);
-  lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+  control_modal_center_tab_icon(label);
 }
 
 inline lv_obj_t *light_control_create_tab_button(lv_obj_t *parent, const char *icon,
@@ -848,60 +781,18 @@ inline void light_control_layout_modal(LightControlCtx *ctx) {
   ControlModalLayout layout = control_modal_calc_layout(ctx->width_compensation_percent);
 
   int tab_count = static_cast<int>(visible_tabs.count);
-  if (tab_count < 1) tab_count = 1;
   bool show_tab_bar = tab_count > 1;
-  lv_coord_t tab_size = control_modal_prominent_card_tab_size(layout);
-  lv_coord_t selected_tab_size = tab_size + tab_size / 8;
-  lv_coord_t tab_frame_pad = tab_size / 5;
-  lv_coord_t tab_gap = control_modal_control_tab_gap(layout, tab_size);
-  lv_coord_t tabs_total_w = tab_size * tab_count + tab_gap * (tab_count - 1);
-  lv_coord_t tab_frame_w = tabs_total_w + tab_frame_pad * 2;
-  lv_coord_t tab_frame_h = tab_size + tab_frame_pad * 2;
-  lv_coord_t tab_safe_left = layout.back_inset_x + layout.back_size + layout.inset / 2;
-  lv_coord_t centered_left = (layout.panel_w - tab_frame_w) / 2;
-  lv_coord_t min_tab_size = control_modal_control_tab_min_size(layout);
-  while (show_tab_bar && !control_modal_uses_compact_portrait_tuning(layout) &&
-         centered_left < tab_safe_left && tab_size > min_tab_size) {
-    tab_size--;
-    selected_tab_size = tab_size + tab_size / 8;
-    tab_frame_pad = tab_size / 5;
-    tab_gap = control_modal_control_tab_gap(layout, tab_size);
-    tabs_total_w = tab_size * tab_count + tab_gap * (tab_count - 1);
-    tab_frame_w = tabs_total_w + tab_frame_pad * 2;
-    tab_frame_h = tab_size + tab_frame_pad * 2;
-    centered_left = (layout.panel_w - tab_frame_w) / 2;
-  }
-  if (!show_tab_bar) tab_frame_h = 0;
-  if (ui.tab_row) {
-    if (show_tab_bar) {
-      lv_obj_clear_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_set_size(ui.tab_row, tab_frame_w, tab_frame_h);
-      lv_obj_set_style_radius(ui.tab_row, tab_frame_h / 2, LV_PART_MAIN);
-      if (centered_left < tab_safe_left) centered_left = tab_safe_left;
-      lv_obj_align(ui.tab_row, LV_ALIGN_TOP_LEFT, centered_left, layout.inset + 2);
-    } else {
-      lv_obj_add_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
-    }
-  }
-  lv_coord_t first_tab_x = (tab_frame_w - tabs_total_w) / 2;
+  ControlModalTabLayout tabs_layout = control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);
+  control_modal_apply_tab_row(ui.tab_row, layout, tabs_layout);
   for (int i = 0; show_tab_bar && i < tab_count; i++) {
     lv_obj_t *tab_btn = light_control_tab_button(ui, visible_tabs.tabs[i]);
     if (!tab_btn) continue;
     bool active = (visible_tabs.tabs[i] == ui.tab);
-    lv_coord_t tab_btn_size = active ? selected_tab_size : tab_size;
-    lv_obj_set_size(tab_btn, tab_btn_size, tab_btn_size);
-    lv_obj_set_style_radius(tab_btn, tab_btn_size / 2, LV_PART_MAIN);
-    lv_coord_t tab_x = first_tab_x + i * (tab_size + tab_gap);
-    lv_obj_align(tab_btn, LV_ALIGN_LEFT_MID, tab_x - (tab_btn_size - tab_size) / 2, 0);
-    lv_obj_t *label = lv_obj_get_child(tab_btn, 0);
-    if (label && control_modal_uses_compact_portrait_tuning(layout)) {
-      lv_obj_set_style_transform_zoom(label, 220, LV_PART_MAIN);
-    }
-    light_control_center_icon_label(label);
+    control_modal_layout_tab_button(tab_btn, layout, tabs_layout, i, active);
   }
 
   lv_coord_t content_top = show_tab_bar
-    ? layout.inset + tab_frame_h + control_modal_prominent_card_tab_content_gap(layout)
+    ? layout.inset + tabs_layout.tab_frame_h + tabs_layout.content_gap
     : layout.inset * 2;
   lv_coord_t content_bottom = layout.panel_h - layout.inset;
   lv_coord_t slider_h = content_bottom - content_top;
@@ -1991,42 +1882,19 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
   ControlModalLayout layout = control_modal_calc_layout(ctx->width_compensation_percent);
 
   int tab_count = static_cast<int>(visible_tabs.count);
-  if (tab_count < 1) tab_count = 1;
   bool show_tab_bar = tab_count > 1;
-  lv_coord_t tab_size = control_modal_prominent_card_tab_size(layout);
-  lv_coord_t selected_tab_size = tab_size + tab_size / 8;
-  lv_coord_t tab_frame_pad = tab_size / 5;
-  lv_coord_t tab_frame_h = tab_size + tab_frame_pad * 2;
-  lv_coord_t tab_gap = control_modal_control_tab_gap(layout, tab_size);
-  lv_coord_t tabs_total_w = tab_size * tab_count + tab_gap * (tab_count - 1);
-  lv_coord_t tab_frame_w = tabs_total_w + tab_frame_pad * 2;
-  lv_coord_t max_tab_frame_w = layout.panel_w - layout.inset * 3;
-  if (tab_frame_w > max_tab_frame_w) tab_frame_w = max_tab_frame_w;
-  if (ui.tab_row && show_tab_bar) {
-    lv_obj_set_size(ui.tab_row, tab_frame_w, tab_frame_h);
-    lv_obj_set_style_radius(ui.tab_row, tab_frame_h / 2, LV_PART_MAIN);
-    lv_obj_align(ui.tab_row, LV_ALIGN_TOP_MID, 0, layout.inset + 2);
-  }
-  lv_coord_t first_tab_x = (tab_frame_w - tabs_total_w) / 2;
+  ControlModalTabLayout tabs_layout = control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);
+  control_modal_apply_tab_row(ui.tab_row, layout, tabs_layout);
   for (int i = 0; show_tab_bar && i < tab_count; i++) {
     lv_obj_t *tab_btn = cover_control_tab_button(ui, visible_tabs.tabs[i]);
     if (!tab_btn) continue;
     bool active = (visible_tabs.tabs[i] == ui.tab);
-    lv_coord_t tab_btn_size = active ? selected_tab_size : tab_size;
-    lv_obj_set_size(tab_btn, tab_btn_size, tab_btn_size);
-    apply_width_compensation(tab_btn, ctx->width_compensation_percent);
-    lv_obj_set_style_radius(tab_btn, tab_btn_size / 2, LV_PART_MAIN);
-    lv_coord_t tab_x = first_tab_x + i * (tab_size + tab_gap);
-    lv_obj_align(tab_btn, LV_ALIGN_LEFT_MID, tab_x - (tab_btn_size - tab_size) / 2, 0);
-    lv_obj_t *label = lv_obj_get_child(tab_btn, 0);
-    if (label && control_modal_uses_compact_portrait_tuning(layout)) {
-      lv_obj_set_style_transform_zoom(label, 240, LV_PART_MAIN);
-    }
-    light_control_center_icon_label(label);
+    control_modal_layout_tab_button(
+      tab_btn, layout, tabs_layout, i, active, ctx->width_compensation_percent);
   }
 
   lv_coord_t content_top = show_tab_bar
-    ? layout.inset + tab_frame_h + control_modal_prominent_card_tab_content_gap(layout)
+    ? layout.inset + tabs_layout.tab_frame_h + tabs_layout.content_gap
     : layout.inset * 2;
   lv_coord_t content_bottom = layout.panel_h - layout.inset;
   lv_coord_t content_h = content_bottom - content_top;

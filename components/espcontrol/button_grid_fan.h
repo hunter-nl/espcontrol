@@ -767,55 +767,19 @@ inline void fan_control_layout_modal(FanCardCtx *ctx) {
   FanControlVisibleTabs visible_tabs = fan_control_visible_tabs(ctx);
   ControlModalLayout layout = control_modal_calc_layout(ctx->width_compensation_percent);
   int tab_count = static_cast<int>(visible_tabs.count);
-  if (tab_count < 1) tab_count = 1;
   bool show_tab_bar = visible_tabs.count > 1;
-  lv_coord_t tab_size = layout.back_size * 7 / 10;
-  if (tab_size < 44) tab_size = 44;
-  if (tab_size > 64) tab_size = 64;
-  lv_coord_t selected_tab_size = tab_size + tab_size / 8;
-  lv_coord_t tab_frame_pad = tab_size / 5;
-  lv_coord_t tab_gap = tab_size / 4;
-  lv_coord_t tabs_total_w = tab_size * tab_count + tab_gap * (tab_count - 1);
-  lv_coord_t tab_frame_w = tabs_total_w + tab_frame_pad * 2;
-  lv_coord_t tab_frame_h = tab_size + tab_frame_pad * 2;
-  lv_coord_t tab_safe_left = layout.back_inset_x + layout.back_size + layout.inset / 2;
-  lv_coord_t centered_left = (layout.panel_w - tab_frame_w) / 2;
-  while (show_tab_bar && centered_left < tab_safe_left && tab_size > 40) {
-    tab_size--;
-    selected_tab_size = tab_size + tab_size / 8;
-    tab_frame_pad = tab_size / 5;
-    tab_gap = tab_size / 4;
-    tabs_total_w = tab_size * tab_count + tab_gap * (tab_count - 1);
-    tab_frame_w = tabs_total_w + tab_frame_pad * 2;
-    tab_frame_h = tab_size + tab_frame_pad * 2;
-    centered_left = (layout.panel_w - tab_frame_w) / 2;
-  }
-  if (!show_tab_bar) tab_frame_h = 0;
-  if (ui.tab_row) {
-    if (show_tab_bar) {
-      lv_obj_clear_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_set_size(ui.tab_row, tab_frame_w, tab_frame_h);
-      lv_obj_set_style_radius(ui.tab_row, tab_frame_h / 2, LV_PART_MAIN);
-      if (centered_left < tab_safe_left) centered_left = tab_safe_left;
-      lv_obj_align(ui.tab_row, LV_ALIGN_TOP_LEFT, centered_left, layout.inset + 2);
-    } else {
-      lv_obj_add_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
-    }
-  }
-  lv_coord_t first_tab_x = (tab_frame_w - tabs_total_w) / 2;
+  ControlModalTabLayout tabs_layout = control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);
+  control_modal_apply_tab_row(ui.tab_row, layout, tabs_layout);
   for (int i = 0; show_tab_bar && i < tab_count; i++) {
     lv_obj_t *tab_btn = fan_control_tab_button(ui, visible_tabs.tabs[i]);
     if (!tab_btn) continue;
     bool active = visible_tabs.tabs[i] == ui.tab;
-    lv_coord_t tab_btn_size = active ? selected_tab_size : tab_size;
-    lv_obj_set_size(tab_btn, tab_btn_size, tab_btn_size);
-    lv_obj_set_style_radius(tab_btn, tab_btn_size / 2, LV_PART_MAIN);
-    lv_coord_t tab_x = first_tab_x + i * (tab_size + tab_gap);
-    lv_obj_align(tab_btn, LV_ALIGN_LEFT_MID, tab_x - (tab_btn_size - tab_size) / 2, 0);
-    light_control_center_icon_label(lv_obj_get_child(tab_btn, 0));
+    control_modal_layout_tab_button(tab_btn, layout, tabs_layout, i, active);
   }
 
-  lv_coord_t content_top = show_tab_bar ? layout.inset + tab_frame_h + 16 : layout.inset * 2;
+  lv_coord_t content_top = show_tab_bar
+    ? layout.inset + tabs_layout.tab_frame_h + tabs_layout.content_gap
+    : layout.inset * 2;
   lv_coord_t chrome_safe_top = layout.back_inset_y + layout.back_size + layout.inset / 2;
   if (!show_tab_bar && content_top < chrome_safe_top) content_top = chrome_safe_top;
   lv_coord_t content_bottom = layout.panel_h - layout.inset;
