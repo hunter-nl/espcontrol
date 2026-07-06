@@ -1885,6 +1885,7 @@ inline void media_control_create_progress_tab_content(MediaControlCtx *ctx) {
 
   ui.progress_slider = lv_slider_create(ui.content_box);
   if (!ui.progress_slider) return;
+  lv_obj_add_flag(ui.progress_slider, LV_OBJ_FLAG_HIDDEN);
   media_control_style_progress_slider(
     ui.progress_slider, DARK_BACKGROUND_SECONDARY, ctx->accent_color);
   ui.progress_fill = media_control_create_progress_fill(
@@ -1892,6 +1893,7 @@ inline void media_control_create_progress_tab_content(MediaControlCtx *ctx) {
   ui.progress_handle = media_control_create_progress_handle(ui.progress_slider);
   ui.progress_time_lbl = lv_label_create(ui.content_box);
   if (ui.progress_time_lbl) {
+    lv_obj_add_flag(ui.progress_time_lbl, LV_OBJ_FLAG_HIDDEN);
     lv_label_set_text(ui.progress_time_lbl, "0:00");
     lv_obj_set_style_text_color(ui.progress_time_lbl, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
     lv_obj_set_style_text_align(ui.progress_time_lbl, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
@@ -2191,6 +2193,7 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
       lv_color_hex(ctx->accent_color));
     media_control_update_progress_handle(
       ui.progress_slider, ui.progress_handle, lv_slider_get_value(ui.progress_slider));
+    lv_obj_clear_flag(ui.progress_slider, LV_OBJ_FLAG_HIDDEN);
   }
   if (ui.progress_time_lbl) {
     lv_coord_t time_h = title_font && title_font->line_height > 0
@@ -2204,6 +2207,7 @@ inline void media_control_layout_modal(MediaControlCtx *ctx) {
     if (time_y < 0) time_y = 0;
     lv_obj_set_size(ui.progress_time_lbl, text_w, time_h);
     lv_obj_align(ui.progress_time_lbl, LV_ALIGN_TOP_MID, 0, time_y);
+    lv_obj_clear_flag(ui.progress_time_lbl, LV_OBJ_FLAG_HIDDEN);
   }
   lv_obj_t *buttons[3] = {ui.previous_btn, ui.play_btn, ui.next_btn};
   for (int i = 0; i < 3; i++) {
