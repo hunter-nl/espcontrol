@@ -189,25 +189,18 @@ function buildSettingsPage(parent) {
     "Time-based Night Schedule overrides screensaver presence wake and Media Cover Art while it is active. Use Sensor mode when you want presence to control the night schedule."
   ));
   scheduleBody.appendChild(fieldLabel("Mode"));
-  var scheduleSegment = document.createElement("div");
-  scheduleSegment.className = "sp-segment sp-screensaver-mode";
-  var scheduleDisabledBtn = document.createElement("button");
-  scheduleDisabledBtn.textContent = "Disabled";
-  scheduleDisabledBtn.type = "button";
-  var scheduleTimeBtn = document.createElement("button");
-  scheduleTimeBtn.textContent = "Time";
-  scheduleTimeBtn.type = "button";
-  var scheduleSensorBtn = document.createElement("button");
-  scheduleSensorBtn.textContent = "Sensor";
-  scheduleSensorBtn.type = "button";
-  scheduleSegment.appendChild(scheduleDisabledBtn);
-  scheduleSegment.appendChild(scheduleTimeBtn);
-  scheduleSegment.appendChild(scheduleSensorBtn);
-  scheduleBody.appendChild(scheduleSegment);
+  var scheduleModeSegment = segmentControl([
+    ["disabled", "Disabled"],
+    ["time", "Time"],
+    ["sensor", "Sensor"],
+  ], state.scheduleTrigger, function (mode) {
+    setScheduleTrigger(mode);
+  }, "sp-segment sp-screensaver-mode");
+  scheduleBody.appendChild(scheduleModeSegment.segment);
   els.setScheduleModeButtons = {
-    disabled: scheduleDisabledBtn,
-    time: scheduleTimeBtn,
-    sensor: scheduleSensorBtn,
+    disabled: scheduleModeSegment.buttons.disabled,
+    time: scheduleModeSegment.buttons.time,
+    sensor: scheduleModeSegment.buttons.sensor,
   };
 
   var scheduleTimes = document.createElement("div");
@@ -229,38 +222,20 @@ function buildSettingsPage(parent) {
   scheduleTimes.appendChild(offHour.wrap);
   els.setScheduleOffHour = offHour.select;
 
-  var scheduleModeField = document.createElement("div");
-  scheduleModeField.className = "sp-field";
-  scheduleModeField.appendChild(fieldLabel("At Night Time", "sp-set-schedule-mode"));
-  var scheduleModeSelect = document.createElement("select");
-  scheduleModeSelect.className = "sp-select";
-  scheduleModeSelect.id = "sp-set-schedule-mode";
-  [
+  var scheduleModeControl = selectField("At Night Time", "sp-set-schedule-mode", [
     { value: "screen_off", label: "Screen Off" },
     { value: "screen_dimmed", label: "Screen Dimmed" },
     { value: "clock", label: "Clock" },
-  ].forEach(function (opt) {
-    var option = document.createElement("option");
-    option.value = opt.value;
-    option.textContent = opt.label;
-    scheduleModeSelect.appendChild(option);
-  });
-  scheduleModeSelect.addEventListener("change", function () {
+  ], state.scheduleMode, function () {
     state.scheduleMode = normalizeScheduleMode(this.value);
     postScreenScheduleMode(state.scheduleMode);
     syncScreenScheduleUi();
   });
-  scheduleModeField.appendChild(scheduleModeSelect);
-  scheduleTimes.appendChild(scheduleModeField);
+  var scheduleModeSelect = scheduleModeControl.select;
+  scheduleTimes.appendChild(scheduleModeControl.field);
   els.setScheduleMode = scheduleModeSelect;
 
   var offScreenOptions = condField();
-  var wakeTimeoutField = document.createElement("div");
-  wakeTimeoutField.className = "sp-field";
-  wakeTimeoutField.appendChild(fieldLabel("When Woken, Idle Time to Screen Off", "sp-set-schedule-wake-timeout"));
-  var wakeTimeoutSelect = document.createElement("select");
-  wakeTimeoutSelect.className = "sp-select";
-  wakeTimeoutSelect.id = "sp-set-schedule-wake-timeout";
   var wakeTimeoutOptions = [
     { label: "10 seconds", value: 10 },
     { label: "30 seconds", value: 30 },
@@ -271,19 +246,18 @@ function buildSettingsPage(parent) {
     { label: "30 minutes", value: 1800 },
     { label: "1 hour", value: 3600 },
   ];
-  wakeTimeoutOptions.forEach(function (opt) {
-    var o = document.createElement("option");
-    o.value = opt.value;
-    o.textContent = opt.label;
-    wakeTimeoutSelect.appendChild(o);
-  });
-  wakeTimeoutSelect.addEventListener("change", function () {
+  var wakeTimeoutControl = selectField(
+    "When Woken, Idle Time to Screen Off",
+    "sp-set-schedule-wake-timeout",
+    wakeTimeoutOptions,
+    state.scheduleWakeTimeout,
+    function () {
     state.scheduleWakeTimeout = normalizeScheduleWakeTimeout(this.value);
     postScreenScheduleWakeTimeout(state.scheduleWakeTimeout);
     syncScreenScheduleUi();
   });
-  wakeTimeoutField.appendChild(wakeTimeoutSelect);
-  offScreenOptions.appendChild(wakeTimeoutField);
+  var wakeTimeoutSelect = wakeTimeoutControl.select;
+  offScreenOptions.appendChild(wakeTimeoutControl.field);
   els.setScheduleWakeTimeout = wakeTimeoutSelect;
 
   var wakeBrightnessSlider = createRangeSlider(
@@ -377,16 +351,6 @@ function buildSettingsPage(parent) {
     postScreenScheduleEnabled(state.scheduleEnabled);
     syncScreenScheduleUi();
   }
-
-  scheduleDisabledBtn.addEventListener("click", function () {
-    setScheduleTrigger("disabled");
-  });
-  scheduleTimeBtn.addEventListener("click", function () {
-    setScheduleTrigger("time");
-  });
-  scheduleSensorBtn.addEventListener("click", function () {
-    setScheduleTrigger("sensor");
-  });
 
   var scheduleBadge = statusBadge("Schedule on");
   els.setScheduleBadge = scheduleBadge;
@@ -588,37 +552,29 @@ function buildSettingsPage(parent) {
   var ssMode = getActiveScreensaverMode();
 
   ssBody.appendChild(fieldLabel("Mode"));
-  var segment = document.createElement("div");
-  segment.className = "sp-segment sp-screensaver-mode";
-  var disabledBtn = document.createElement("button");
-  disabledBtn.textContent = "Disabled";
-  disabledBtn.type = "button";
-  var timerBtn = document.createElement("button");
-  timerBtn.textContent = "Timer";
-  timerBtn.type = "button";
-  var sensorBtn = document.createElement("button");
-  sensorBtn.textContent = "Sensor";
-  sensorBtn.type = "button";
-  segment.appendChild(disabledBtn);
-  segment.appendChild(timerBtn);
-  segment.appendChild(sensorBtn);
-  ssBody.appendChild(segment);
+  var ssModeSegment = segmentControl([
+    ["disabled", "Disabled"],
+    ["timer", "Timer"],
+    ["sensor", "Sensor"],
+  ], ssMode, function (mode) {
+    setSsMode(mode);
+    state.screensaverMode = mode;
+    postScreensaverMode(mode);
+  }, "sp-segment sp-screensaver-mode");
+  var disabledBtn = ssModeSegment.buttons.disabled;
+  var timerBtn = ssModeSegment.buttons.timer;
+  var sensorBtn = ssModeSegment.buttons.sensor;
+  ssBody.appendChild(ssModeSegment.segment);
 
   var timerPanel = document.createElement("div");
 
-  var timeoutField = document.createElement("div");
-  timeoutField.className = "sp-field";
-  timeoutField.appendChild(fieldLabel("Timeout"));
-  var timeoutSelect = document.createElement("select");
-  timeoutSelect.className = "sp-select";
-  timeoutSelect.id = "sp-set-ss-timeout";
-  timeoutSelect.addEventListener("change", function () {
+  var timeoutControl = selectField("Timeout", "sp-set-ss-timeout", [], state.screensaverTimeout, function () {
     var n = parseFloat(this.value);
     if (isFinite(n)) state.screensaverTimeout = n;
     postScreensaverTimeout(this.value);
   });
-  timeoutField.appendChild(timeoutSelect);
-  timerPanel.appendChild(timeoutField);
+  var timeoutSelect = timeoutControl.select;
+  timerPanel.appendChild(timeoutControl.field);
 
   var timerClockControls = createScreensaverThenControls("sp-set-clock-mode");
   timerPanel.appendChild(timerClockControls.clockField);
@@ -883,21 +839,6 @@ function buildSettingsPage(parent) {
       els.setScreensaverBadge.className = "sp-card-badge" + (mode === "disabled" ? " sp-hidden" : "");
     }
   }
-  disabledBtn.addEventListener("click", function () {
-    setSsMode("disabled");
-    state.screensaverMode = "disabled";
-    postScreensaverMode("disabled");
-  });
-  timerBtn.addEventListener("click", function () {
-    setSsMode("timer");
-    state.screensaverMode = "timer";
-    postScreensaverMode("timer");
-  });
-  sensorBtn.addEventListener("click", function () {
-    setSsMode("sensor");
-    state.screensaverMode = "sensor";
-    postScreensaverMode("sensor");
-  });
   els.setSsMode = setSsMode;
   setSsMode(ssMode);
 
