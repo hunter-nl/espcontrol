@@ -33,10 +33,7 @@ function renderClockBarSelectionBar() {
   var actions = document.createElement("div");
   actions.className = "sp-selection-actions";
 
-  var editBtn = document.createElement("button");
-  editBtn.type = "button";
-  editBtn.className = "sp-selection-btn sp-selection-btn-primary";
-  editBtn.innerHTML = '<span class="mdi mdi-pencil"></span>Edit';
+  var editBtn = createActionButton("sp-selection-btn sp-selection-btn-primary", "Edit", "pencil");
   editBtn.disabled = !canEditClockBarItem;
   editBtn.addEventListener("click", function (e) {
     e.preventDefault();
@@ -51,11 +48,11 @@ function renderClockBarSelectionBar() {
   actions.appendChild(editBtn);
 
   var visible = clockBarItemActive(state.clockBarSelectedItem);
-  var hideBtn = document.createElement("button");
-  hideBtn.type = "button";
-  hideBtn.className = "sp-selection-btn";
-  hideBtn.innerHTML = '<span class="mdi mdi-' + (visible ? "eye-off-outline" : "eye-outline") + '"></span>' +
-    (visible ? "Hide" : "Show");
+  var hideBtn = createActionButton(
+    "sp-selection-btn",
+    visible ? "Hide" : "Show",
+    visible ? "eye-off-outline" : "eye-outline"
+  );
   hideBtn.addEventListener("click", function (e) {
     e.preventDefault();
     e.stopPropagation();
@@ -93,10 +90,7 @@ function renderSelectionBar(c) {
   actions.className = "sp-selection-actions";
 
   if (c.selected.length === 1) {
-    var editBtn = document.createElement("button");
-    editBtn.type = "button";
-    editBtn.className = "sp-selection-btn sp-selection-btn-primary";
-    editBtn.innerHTML = '<span class="mdi mdi-pencil"></span>Edit';
+    var editBtn = createActionButton("sp-selection-btn sp-selection-btn-primary", "Edit", "pencil");
     editBtn.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -105,11 +99,7 @@ function renderSelectionBar(c) {
     actions.appendChild(editBtn);
   }
 
-  var menuBtn = document.createElement("button");
-  menuBtn.type = "button";
-  menuBtn.className = "sp-selection-btn";
-  menuBtn.setAttribute("aria-label", "Card actions");
-  menuBtn.innerHTML = '<span class="mdi mdi-dots-horizontal"></span>';
+  var menuBtn = createActionButton("sp-selection-btn", "", "dots-horizontal", "Card actions");
   menuBtn.addEventListener("click", function (e) {
     e.preventDefault();
     e.stopPropagation();
@@ -221,21 +211,18 @@ function openClockBarTemperatureSettings() {
   saveRow.className = "sp-btn-row sp-btn-row--save sp-has-secondary";
 
   var visible = clockBarItemActive("temperature");
-  var hideBtn = document.createElement("button");
-  hideBtn.type = "button";
-  hideBtn.className = "sp-action-btn sp-hide-btn";
-  hideBtn.innerHTML = '<span class="mdi mdi-' + (visible ? "eye-off-outline" : "eye-outline") + '"></span>' +
-    (visible ? "Hide" : "Show");
+  var hideBtn = createActionButton(
+    "sp-action-btn sp-hide-btn",
+    visible ? "Hide" : "Show",
+    visible ? "eye-off-outline" : "eye-outline"
+  );
   hideBtn.addEventListener("click", function () {
     setClockBarItemVisible("temperature", !visible);
     closeSettings();
   });
   saveRow.appendChild(hideBtn);
 
-  var saveBtn = document.createElement("button");
-  saveBtn.type = "button";
-  saveBtn.className = "sp-action-btn sp-save-btn";
-  saveBtn.textContent = "Save";
+  var saveBtn = createActionButton("sp-action-btn sp-save-btn", "Save");
   saveBtn.addEventListener("click", function () {
     saveClockBarTemperatureSettings(entityInp.value, degreeToggle.input.checked);
     closeSettings();
@@ -294,10 +281,7 @@ function renderBackButtonSettings(container, c) {
 
   var doneRow = document.createElement("div");
   doneRow.className = "sp-btn-row sp-btn-row--save";
-  var doneBtn = document.createElement("button");
-  doneBtn.type = "button";
-  doneBtn.className = "sp-action-btn sp-save-btn";
-  doneBtn.textContent = "Done";
+  var doneBtn = createActionButton("sp-action-btn sp-save-btn", "Done");
   doneBtn.addEventListener("click", closeSettings);
   doneRow.appendChild(doneBtn);
   panel.appendChild(doneRow);
@@ -931,9 +915,7 @@ function renderButtonSettings(forceOpen) {
   saveRow.className = "sp-btn-row sp-btn-row--save";
 
   if (!isNewDraft) {
-    var delBtn = document.createElement("button");
-    delBtn.className = "sp-action-btn sp-delete-btn";
-    delBtn.innerHTML = '<span class="mdi mdi-trash-can-outline"></span>';
+    var delBtn = createActionButton("sp-action-btn sp-delete-btn", "", "trash-can-outline");
     delBtn.addEventListener("click", function () {
       state.settingsDraft = null;
       deleteSlot(slot);
@@ -950,9 +932,7 @@ function renderButtonSettings(forceOpen) {
   } else if (editSubBtn) {
     rightGroup.appendChild(editSubBtn);
   }
-  var saveBtn = document.createElement("button");
-  saveBtn.className = "sp-action-btn sp-save-btn";
-  saveBtn.textContent = "Save";
+  var saveBtn = createActionButton("sp-action-btn sp-save-btn", "Save");
   saveBtn.addEventListener("click", function () {
     if (!validateSettingsDraft()) return;
     if (!validateImageCardLimit()) return;

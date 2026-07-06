@@ -100,12 +100,13 @@ function buildSettingsPage(parent) {
   appearBody.appendChild(onColor);
   els.setOnColor = onColor;
 
-  var appearanceResetButton = document.createElement("button");
-  appearanceResetButton.type = "button";
-  appearanceResetButton.className = "sp-icon-button sp-card-header-action";
+  var appearanceResetButton = createActionButton(
+    "sp-icon-button sp-card-header-action",
+    "",
+    "restore",
+    "Reset colours to defaults"
+  );
   appearanceResetButton.title = "Reset colours";
-  appearanceResetButton.setAttribute("aria-label", "Reset colours to defaults");
-  appearanceResetButton.innerHTML = '<span class="mdi mdi-restore" aria-hidden="true"></span>';
   appearanceResetButton.addEventListener("click", function (event) {
     event.stopPropagation();
     resetAppearanceColors(true);
@@ -886,15 +887,11 @@ function buildSettingsPage(parent) {
   var backupRow = document.createElement("div");
   backupRow.className = "sp-backup-btns";
 
-  var exportBtn = document.createElement("button");
-  exportBtn.className = "sp-backup-btn";
-  exportBtn.innerHTML = '<span class="mdi mdi-download"></span>Export';
+  var exportBtn = createActionButton("sp-backup-btn", "Export", "download");
   exportBtn.addEventListener("click", exportConfig);
   backupRow.appendChild(exportBtn);
 
-  var importBtn = document.createElement("button");
-  importBtn.className = "sp-backup-btn";
-  importBtn.innerHTML = '<span class="mdi mdi-upload"></span>Import';
+  var importBtn = createActionButton("sp-backup-btn", "Import", "upload");
   importBtn.addEventListener("click", importConfig);
   backupRow.appendChild(importBtn);
 
@@ -920,9 +917,7 @@ function buildSettingsPage(parent) {
   fwActions.appendChild(fwInlineStatus);
   els.fwInlineStatus = fwInlineStatus;
 
-  var fwCheckBtn = document.createElement("button");
-  fwCheckBtn.className = "sp-fw-btn";
-  fwCheckBtn.textContent = "Check for Update";
+  var fwCheckBtn = createActionButton("sp-fw-btn", "Check for Update");
   fwCheckBtn.addEventListener("click", function () {
     if (!firmwareUpdateControlsVisible()) return;
     if (firmwareInstallAvailable()) {
