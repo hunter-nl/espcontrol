@@ -166,20 +166,6 @@ struct ClimateControlVisibleTabs {
 
 inline ClimateControlVisibleTabs climate_control_visible_tabs(ClimateControlCtx *ctx);
 
-struct ClimateControlTabLayout {
-  int tab_count = 1;
-  bool show_tab_bar = false;
-  lv_coord_t tab_size = 48;
-  lv_coord_t selected_tab_size = 54;
-  lv_coord_t tab_frame_pad = 9;
-  lv_coord_t tab_gap = 12;
-  lv_coord_t tabs_total_w = 48;
-  lv_coord_t tab_frame_w = 66;
-  lv_coord_t tab_frame_h = 66;
-  lv_coord_t tab_safe_left = 0;
-  lv_coord_t centered_left = 0;
-};
-
 struct ClimateControlModalUi {
   lv_obj_t *overlay = nullptr;
   lv_obj_t *panel = nullptr;
@@ -610,42 +596,12 @@ inline ClimateControlTab climate_control_first_visible_tab(ClimateControlCtx *ct
   return tabs.count == 0 ? ClimateControlTab::TEMPERATURE : tabs.tabs[0];
 }
 
-inline ClimateControlTabLayout climate_control_calc_tab_layout(
+inline ControlModalTabLayout climate_control_calc_tab_layout(
     ClimateControlCtx *ctx, const ControlModalLayout &layout) {
-  ClimateControlTabLayout tabs_layout;
   ClimateControlVisibleTabs visible_tabs = climate_control_visible_tabs(ctx);
-  tabs_layout.tab_count = static_cast<int>(visible_tabs.count);
-  if (tabs_layout.tab_count < 1) tabs_layout.tab_count = 1;
-  tabs_layout.show_tab_bar = ctx && ctx->all_controls && tabs_layout.tab_count > 1;
-  tabs_layout.tab_size = control_modal_uses_p4_86_tuning(layout)
-    ? control_modal_scaled_px(CLIMATE_MODAL_P4_86_TAB_REF_PX, layout.short_side)
-    : control_modal_prominent_card_tab_size(layout);
-  tabs_layout.selected_tab_size = tabs_layout.tab_size + tabs_layout.tab_size / 8;
-  tabs_layout.tab_frame_pad = tabs_layout.tab_size / 5;
-  tabs_layout.tab_gap = control_modal_control_tab_gap(layout, tabs_layout.tab_size);
-  tabs_layout.tabs_total_w =
-    tabs_layout.tab_size * tabs_layout.tab_count + tabs_layout.tab_gap * (tabs_layout.tab_count - 1);
-  tabs_layout.tab_frame_w = tabs_layout.tabs_total_w + tabs_layout.tab_frame_pad * 2;
-  tabs_layout.tab_frame_h = tabs_layout.tab_size + tabs_layout.tab_frame_pad * 2;
-  tabs_layout.tab_safe_left = layout.back_inset_x + layout.back_size + layout.inset / 2;
-  tabs_layout.centered_left = (layout.panel_w - tabs_layout.tab_frame_w) / 2;
-  lv_coord_t min_tab_size = control_modal_control_tab_min_size(layout);
-  while (tabs_layout.show_tab_bar &&
-         !control_modal_uses_compact_portrait_tuning(layout) &&
-         !control_modal_uses_p4_86_tuning(layout) &&
-         tabs_layout.centered_left < tabs_layout.tab_safe_left &&
-         tabs_layout.tab_size > min_tab_size) {
-    tabs_layout.tab_size--;
-    tabs_layout.selected_tab_size = tabs_layout.tab_size + tabs_layout.tab_size / 8;
-    tabs_layout.tab_frame_pad = tabs_layout.tab_size / 5;
-    tabs_layout.tab_gap = control_modal_control_tab_gap(layout, tabs_layout.tab_size);
-    tabs_layout.tabs_total_w =
-      tabs_layout.tab_size * tabs_layout.tab_count + tabs_layout.tab_gap * (tabs_layout.tab_count - 1);
-    tabs_layout.tab_frame_w = tabs_layout.tabs_total_w + tabs_layout.tab_frame_pad * 2;
-    tabs_layout.tab_frame_h = tabs_layout.tab_size + tabs_layout.tab_frame_pad * 2;
-    tabs_layout.centered_left = (layout.panel_w - tabs_layout.tab_frame_w) / 2;
-  }
-  return tabs_layout;
+  int tab_count = static_cast<int>(visible_tabs.count);
+  bool show_tab_bar = ctx && ctx->all_controls && tab_count > 1;
+  return control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);
 }
 
 inline void climate_control_ensure_visible_tab(ClimateControlCtx *ctx) {
@@ -787,11 +743,7 @@ inline lv_coord_t climate_control_labels_down_ref(const ControlModalLayout &layo
 }
 
 inline lv_coord_t climate_control_tab_content_gap(const ControlModalLayout &layout) {
-  if (climate_control_uses_p4_86_modal_tuning(layout))
-    return control_modal_scaled_px(CLIMATE_MODAL_P4_86_TAB_CONTENT_GAP_REF_PX, layout.short_side);
-  if (climate_control_uses_compact_portrait_modal_tuning(layout))
-    return control_modal_scaled_px(CLIMATE_MODAL_JC4880P443_TAB_CONTENT_GAP_REF_PX, layout.short_side);
-  return control_modal_prominent_card_tab_content_gap(layout);
+  return control_modal_shared_tab_content_gap(layout);
 }
 
 inline lv_coord_t climate_control_unit_y_ref(const ControlModalLayout &layout) {
@@ -916,7 +868,7 @@ inline ControlModalLayout climate_control_calc_layout(ClimateControlCtx *ctx) {
   layout.controls_center_y = layout.arc_center_y + layout.arc_size / 2 -
     layout.btn_size / 2 - layout.inset +
     control_modal_controls_down_px(layout);
-  ClimateControlTabLayout tabs_layout = climate_control_calc_tab_layout(ctx, layout);
+  ControlModalTabLayout tabs_layout = climate_control_calc_tab_layout(ctx, layout);
   if (tabs_layout.show_tab_bar) {
     lv_coord_t tab_bottom = layout.inset + 2 + tabs_layout.tab_frame_h;
     lv_coord_t desired_control_top = tab_bottom + climate_control_tab_content_gap(layout);
@@ -1487,11 +1439,7 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx);
 inline void climate_control_apply_tab_visibility();
 
 inline void climate_center_tab_icon(lv_obj_t *label) {
-  if (!label) return;
-  lv_obj_update_layout(label);
-  lv_obj_set_style_transform_pivot_x(label, lv_obj_get_width(label) / 2, LV_PART_MAIN);
-  lv_obj_set_style_transform_pivot_y(label, lv_obj_get_height(label) / 2, LV_PART_MAIN);
-  lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+  control_modal_center_tab_icon(label);
 }
 
 inline lv_obj_t *climate_control_create_tab_button(lv_obj_t *parent, const char *icon,
@@ -1903,46 +1851,16 @@ inline void climate_control_layout_modal(ClimateControlCtx *ctx) {
     control_modal_card_radius(ctx->btn));
   control_modal_apply_back_button_layout(ui.back_btn, layout);
   ClimateControlVisibleTabs visible_tabs = climate_control_visible_tabs(ctx);
-  ClimateControlTabLayout tabs_layout = climate_control_calc_tab_layout(ctx, layout);
+  ControlModalTabLayout tabs_layout = climate_control_calc_tab_layout(ctx, layout);
   int tab_count = tabs_layout.tab_count;
   bool show_tab_bar = tabs_layout.show_tab_bar;
-  lv_coord_t tab_size = tabs_layout.tab_size;
-  lv_coord_t selected_tab_size = tabs_layout.selected_tab_size;
-  lv_coord_t tab_gap = tabs_layout.tab_gap;
-  lv_coord_t tabs_total_w = tabs_layout.tabs_total_w;
-  lv_coord_t tab_frame_w = tabs_layout.tab_frame_w;
   lv_coord_t tab_frame_h = tabs_layout.tab_frame_h;
-  lv_coord_t tab_safe_left = tabs_layout.tab_safe_left;
-  lv_coord_t centered_left = tabs_layout.centered_left;
-  if (ui.tab_row) {
-    if (show_tab_bar) {
-      lv_obj_clear_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
-      lv_obj_set_size(ui.tab_row, tab_frame_w, tab_frame_h);
-      lv_obj_set_style_radius(ui.tab_row, tab_frame_h / 2, LV_PART_MAIN);
-      if (centered_left < tab_safe_left) centered_left = tab_safe_left;
-      lv_obj_align(ui.tab_row, LV_ALIGN_TOP_LEFT, centered_left, layout.inset + 2);
-    } else {
-      lv_obj_add_flag(ui.tab_row, LV_OBJ_FLAG_HIDDEN);
-    }
-  }
-  lv_coord_t first_tab_x = (tab_frame_w - tabs_total_w) / 2;
+  control_modal_apply_tab_row(ui.tab_row, layout, tabs_layout);
   for (int i = 0; show_tab_bar && i < tab_count; i++) {
     lv_obj_t *tab_btn = climate_control_tab_button(ui, visible_tabs.tabs[i]);
     if (!tab_btn) continue;
     bool active = visible_tabs.tabs[i] == ui.tab;
-    lv_coord_t tab_btn_size = active ? selected_tab_size : tab_size;
-    lv_obj_set_size(tab_btn, tab_btn_size, tab_btn_size);
-    lv_obj_set_style_radius(tab_btn, tab_btn_size / 2, LV_PART_MAIN);
-    lv_coord_t tab_x = first_tab_x + i * (tab_size + tab_gap);
-    lv_obj_align(tab_btn, LV_ALIGN_LEFT_MID, tab_x - (tab_btn_size - tab_size) / 2, 0);
-    lv_obj_t *label = lv_obj_get_child(tab_btn, 0);
-    if (label) {
-      lv_obj_set_style_transform_zoom(label,
-        (control_modal_uses_compact_portrait_tuning(layout) ||
-         climate_control_uses_p4_86_modal_tuning(layout)) ? 220 : 180,
-        LV_PART_MAIN);
-    }
-    climate_center_tab_icon(label);
+    control_modal_layout_tab_button(tab_btn, layout, tabs_layout, i, active);
   }
   if (ui.mode_btn) {
     lv_obj_set_size(ui.mode_btn, layout.back_size, layout.back_size);
