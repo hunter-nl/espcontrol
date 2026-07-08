@@ -1454,6 +1454,7 @@ struct CoverControlCtx {
   const char *icon_open_glyph = nullptr;
   const lv_font_t *option_title_font = nullptr;
   const lv_font_t *option_value_font = nullptr;
+  const lv_font_t *option_menu_font = nullptr;
   const lv_font_t *card_icon_font = nullptr;
   const lv_font_t *icon_font = nullptr;
   int width_compensation_percent = 100;
@@ -1785,76 +1786,49 @@ inline lv_obj_t *cover_control_create_wide_icon_button(lv_obj_t *parent, const c
 
 inline lv_obj_t *cover_control_create_preset_button(lv_obj_t *parent, int pct,
                                                     const lv_font_t *icon_font,
-                                                    const lv_font_t *title_font,
-                                                    const lv_font_t *value_font,
-                                                    int width_compensation_percent) {
+                                                    const lv_font_t *label_font) {
   lv_obj_t *btn = lv_btn_create(parent);
   if (!btn) return nullptr;
-  lv_obj_set_size(btn, compensated_width(240, width_compensation_percent), 94);
+  lv_obj_set_size(btn, 118, 118);
   lv_obj_set_flex_grow(btn, 0);
-  lv_obj_add_flag(btn, LV_OBJ_FLAG_SCROLL_CHAIN_HOR);
   lv_obj_set_style_bg_color(btn, lv_color_hex(SECONDARY_GREY), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_left(btn, 26, LV_PART_MAIN);
-  lv_obj_set_style_pad_right(btn, 22, LV_PART_MAIN);
+  lv_obj_set_style_pad_left(btn, 14, LV_PART_MAIN);
+  lv_obj_set_style_pad_right(btn, 14, LV_PART_MAIN);
   lv_obj_set_style_pad_top(btn, 12, LV_PART_MAIN);
   lv_obj_set_style_pad_bottom(btn, 12, LV_PART_MAIN);
-  lv_obj_set_style_pad_column(btn, 24, LV_PART_MAIN);
-  lv_obj_set_style_pad_row(btn, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(btn, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_row(btn, 8, LV_PART_MAIN);
   lv_obj_set_layout(btn, LV_LAYOUT_FLEX);
-  lv_obj_set_style_flex_flow(btn, LV_FLEX_FLOW_ROW, LV_PART_MAIN);
-  lv_obj_set_style_flex_main_place(btn, LV_FLEX_ALIGN_START, LV_PART_MAIN);
+  lv_obj_set_style_flex_flow(btn, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN);
+  lv_obj_set_style_flex_main_place(btn, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_style_flex_cross_place(btn, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   control_modal_apply_pressed_fill(btn);
   lv_obj_clear_flag(btn, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_set_user_data(btn, reinterpret_cast<void *>(static_cast<uintptr_t>(pct)));
 
   lv_obj_t *icon = lv_label_create(btn);
   if (icon) {
     lv_label_set_text(icon, pct <= 50 ? find_icon("Blinds Open") : find_icon("Blinds"));
-    lv_obj_set_style_text_color(icon, lv_color_hex(DARK_TEXT_SOFT), LV_PART_MAIN);
+    lv_obj_set_style_text_color(icon, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
     lv_obj_set_style_text_align(icon, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     if (icon_font) lv_obj_set_style_text_font(icon, icon_font, LV_PART_MAIN);
     lv_obj_clear_flag(icon, LV_OBJ_FLAG_CLICKABLE);
   }
 
-  lv_obj_t *text_box = lv_obj_create(btn);
-  if (text_box) {
-    lv_obj_set_size(text_box, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_bg_opa(text_box, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(text_box, 0, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(text_box, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(text_box, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(text_box, 4, LV_PART_MAIN);
-    lv_obj_clear_flag(text_box, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_clear_flag(text_box, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_layout(text_box, LV_LAYOUT_FLEX);
-    lv_obj_set_style_flex_flow(text_box, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN);
-    lv_obj_set_style_flex_main_place(text_box, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_flex_cross_place(text_box, LV_FLEX_ALIGN_START, LV_PART_MAIN);
-
-    lv_obj_t *title = lv_label_create(text_box);
-    if (title) {
-      lv_label_set_text(title, espcontrol_i18n("Position"));
-      lv_label_set_long_mode(title, LV_LABEL_LONG_CLIP);
-      lv_obj_set_width(title, compensated_width(150, width_compensation_percent));
-      lv_obj_set_style_text_color(title, lv_color_hex(DARK_TEXT_MUTED), LV_PART_MAIN);
-      if (title_font) lv_obj_set_style_text_font(title, title_font, LV_PART_MAIN);
-      lv_obj_clear_flag(title, LV_OBJ_FLAG_CLICKABLE);
-    }
-
-    lv_obj_t *pct_value = lv_label_create(text_box);
+  lv_obj_t *label = lv_label_create(btn);
+  if (label) {
     char buf[8];
     snprintf(buf, sizeof(buf), "%d%%", pct);
-    if (pct_value) {
-      lv_label_set_text(pct_value, buf);
-      lv_label_set_long_mode(pct_value, LV_LABEL_LONG_CLIP);
-      lv_obj_set_width(pct_value, compensated_width(150, width_compensation_percent));
-      lv_obj_set_style_text_color(pct_value, lv_color_hex(DARK_TEXT_SOFT), LV_PART_MAIN);
-      if (value_font) lv_obj_set_style_text_font(pct_value, value_font, LV_PART_MAIN);
-      lv_obj_clear_flag(pct_value, LV_OBJ_FLAG_CLICKABLE);
-    }
+    lv_label_set_text(label, buf);
+    lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(label, lv_pct(100));
+    lv_obj_set_style_text_color(label, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    if (label_font) lv_obj_set_style_text_font(label, label_font, LV_PART_MAIN);
+    lv_obj_clear_flag(label, LV_OBJ_FLAG_CLICKABLE);
   }
 
   lv_obj_add_event_cb(btn, [](lv_event_t *e) {
@@ -1869,6 +1843,33 @@ inline lv_obj_t *cover_control_create_preset_button(lv_obj_t *parent, int pct,
   }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(pct)));
 
   return btn;
+}
+
+inline bool cover_control_uses_compact_portrait_option_grid(const ControlModalLayout &layout) {
+  return control_modal_uses_compact_portrait_tuning(layout) &&
+         !control_modal_uses_4848_control_tuning(layout) &&
+         layout.sh > layout.sw;
+}
+
+inline bool cover_control_uses_wide_option_fit(const ControlModalLayout &layout) {
+  return control_modal_uses_large_landscape_tuning(layout) ||
+         control_modal_uses_jc1060p470_tuning(layout) ||
+         cover_control_uses_compact_portrait_option_grid(layout);
+}
+
+inline lv_coord_t cover_control_option_tile_max(const ControlModalLayout &layout) {
+  if (cover_control_uses_compact_portrait_option_grid(layout)) return 220;
+  return control_modal_uses_jc1060p470_tuning(layout) ? 162 : 178;
+}
+
+inline lv_coord_t cover_control_option_tile_min(const ControlModalLayout &layout) {
+  if (cover_control_uses_compact_portrait_option_grid(layout)) return 220;
+  return control_modal_uses_jc1060p470_tuning(layout) ? 124 : 132;
+}
+
+inline lv_coord_t cover_control_option_tile_height(const ControlModalLayout &layout,
+                                                   lv_coord_t tile_w) {
+  return cover_control_uses_compact_portrait_option_grid(layout) ? 120 : tile_w;
 }
 
 inline lv_coord_t cover_control_home_grid_row_gap(const ControlModalLayout &layout) {
@@ -2077,19 +2078,34 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
     lv_coord_t box_h = content_h;
     lv_obj_set_size(ui.presets_box, box_w, box_h);
     lv_obj_align(ui.presets_box, LV_ALIGN_CENTER, 0, content_center_y);
-    lv_coord_t gap = cover_control_home_grid_row_gap(layout);
-    lv_coord_t tile_w = box_w - layout.inset * 2;
-    if (tile_w > 280) tile_w = 280;
-    if (tile_w < 220) tile_w = box_w;
-    lv_coord_t tile_h = layout.short_side < 520 ? 86 : 94;
-    lv_coord_t visual_tile_w = compensated_width(tile_w, ctx->width_compensation_percent);
-    lv_coord_t total_h = tile_h * 5 + gap * 4;
+    lv_coord_t tile_gap = control_modal_scaled_px(layout.short_side < 520 ? 10 : 12, layout.short_side);
+    if (tile_gap < 8) tile_gap = 8;
+    lv_coord_t content_w = box_w;
+    lv_coord_t tile_min_w = compensated_width(layout.short_side < 520 ? 138 : 168,
+      ctx->width_compensation_percent);
+    if (tile_min_w < 118) tile_min_w = 118;
+    int column_count = content_w >= tile_min_w * 3 + tile_gap * 2 ? 3 : 2;
+    if (content_w < tile_min_w * 2 + tile_gap) column_count = 1;
+    lv_coord_t tile_w = (content_w - tile_gap * (column_count - 1)) / column_count;
+    if (cover_control_uses_wide_option_fit(layout)) {
+      lv_coord_t max_tile_w = cover_control_option_tile_max(layout);
+      lv_coord_t min_tile_w = cover_control_option_tile_min(layout);
+      int max_columns = control_modal_uses_jc1060p470_tuning(layout) ? 5 : 6;
+      int fitted_columns = (content_w + tile_gap) / (max_tile_w + tile_gap);
+      if (fitted_columns < 1) fitted_columns = 1;
+      if (fitted_columns > max_columns) fitted_columns = max_columns;
+      if (fitted_columns > 5) fitted_columns = 5;
+      lv_coord_t fitted_tile_w = (content_w - tile_gap * (fitted_columns - 1)) / fitted_columns;
+      tile_w = fitted_tile_w < max_tile_w ? fitted_tile_w : max_tile_w;
+      if (tile_w < min_tile_w) tile_w = min_tile_w;
+    }
+    lv_coord_t tile_h = cover_control_option_tile_height(layout, tile_w);
     lv_obj_set_style_pad_all(ui.presets_box, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(ui.presets_box, gap, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(ui.presets_box, tile_gap, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(ui.presets_box, tile_gap, LV_PART_MAIN);
     lv_obj_set_layout(ui.presets_box, LV_LAYOUT_FLEX);
-    lv_obj_set_style_flex_flow(ui.presets_box, LV_FLEX_FLOW_COLUMN, LV_PART_MAIN);
-    lv_obj_set_style_flex_main_place(ui.presets_box,
-      total_h > box_h ? LV_FLEX_ALIGN_START : LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
+    lv_obj_set_style_flex_flow(ui.presets_box, LV_FLEX_FLOW_ROW_WRAP, LV_PART_MAIN);
+    lv_obj_set_style_flex_main_place(ui.presets_box, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_flex_cross_place(ui.presets_box, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_scroll_dir(ui.presets_box, LV_DIR_VER);
     lv_obj_set_scrollbar_mode(ui.presets_box, LV_SCROLLBAR_MODE_OFF);
@@ -2097,8 +2113,20 @@ inline void cover_control_layout_modal(CoverControlCtx *ctx) {
     for (int i = 0; i < 5; i++) {
       lv_obj_t *btn = ui.preset_btns[i];
       if (!btn) continue;
-      lv_obj_set_size(btn, visual_tile_w, tile_h);
-      lv_obj_set_style_radius(btn, tile_h / 2, LV_PART_MAIN);
+      int pct = static_cast<int>(reinterpret_cast<uintptr_t>(lv_obj_get_user_data(btn)));
+      bool selected = ctx->current_position_known && slider_clamp_pct(ctx->current_position) == pct;
+      uint32_t bg_color = selected ? ctx->accent_color : ctx->secondary_color;
+      uint32_t text_color = selected ? DARK_TEXT_PRIMARY : readable_text_color_for_bg(bg_color);
+      lv_obj_set_size(btn, tile_w, tile_h);
+      lv_obj_set_style_radius(btn, control_modal_card_radius(ctx->btn), LV_PART_MAIN);
+      lv_obj_set_style_bg_color(btn, lv_color_hex(bg_color), LV_PART_MAIN);
+      lv_obj_t *icon = lv_obj_get_child(btn, 0);
+      lv_obj_t *label = lv_obj_get_child(btn, 1);
+      if (icon) lv_obj_set_style_text_color(icon, lv_color_hex(text_color), LV_PART_MAIN);
+      if (label) {
+        lv_obj_set_style_text_color(label, lv_color_hex(text_color), LV_PART_MAIN);
+        lv_obj_set_width(label, lv_pct(100));
+      }
     }
     lv_obj_scroll_to_y(ui.presets_box, 0, LV_ANIM_OFF);
   }
@@ -2296,9 +2324,7 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
     ui.preset_btns[i] = cover_control_create_preset_button(
       ui.presets_box, preset_values[i],
       ctx->card_icon_font ? ctx->card_icon_font : ctx->icon_font,
-      ctx->option_title_font,
-      ctx->option_value_font,
-      ctx->width_compensation_percent);
+      ctx->option_menu_font);
   }
 
   ui.position_slider = lv_slider_create(ui.panel);
@@ -2387,6 +2413,7 @@ inline CoverControlCtx *create_cover_control_context(
     uint32_t secondary_color,
     const lv_font_t *option_title_font,
     const lv_font_t *option_value_font,
+    const lv_font_t *option_menu_font,
     const lv_font_t *card_icon_font,
     const lv_font_t *icon_font,
     int width_compensation_percent) {
@@ -2413,6 +2440,7 @@ inline CoverControlCtx *create_cover_control_context(
   ctx->icon_open_glyph = slider_icon_on(p.type, p.entity, p.icon, p.icon_on);
   ctx->option_title_font = option_title_font;
   ctx->option_value_font = option_value_font;
+  ctx->option_menu_font = option_menu_font ? option_menu_font : option_value_font;
   ctx->card_icon_font = card_icon_font;
   ctx->icon_font = icon_font;
   ctx->width_compensation_percent = width_compensation_percent;
