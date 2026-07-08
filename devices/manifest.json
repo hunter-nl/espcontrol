@@ -667,7 +667,6 @@
         },
         "package": {
           "firmwareVersion": "dev",
-          "webserverSlug": "guition-esp32-p4-jc8012p4a1",
           "substitutions": {
             "screen_width": "\"1280\"",
             "screen_height": "\"800\"",

@@ -119,10 +119,6 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
         sensors = sensor_path.read_text(encoding="utf-8")
         assert f'device_slug: "{slug}"' in package, f"{slug}: packages.yaml missing device slug"
         assert f'firmware_manifest_slug: "{slug}"' in package, f"{slug}: packages.yaml missing manifest slug"
-        expected_webserver_slug = profile["firmware"]["package"].get("webserverSlug", slug)
-        assert f'webserver_slug: "{expected_webserver_slug}"' in package, (
-            f"{slug}: packages.yaml missing webserver slug"
-        )
         assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
         limit = image_card_limit(profile)
         if limit > 0:

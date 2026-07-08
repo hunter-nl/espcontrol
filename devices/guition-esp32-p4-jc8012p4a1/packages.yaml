@@ -9,7 +9,6 @@
 substitutions:
   device_slug: "guition-esp32-p4-jc8012p4a1"
   firmware_manifest_slug: "guition-esp32-p4-jc8012p4a1"
-  webserver_slug: "guition-esp32-p4-jc8012p4a1"
   firmware_version: "dev"
   screen_width: "1280"
   screen_height: "800"

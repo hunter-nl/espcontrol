@@ -375,7 +375,7 @@ def validate_package(slug: str, device: dict[str, Any], errors: list[str]) -> No
     if package is None:
         return
 
-    for key in ("firmwareVersion", "deviceFontPackageKey", "webserverSlug"):
+    for key in ("firmwareVersion", "deviceFontPackageKey"):
         if key in package and (not isinstance(package.get(key), str) or not package.get(key)):
             errors.append(device_error(slug, f"firmware.package.{key} must be a non-empty string when set"))
 
