@@ -101,6 +101,14 @@ const screenProducts: Record<string, Record<string, string>> = {
     resolution: '1280 x 800',
     processor: 'ESP32-P4',
   },
+  'screens/jc8012p4a1-v2.md': {
+    name: 'Guition JC8012P4A1 V2',
+    brand: 'Guition',
+    model: 'JC8012P4A1 V2',
+    size: '10.1 inches',
+    resolution: '1280 x 800',
+    processor: 'ESP32-P4',
+  },
   'screens/p4-86.md': {
     name: 'ESP32-P4 86 Panel',
     brand: 'ESP32-P4',
@@ -155,7 +163,7 @@ const faqItems = [
   {
     question: 'How Many Cards Can I Have?',
     answer:
-      'The home screen supports 20 cards on JC8012P4A1, 15 on JC1060P470, 6 on JC4880P443, and 9 on 4848S040 or the ESP32-P4 86 Panel, with more available through subpages.',
+      'The home screen supports 20 cards on JC8012P4A1 and JC8012P4A1 V2, 15 on JC1060P470, 6 on JC4880P443, and 9 on 4848S040 or the ESP32-P4 86 Panel, with more available through subpages.',
   },
   {
     question: 'What Is a Subpage?',
@@ -170,7 +178,7 @@ const faqItems = [
   {
     question: 'Which Panels Are Supported?',
     answer:
-      'EspControl supports the Guition JC8012P4A1, JC1060P470, JC4880P443, 4848S040, and ESP32-P4 86 Panel touchscreens.',
+      'EspControl supports the Guition JC8012P4A1, JC8012P4A1 V2, JC1060P470, JC4880P443, 4848S040, and ESP32-P4 86 Panel touchscreens.',
   },
   {
     question: 'Does the Panel Work with Other Smart Home Platforms?',
@@ -384,6 +392,7 @@ export default defineConfig({
         text: 'Supported Screens',
         items: [
           { text: '10.1-inch JC8012P4A1', link: '/screens/jc8012p4a1' },
+          { text: '10.1-inch JC8012P4A1 V2', link: '/screens/jc8012p4a1-v2' },
           { text: '7-inch JC1060P470', link: '/screens/jc1060p470' },
           { text: '4.3-inch JC4880P443', link: '/screens/jc4880p443' },
           { text: '4-inch ESP32-P4 86 Panel', link: '/screens/p4-86' },
