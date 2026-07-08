@@ -620,7 +620,7 @@ assert.deepStrictEqual(
   "cover control tabs preserve custom order"
 );
 assert.strictEqual(
-  hooks.normalizeCoverOptions("cover_tabs=position%7Ccontrols%7Ctilt"),
+  hooks.normalizeCoverOptions("cover_tabs=position%7Ccontrols%7Ctilt%7Cpresets"),
   "",
   "default cover control tab order is omitted"
 );

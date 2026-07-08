@@ -73,6 +73,7 @@ function coverControlTabDefinitions() {
     position: "Position",
     controls: "Controls",
     tilt: "Tilt",
+    presets: "Presets",
   };
   var spec = cardContractOptionSpec("cover", COVER_CONTROL_TABS_OPTION);
   var values = spec && spec.values ? spec.values : [];
@@ -85,7 +86,7 @@ function coverControlDefaultTabs() {
   return cardContractOptionDefaultValue(
     "cover",
     COVER_CONTROL_TABS_OPTION,
-    "position|controls|tilt"
+    "position|controls|tilt|presets"
   ).split("|");
 }
 

@@ -365,7 +365,7 @@ int main() {
   auto light_control_bad_tabs = parse_cfg("light.kitchen;Kitchen;Lightbulb Outline;Lightbulb;;;light_control;;light_tabs=bad%7Cpower%7Cpower");
   assert(light_control_bad_tabs.options == "light_tabs=power");
 
-  auto cover_default_tabs = parse_cfg("cover.office;Office Blind;Blinds;Blinds Open;modal;;cover;;cover_tabs=position%7Ccontrols%7Ctilt");
+  auto cover_default_tabs = parse_cfg("cover.office;Office Blind;Blinds;Blinds Open;modal;;cover;;cover_tabs=position%7Ccontrols%7Ctilt%7Cpresets");
   assert(cover_default_tabs.type == "cover");
   assert(cover_default_tabs.options == "");
   auto cover_custom_tabs = parse_cfg("cover.office;Office Blind;Blinds;Blinds Open;modal;;cover;;cover_tabs=controls%7Cposition");

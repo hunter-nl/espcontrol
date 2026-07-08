@@ -620,9 +620,10 @@ var CARD_CONTRACT_CARDS = {
         "values": [
           "position",
           "controls",
-          "tilt"
+          "tilt",
+          "presets"
         ],
-        "defaultValue": "position|controls|tilt"
+        "defaultValue": "position|controls|tilt|presets"
       }
     ],
     "behavior": {
