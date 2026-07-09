@@ -59,6 +59,8 @@ class ArtworkImage : public PollingComponent,
               image::ImageType type, image::Transparency transparency, uint32_t buffer_size, bool is_big_endian,
               bool allow_insecure_local_urls);
 
+  ~ArtworkImage() { this->decoder_.reset(); }
+
   void draw(int x, int y, display::Display *display, Color color_on, Color color_off) override;
 
   void update() override;
