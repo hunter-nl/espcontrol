@@ -78,8 +78,8 @@ int JpegDecoder::start_decode_(uint8_t *buffer, size_t size) {
     return DECODE_ERROR_UNSUPPORTED_FORMAT;
   }
 
-  jpeg_create_decompress(&this->cinfo_);
   this->cinfo_created_ = true;
+  jpeg_create_decompress(&this->cinfo_);
   jpeg_mem_src(&this->cinfo_, buffer, size);
 
   if (jpeg_read_header(&this->cinfo_, TRUE) != JPEG_HEADER_OK) {
