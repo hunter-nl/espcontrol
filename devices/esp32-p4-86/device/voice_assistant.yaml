@@ -17,13 +17,19 @@ external_components:
 esp_afe:
   id: voice_afe_processor
   type: fd
-  mode: low_cost
+  mode: high_perf
   mic_num: 1
   aec_enabled: true
   aec_filter_length: 4
   ns_enabled: true
   vad_enabled: false
+  vad_mode: 2
+  vad_min_speech_ms: 96
+  vad_min_noise_ms: 600
+  vad_delay_ms: 160
   agc_enabled: true
+  agc_target_level: 6
+  task_priority: 8
 
 esp_audio_stack:
   id: voice_audio_stack
@@ -111,7 +117,7 @@ media_player:
     id: voice_media_player
     name: Voice Media Player
     icon: mdi:speaker
-    buffer_size: 4000000
+    buffer_size: 1000000
     task_stack_in_psram: true
     files:
       - id: voice_wake_chime
