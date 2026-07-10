@@ -184,7 +184,7 @@ inline const char *espcontrol_i18n_cs(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Verze neznámá";
   if (std::strcmp(text, "Volume") == 0) return "Hlasitost";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čekání na Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Připojování k Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Připojování k \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Počasí";
   if (std::strcmp(text, "Weekly") == 0) return "Týdně";
   if (std::strcmp(text, "Window") == 0) return "Okno";
@@ -393,7 +393,7 @@ inline const char *espcontrol_i18n_da(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Version ukendt";
   if (std::strcmp(text, "Volume") == 0) return "Lydstyrke";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Venter på Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Opretter forbindelse til Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Opretter forbindelse til \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Vejr";
   if (std::strcmp(text, "Weekly") == 0) return "Ugentligt";
   if (std::strcmp(text, "Window") == 0) return "Vindue";
@@ -600,7 +600,7 @@ inline const char *espcontrol_i18n_de(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Version unbekannt";
   if (std::strcmp(text, "Volume") == 0) return "Lautstärke";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Warten auf Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Verbindung mit Home Assistant wird hergestellt";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Verbindung mit \nHome Assistant wird hergestellt";
   if (std::strcmp(text, "Weather") == 0) return "Wetter";
   if (std::strcmp(text, "Weekly") == 0) return "Wöchentlich";
   if (std::strcmp(text, "Window") == 0) return "Fenster";
@@ -814,7 +814,7 @@ inline const char *espcontrol_i18n_es(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Versión desconocida";
   if (std::strcmp(text, "Volume") == 0) return "Volumen";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Esperando a Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Conectando a Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Conectando a \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Tiempo";
   if (std::strcmp(text, "Weekly") == 0) return "Semanal";
   if (std::strcmp(text, "Window") == 0) return "Ventana";
@@ -1038,7 +1038,7 @@ inline const char *espcontrol_i18n_fi(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Versio tuntematon";
   if (std::strcmp(text, "Volume") == 0) return "Äänenvoimakkuus";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Odotetaan Home Assistantia";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Yhdistetään Home Assistantiin";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Yhdistetään \nHome Assistantiin";
   if (std::strcmp(text, "Weather") == 0) return "Sää";
   if (std::strcmp(text, "Weekly") == 0) return "Viikoittain";
   if (std::strcmp(text, "Window") == 0) return "Ikkuna";
@@ -1245,7 +1245,7 @@ inline const char *espcontrol_i18n_fr(const char *text) {
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirateur";
   if (std::strcmp(text, "Version unknown") == 0) return "Version inconnue";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "En attente de Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Connexion à Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Connexion à \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Météo";
   if (std::strcmp(text, "Weekly") == 0) return "Hebdomadaire";
   if (std::strcmp(text, "Window") == 0) return "Fenêtre";
@@ -1469,7 +1469,7 @@ inline const char *espcontrol_i18n_hu(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Ismeretlen verzió";
   if (std::strcmp(text, "Volume") == 0) return "Hangerő";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Várakozás a Home Assistantra";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Csatlakozás a Home Assistanthez";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Csatlakozás a \nHome Assistanthez";
   if (std::strcmp(text, "Weather") == 0) return "Időjárás";
   if (std::strcmp(text, "Weekly") == 0) return "Hetente";
   if (std::strcmp(text, "Window") == 0) return "Ablak";
@@ -1685,7 +1685,7 @@ inline const char *espcontrol_i18n_it(const char *text) {
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirapolvere";
   if (std::strcmp(text, "Version unknown") == 0) return "Versione sconosciuta";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "In attesa di Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Connessione a Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Connessione a \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Meteo";
   if (std::strcmp(text, "Weekly") == 0) return "Settimanale";
   if (std::strcmp(text, "Window") == 0) return "Finestra";
@@ -1897,7 +1897,7 @@ inline const char *espcontrol_i18n_nb(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Ukjent versjon";
   if (std::strcmp(text, "Volume") == 0) return "Volum";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Venter på Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Kobler til Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Kobler til \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Vær";
   if (std::strcmp(text, "Weekly") == 0) return "Ukentlig";
   if (std::strcmp(text, "Window") == 0) return "Vindu";
@@ -2111,7 +2111,7 @@ inline const char *espcontrol_i18n_nl(const char *text) {
   if (std::strcmp(text, "Vacuum") == 0) return "Stofzuiger";
   if (std::strcmp(text, "Version unknown") == 0) return "Versie onbekend";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Wachten op Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Verbinden met Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Verbinden met \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Weer";
   if (std::strcmp(text, "Weekly") == 0) return "Wekelijks";
   if (std::strcmp(text, "Window") == 0) return "Raam";
@@ -2322,7 +2322,7 @@ inline const char *espcontrol_i18n_pl(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Wersja nieznana";
   if (std::strcmp(text, "Volume") == 0) return "Głośność";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Oczekiwanie na Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Łączenie z Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Łączenie z \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Pogoda";
   if (std::strcmp(text, "Weekly") == 0) return "Co tydzień";
   if (std::strcmp(text, "Window") == 0) return "Okno";
@@ -2536,7 +2536,7 @@ inline const char *espcontrol_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirador";
   if (std::strcmp(text, "Version unknown") == 0) return "Versão desconhecida";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Aguardando o Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Conectando ao Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Conectando ao \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Tempo";
   if (std::strcmp(text, "Weekly") == 0) return "Semanal";
   if (std::strcmp(text, "Window") == 0) return "Janela";
@@ -2751,7 +2751,7 @@ inline const char *espcontrol_i18n_pt(const char *text) {
   if (std::strcmp(text, "Vacuum") == 0) return "Aspirador";
   if (std::strcmp(text, "Version unknown") == 0) return "Versão desconhecida";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "À espera do Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "A ligar ao Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "A ligar ao \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Meteorologia";
   if (std::strcmp(text, "Weekly") == 0) return "Semanal";
   if (std::strcmp(text, "Window") == 0) return "Janela";
@@ -2975,7 +2975,7 @@ inline const char *espcontrol_i18n_ro(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Versiune necunoscută";
   if (std::strcmp(text, "Volume") == 0) return "Volum";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Se așteaptă Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Se conectează la Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Se conectează la \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Vreme";
   if (std::strcmp(text, "Weekly") == 0) return "Săptămânal";
   if (std::strcmp(text, "Window") == 0) return "Fereastră";
@@ -3191,7 +3191,7 @@ inline const char *espcontrol_i18n_sk(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Verzia neznáma";
   if (std::strcmp(text, "Volume") == 0) return "Hlasitosť";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čakanie na Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Pripája sa k Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Pripája sa k \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Počasie";
   if (std::strcmp(text, "Weekly") == 0) return "Týždenne";
   if (std::strcmp(text, "Window") == 0) return "Okno";
@@ -3411,7 +3411,7 @@ inline const char *espcontrol_i18n_sl(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Različica neznana";
   if (std::strcmp(text, "Volume") == 0) return "Glasnost";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Čakanje na Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Povezovanje s Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Povezovanje s \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Vreme";
   if (std::strcmp(text, "Weekly") == 0) return "Tedensko";
   if (std::strcmp(text, "Window") == 0) return "Okno";
@@ -3623,7 +3623,7 @@ inline const char *espcontrol_i18n_sv(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Version okänd";
   if (std::strcmp(text, "Volume") == 0) return "Volym";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Väntar på Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Ansluter till Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Ansluter till \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Väder";
   if (std::strcmp(text, "Weekly") == 0) return "Veckovis";
   if (std::strcmp(text, "Window") == 0) return "Fönster";
@@ -3847,7 +3847,7 @@ inline const char *espcontrol_i18n_tr(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Sürüm bilinmiyor";
   if (std::strcmp(text, "Volume") == 0) return "Ses";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Home Assistant bekleniyor";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Home Assistant'a bağlanılıyor";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "\nHome Assistant'a bağlanılıyor";
   if (std::strcmp(text, "Weather") == 0) return "Hava durumu";
   if (std::strcmp(text, "Weekly") == 0) return "Haftalık";
   if (std::strcmp(text, "Window") == 0) return "Pencere";
@@ -4073,7 +4073,7 @@ inline const char *espcontrol_i18n_uk(const char *text) {
   if (std::strcmp(text, "Version unknown") == 0) return "Версія невідома";
   if (std::strcmp(text, "Volume") == 0) return "Гучність";
   if (std::strcmp(text, "Waiting for Home Assistant") == 0) return "Очікування Home Assistant";
-  if (std::strcmp(text, "Connecting to Home Assistant") == 0) return "Підключення до Home Assistant";
+  if (std::strcmp(text, "Connecting to \nHome Assistant") == 0) return "Підключення до \nHome Assistant";
   if (std::strcmp(text, "Weather") == 0) return "Погода";
   if (std::strcmp(text, "Weekly") == 0) return "Щотижня";
   if (std::strcmp(text, "Window") == 0) return "Вікно";
@@ -4305,7 +4305,7 @@ inline const char *espcontrol_i18n_key_en(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Version unknown";
   if (std::strcmp(key, "volume") == 0) return "Volume";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Waiting for Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connecting to Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connecting to \nHome Assistant";
   if (std::strcmp(key, "check_the_status_of_your_home_assistant_server") == 0) return "If this persists, check your server for issues";
   if (std::strcmp(key, "weather") == 0) return "Weather";
   if (std::strcmp(key, "weekly") == 0) return "Weekly";
@@ -4523,7 +4523,7 @@ inline const char *espcontrol_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Verze neznámá";
   if (std::strcmp(key, "volume") == 0) return "Hlasitost";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čekání na Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Připojování k Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Připojování k \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Počasí";
   if (std::strcmp(key, "weekly") == 0) return "Týdně";
   if (std::strcmp(key, "window") == 0) return "Okno";
@@ -4733,7 +4733,7 @@ inline const char *espcontrol_i18n_key_da(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Version ukendt";
   if (std::strcmp(key, "volume") == 0) return "Lydstyrke";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Venter på Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Opretter forbindelse til Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Opretter forbindelse til \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Vejr";
   if (std::strcmp(key, "weekly") == 0) return "Ugentligt";
   if (std::strcmp(key, "window") == 0) return "Vindue";
@@ -4941,7 +4941,7 @@ inline const char *espcontrol_i18n_key_de(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Version unbekannt";
   if (std::strcmp(key, "volume") == 0) return "Lautstärke";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Warten auf Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbindung mit Home Assistant wird hergestellt";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbindung mit \nHome Assistant wird hergestellt";
   if (std::strcmp(key, "weather") == 0) return "Wetter";
   if (std::strcmp(key, "weekly") == 0) return "Wöchentlich";
   if (std::strcmp(key, "window") == 0) return "Fenster";
@@ -5156,7 +5156,7 @@ inline const char *espcontrol_i18n_key_es(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Versión desconocida";
   if (std::strcmp(key, "volume") == 0) return "Volumen";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Esperando a Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando a Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando a \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Tiempo";
   if (std::strcmp(key, "weekly") == 0) return "Semanal";
   if (std::strcmp(key, "window") == 0) return "Ventana";
@@ -5381,7 +5381,7 @@ inline const char *espcontrol_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Versio tuntematon";
   if (std::strcmp(key, "volume") == 0) return "Äänenvoimakkuus";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Odotetaan Home Assistantia";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Yhdistetään Home Assistantiin";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Yhdistetään \nHome Assistantiin";
   if (std::strcmp(key, "weather") == 0) return "Sää";
   if (std::strcmp(key, "weekly") == 0) return "Viikoittain";
   if (std::strcmp(key, "window") == 0) return "Ikkuna";
@@ -5589,7 +5589,7 @@ inline const char *espcontrol_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "vacuum") == 0) return "Aspirateur";
   if (std::strcmp(key, "version_unknown") == 0) return "Version inconnue";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "En attente de Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connexion à Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connexion à \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Météo";
   if (std::strcmp(key, "weekly") == 0) return "Hebdomadaire";
   if (std::strcmp(key, "window") == 0) return "Fenêtre";
@@ -5814,7 +5814,7 @@ inline const char *espcontrol_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Ismeretlen verzió";
   if (std::strcmp(key, "volume") == 0) return "Hangerő";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Várakozás a Home Assistantra";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Csatlakozás a Home Assistanthez";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Csatlakozás a \nHome Assistanthez";
   if (std::strcmp(key, "weather") == 0) return "Időjárás";
   if (std::strcmp(key, "weekly") == 0) return "Hetente";
   if (std::strcmp(key, "window") == 0) return "Ablak";
@@ -6031,7 +6031,7 @@ inline const char *espcontrol_i18n_key_it(const char *key) {
   if (std::strcmp(key, "vacuum") == 0) return "Aspirapolvere";
   if (std::strcmp(key, "version_unknown") == 0) return "Versione sconosciuta";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "In attesa di Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connessione a Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Connessione a \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Meteo";
   if (std::strcmp(key, "weekly") == 0) return "Settimanale";
   if (std::strcmp(key, "window") == 0) return "Finestra";
@@ -6244,7 +6244,7 @@ inline const char *espcontrol_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Ukjent versjon";
   if (std::strcmp(key, "volume") == 0) return "Volum";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Venter på Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Kobler til Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Kobler til \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Vær";
   if (std::strcmp(key, "weekly") == 0) return "Ukentlig";
   if (std::strcmp(key, "window") == 0) return "Vindu";
@@ -6458,7 +6458,7 @@ inline const char *espcontrol_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "vacuum") == 0) return "Stofzuiger";
   if (std::strcmp(key, "version_unknown") == 0) return "Versie onbekend";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Wachten op Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbinden met Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Verbinden met \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Weer";
   if (std::strcmp(key, "weekly") == 0) return "Wekelijks";
   if (std::strcmp(key, "window") == 0) return "Raam";
@@ -6670,7 +6670,7 @@ inline const char *espcontrol_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Wersja nieznana";
   if (std::strcmp(key, "volume") == 0) return "Głośność";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Oczekiwanie na Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Łączenie z Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Łączenie z \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Pogoda";
   if (std::strcmp(key, "weekly") == 0) return "Co tydzień";
   if (std::strcmp(key, "window") == 0) return "Okno";
@@ -6885,7 +6885,7 @@ inline const char *espcontrol_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "vacuum") == 0) return "Aspirador";
   if (std::strcmp(key, "version_unknown") == 0) return "Versão desconhecida";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Aguardando o Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando ao Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Conectando ao \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Tempo";
   if (std::strcmp(key, "weekly") == 0) return "Semanal";
   if (std::strcmp(key, "window") == 0) return "Janela";
@@ -7101,7 +7101,7 @@ inline const char *espcontrol_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "vacuum") == 0) return "Aspirador";
   if (std::strcmp(key, "version_unknown") == 0) return "Versão desconhecida";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "À espera do Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "A ligar ao Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "A ligar ao \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Meteorologia";
   if (std::strcmp(key, "weekly") == 0) return "Semanal";
   if (std::strcmp(key, "window") == 0) return "Janela";
@@ -7326,7 +7326,7 @@ inline const char *espcontrol_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Versiune necunoscută";
   if (std::strcmp(key, "volume") == 0) return "Volum";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Se așteaptă Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Se conectează la Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Se conectează la \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Vreme";
   if (std::strcmp(key, "weekly") == 0) return "Săptămânal";
   if (std::strcmp(key, "window") == 0) return "Fereastră";
@@ -7543,7 +7543,7 @@ inline const char *espcontrol_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Verzia neznáma";
   if (std::strcmp(key, "volume") == 0) return "Hlasitosť";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čakanie na Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Pripája sa k Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Pripája sa k \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Počasie";
   if (std::strcmp(key, "weekly") == 0) return "Týždenne";
   if (std::strcmp(key, "window") == 0) return "Okno";
@@ -7764,7 +7764,7 @@ inline const char *espcontrol_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Različica neznana";
   if (std::strcmp(key, "volume") == 0) return "Glasnost";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Čakanje na Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Povezovanje s Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Povezovanje s \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Vreme";
   if (std::strcmp(key, "weekly") == 0) return "Tedensko";
   if (std::strcmp(key, "window") == 0) return "Okno";
@@ -7977,7 +7977,7 @@ inline const char *espcontrol_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Version okänd";
   if (std::strcmp(key, "volume") == 0) return "Volym";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Väntar på Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Ansluter till Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Ansluter till \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Väder";
   if (std::strcmp(key, "weekly") == 0) return "Veckovis";
   if (std::strcmp(key, "window") == 0) return "Fönster";
@@ -8202,7 +8202,7 @@ inline const char *espcontrol_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Sürüm bilinmiyor";
   if (std::strcmp(key, "volume") == 0) return "Ses";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Home Assistant bekleniyor";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Home Assistant'a bağlanılıyor";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "\nHome Assistant'a bağlanılıyor";
   if (std::strcmp(key, "weather") == 0) return "Hava durumu";
   if (std::strcmp(key, "weekly") == 0) return "Haftalık";
   if (std::strcmp(key, "window") == 0) return "Pencere";
@@ -8429,7 +8429,7 @@ inline const char *espcontrol_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "version_unknown") == 0) return "Версія невідома";
   if (std::strcmp(key, "volume") == 0) return "Гучність";
   if (std::strcmp(key, "waiting_for_home_assistant") == 0) return "Очікування Home Assistant";
-  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Підключення до Home Assistant";
+  if (std::strcmp(key, "home_assistant_connection_lost") == 0) return "Підключення до \nHome Assistant";
   if (std::strcmp(key, "weather") == 0) return "Погода";
   if (std::strcmp(key, "weekly") == 0) return "Щотижня";
   if (std::strcmp(key, "window") == 0) return "Вікно";
