@@ -22,7 +22,7 @@
 
 static const char *const TAG = "artwork_image";
 static const char *const CONTENT_TYPE_HEADER_NAME = "content-type";
-static constexpr uint32_t RETIRED_BUFFER_GRACE_MS = 3000;
+static constexpr uint32_t RETIRED_BUFFER_GRACE_MS = 300;
 static constexpr size_t MAX_RETIRED_IMAGE_BUFFERS = 1;
 static constexpr size_t MAX_DOWNLOAD_BUFFER_SIZE = 2 * 1024 * 1024;
 static constexpr int LOCAL_ARTWORK_HTTP_TIMEOUT_MS = 6500;
@@ -590,6 +590,16 @@ void ArtworkImage::loop() {
     this->finish_download_();
     return;
   }
+  if (this->decoder_->is_decoding()) {
+    if (!this->decode_buffered_data_()) {
+      this->fail_download_();
+      return;
+    }
+    if (this->decoder_->is_finished()) {
+      this->finish_download_();
+    }
+    return;
+  }
   if (this->downloader_ == nullptr) {
     ESP_LOGE(TAG, "Downloader not instantiated; cannot download");
     return;
@@ -632,6 +642,9 @@ void ArtworkImage::loop() {
     }
     if (this->decoder_->is_finished()) {
       this->finish_download_();
+      return;
+    }
+    if (this->decoder_->is_decoding()) {
       return;
     }
     ESP_LOGE(TAG, "HTTP transfer finished before image decoder completed");

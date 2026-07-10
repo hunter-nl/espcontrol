@@ -11,19 +11,18 @@
 # =============================================================================
 
 external_components:
-  - source: github://n-IA-hane/esphome-intercom@v2026.7.1
-    components: [speaker]
   - source: github://n-IA-hane/esphome-audio-stack@3c30b96ad2540f676eadd30bdbb93104b105dee0
-    components: [esp_afe, esp_audio_stack]
+    components: [esp_audio_stack, esp_afe]
 
 esp_afe:
   id: voice_afe_processor
-  type: sr
+  type: fd
   mode: low_cost
-  mic_num: 2
-  se_enabled: true
+  mic_num: 1
   aec_enabled: true
+  aec_filter_length: 4
   ns_enabled: true
+  vad_enabled: false
   agc_enabled: true
 
 esp_audio_stack:
@@ -41,7 +40,7 @@ esp_audio_stack:
   processor_id: voice_afe_processor
   use_tdm_reference: true
   tdm_total_slots: 4
-  tdm_mic_slots: [0, 2]
+  tdm_mic_slots: [0]
   tdm_ref_slot: 1
   buffers_in_psram: true
   audio_task_stack_in_psram: true
@@ -184,7 +183,6 @@ media_player:
       - script.execute: refresh_voice_clock_bar_mute_icon
     on_unmute:
       - script.execute: refresh_voice_clock_bar_mute_icon
-    pause_releases_pipeline: false
 
 sensor:
   - platform: sound_level
