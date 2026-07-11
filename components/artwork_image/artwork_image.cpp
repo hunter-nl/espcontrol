@@ -511,8 +511,9 @@ size_t ArtworkImage::get_sane_content_length_() const {
     return 0;
   }
   size_t content_length = this->downloader_->content_length;
-  if (content_length > MAX_DOWNLOAD_BUFFER_SIZE) {
-    ESP_LOGW(TAG, "Ignoring invalid artwork content length: %zu", content_length);
+  if (content_length > this->max_download_buffer_size_) {
+    ESP_LOGW(TAG, "Ignoring artwork content length beyond device image budget: %zu > %zu",
+             content_length, this->max_download_buffer_size_);
     return 0;
   }
   return content_length;
