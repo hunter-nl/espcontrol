@@ -8,7 +8,7 @@
   "fast": [
     "generated", "device-manifest", "device-manifest-output", "product-schema",
     "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
-    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor",
+    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor", "cover-art-contract",
     "web-smoke", "types", "firmware-parser", "firmware-modals", "firmware-display-tokens",
     "firmware-ha-bindings", "firmware-card-runtime", "firmware-release", "device-matrix",
     "device-profiles", "release-confidence", "release-changelog", "card-contract-outputs",
@@ -17,7 +17,7 @@
   "ci": [
     "generated", "device-manifest", "device-manifest-output", "product-schema",
     "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
-    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor",
+    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor", "cover-art-contract",
     "web-smoke", "types", "firmware-parser", "firmware-modals", "firmware-display-tokens",
     "firmware-ha-bindings", "firmware-card-runtime", "firmware-release", "device-matrix",
     "device-profiles", "release-confidence", "release-changelog", "card-contract-outputs",
@@ -26,7 +26,7 @@
   "all": [
     "generated", "device-manifest", "device-manifest-output", "product-schema",
     "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
-    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor",
+    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor", "cover-art-contract",
     "web-smoke", "types", "firmware-parser", "firmware-modals", "firmware-display-tokens",
     "firmware-ha-bindings", "firmware-card-runtime", "firmware-release", "device-matrix",
     "device-profiles", "release-confidence", "release-changelog", "card-contract-outputs",

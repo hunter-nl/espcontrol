@@ -111,6 +111,10 @@ def self_test() -> None:
         if actual[profile] != wanted:
             raise ConfigurationError(f"legacy coverage differs for {profile}: expected {wanted}, got {actual[profile]}")
 
+    product_order = [item.id for item in plan("product")]
+    if product_order.index("device-slots") > product_order.index("device-profiles"):
+        raise AssertionError("device slot outputs are not checked before device profiles consume them")
+
     def expect_invalid(tasks: tuple[Task, ...], description: str) -> None:
         try:
             validate_registry(tasks)
