@@ -219,6 +219,8 @@ class ArtworkImage : public PollingComponent,
    * will *not* change even if the download buffer has been resized.
    */
   size_t download_buffer_initial_size_;
+  size_t max_download_buffer_size_;
+  size_t peak_download_buffer_size_{0};
 
   const ImageFormat format_;
   ImageResizeMode resize_mode_;

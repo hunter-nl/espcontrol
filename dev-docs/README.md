@@ -119,6 +119,8 @@ start in the contract and flow outward from there.
   served by the device.
 - [Firmware](firmware.md) - the on-device LVGL grid, card runtime, modals, fonts,
   and parser notes.
+- [Cover Art Mode](cover-art-mode.md) - ownership, presentation, memory budgets,
+  and behavioural checks for the now-playing takeover.
 - [Font Guidelines](font-guidelines.md) - how to reuse existing firmware font
   roles and avoid unnecessary new font sizes.
 - [Devices and Builds](devices-and-builds.md) - device profiles, generated
