@@ -32,7 +32,7 @@ int main() {
   RuntimeState s; assert(!s.needs_download()); s.select_source("track-a"); assert(s.needs_download());
   s.begin_download("track-a?refresh=1"); s.select_source("track-b");
   assert(s.apply_download("track-a?refresh=1") && s.loaded_url == "track-a" && s.needs_download());
-  s.begin_download("track-b"); assert(s.phase == Phase::REPLACING);
+  s.begin_download("track-b"); assert(s.download_active());
   assert(s.apply_download("track-b") && s.current_image_loaded() && !s.needs_download());
   s.select_source("broken");
   for (int i = 0; i < MAX_DOWNLOAD_RETRIES; ++i) s.record_failure();
@@ -69,7 +69,7 @@ downloader = (ROOT / "components" / "artwork_image" / "artwork_image.cpp").read_
 for required in (
     "max_download_buffer_size_",
     "peak_download_buffer_size_",
-    "Artwork download exceeded device image budget",
+    "Artwork download exceeded transfer limit",
     "shrink_to(this->download_buffer_initial_size_)",
 ):
     if required not in downloader:

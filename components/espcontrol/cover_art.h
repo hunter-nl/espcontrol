@@ -16,11 +16,7 @@ constexpr uint32_t SUBSCRIPTION_RECONCILE_MS = 5000;
 constexpr size_t MAX_ARTWORK_URL_LENGTH = 4096;
 constexpr int ACCENT_SAMPLE_GRID = 20;
 
-enum class Phase : uint8_t { DISABLED, WAITING_FOR_PLAYBACK, WAITING_FOR_ARTWORK,
-  DOWNLOADING, DISPLAYING, REPLACING, HIDDEN_BY_POLICY, RETRY_WAIT };
-
 struct RuntimeState {
-  Phase phase{Phase::DISABLED};
   std::string source_url, effective_download_url, active_download_source_url;
   std::string loaded_url, last_good_url, retry_url, fallback_url;
   int retry_count{0};
@@ -37,7 +33,6 @@ struct RuntimeState {
   }
   void begin_download(const std::string &effective_url) {
     active_download_source_url = source_url; effective_download_url = effective_url;
-    phase = image_available ? Phase::REPLACING : Phase::DOWNLOADING;
   }
   bool apply_download(const std::string &completed_effective_url) {
     if (completed_effective_url != effective_download_url) return false;
@@ -46,20 +41,18 @@ struct RuntimeState {
     if (completed_source.empty()) return false;
     loaded_url = completed_source; last_good_url = completed_source;
     image_available = true; retry_count = 0; retry_url = completed_source;
-    refresh_needed = completed_source != source_url; phase = Phase::DISPLAYING; return true;
+    refresh_needed = completed_source != source_url; return true;
   }
   bool can_retry() const { return retry_count < MAX_DOWNLOAD_RETRIES; }
   void record_failure() {
     effective_download_url.clear(); active_download_source_url.clear();
     if (retry_url != source_url) { retry_url = source_url; retry_count = 0; }
     if (can_retry()) ++retry_count;
-    phase = can_retry() ? Phase::RETRY_WAIT : Phase::WAITING_FOR_ARTWORK;
   }
   void clear_image() {
     source_url.clear(); effective_download_url.clear(); active_download_source_url.clear(); loaded_url.clear();
     last_good_url.clear();
     retry_url.clear(); fallback_url.clear(); retry_count = 0; image_available = false; refresh_needed = false;
-    phase = Phase::WAITING_FOR_ARTWORK;
   }
 };
 

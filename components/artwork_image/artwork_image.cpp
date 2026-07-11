@@ -140,11 +140,9 @@ ArtworkImage::ArtworkImage(const std::string &url, int width, int height, ImageF
       buffer_(nullptr),
       download_buffer_(download_buffer_size),
       download_buffer_initial_size_(download_buffer_size),
-      max_download_buffer_size_(std::min(
-          ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE,
-          std::max<size_t>(download_buffer_size,
-              width > 0 && height > 0 ? static_cast<size_t>((16u * width + 7u) / 8u) * height
-                                      : ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE))),
+      // Compressed JPEG/PNG data can be larger than the resized RGB565 output.
+      // Keep the transfer limit independent from the decoded image dimensions.
+      max_download_buffer_size_(ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE),
       format_(format),
       resize_mode_(resize_mode),
       fixed_width_(width),
@@ -512,7 +510,7 @@ size_t ArtworkImage::get_sane_content_length_() const {
   }
   size_t content_length = this->downloader_->content_length;
   if (content_length > this->max_download_buffer_size_) {
-    ESP_LOGW(TAG, "Ignoring artwork content length beyond device image budget: %zu > %zu",
+    ESP_LOGW(TAG, "Ignoring artwork content length beyond transfer limit: %zu > %zu",
              content_length, this->max_download_buffer_size_);
     return 0;
   }
@@ -1025,7 +1023,7 @@ bool ArtworkImage::ensure_download_buffer_capacity_() {
     target_size = this->max_download_buffer_size_;
   }
   if (target_size <= current_size) {
-    ESP_LOGE(TAG, "Artwork download exceeded device image budget of %zu bytes",
+    ESP_LOGE(TAG, "Artwork download exceeded transfer limit of %zu bytes",
              this->max_download_buffer_size_);
     return false;
   }

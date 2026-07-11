@@ -34,6 +34,7 @@ def package_data(device: dict) -> dict:
 def package_substitution_lines(device: dict) -> list[str]:
     package = package_data(device)
     lines = [
+        '  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espcontrol/main/common/assets/cover_art_placeholder.svg"',
         f'  device_slug: "{device["slug"]}"',
         f'  firmware_manifest_slug: "{device["slug"]}"',
     ]

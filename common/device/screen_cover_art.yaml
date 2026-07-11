@@ -119,7 +119,7 @@ api:
     - script.execute: cover_art_resubscribe
 
 image:
-  - file: "../common/assets/cover_art_placeholder.svg"
+  - file: "${cover_art_placeholder_file}"
     id: cover_art_placeholder
     type: RGB565
     byte_order: LITTLE_ENDIAN
@@ -802,12 +802,11 @@ script:
                 then:
                   - script.execute: cover_art_show_track_overlay
                   - lambda: |-
-                      ESP_LOGI("cover_art", "Keeping current artwork visible during replacement download");
+                      ESP_LOGD("cover_art", "Keeping current artwork visible during replacement download");
             - lambda: |-
-                if (!id(cover_art_runtime).active_download_source_url.empty() &&
-                    !id(cover_art_runtime).effective_download_url.empty()) {
+                if (id(cover_art_runtime).download_active()) {
                   if (id(cover_art_runtime).active_download_source_url == id(cover_art_runtime).source_url) {
-                    ESP_LOGI("cover_art", "Artwork download already active for current URL; skipping duplicate request");
+                    ESP_LOGD("cover_art", "Artwork download already active for current URL; skipping duplicate request");
                   } else {
                     ESP_LOGI("cover_art", "Artwork URL changed during active download; deferring follow-up request");
                     id(cover_art_runtime).refresh_needed = true;
@@ -918,7 +917,7 @@ script:
               !id(cover_art_cached_remote_url).empty() &&
               id(cover_art_cached_remote_url) != id(cover_art_runtime).source_url &&
               chosen == id(cover_art_runtime).source_url) {
-            ESP_LOGI("cover_art", "Preferring refreshed artwork URL over stale local artwork cache");
+            ESP_LOGD("cover_art", "Preferring refreshed artwork URL over stale local artwork cache");
             alternate = chosen;
             chosen = id(cover_art_cached_remote_url);
           }
@@ -946,19 +945,18 @@ script:
             return;
           }
 
-          if (!id(cover_art_runtime).active_download_source_url.empty() &&
-              !id(cover_art_runtime).effective_download_url.empty()) {
+          if (id(cover_art_runtime).download_active()) {
             if (chosen != id(cover_art_runtime).source_url) {
               ESP_LOGI("cover_art", "Cached artwork changed during active download; queueing follow-up refresh");
               id(cover_art_runtime).select_source(chosen);
             } else {
-              ESP_LOGI("cover_art", "Cached artwork update received during active download; keeping current request");
+              ESP_LOGD("cover_art", "Cached artwork update received during active download; keeping current request");
             }
             return;
           }
 
           if (chosen == id(cover_art_runtime).source_url) {
-            ESP_LOGI("cover_art", "Cached artwork matches current URL; image_available=%s active=%s refresh_needed=%s",
+            ESP_LOGD("cover_art", "Cached artwork matches current URL; image_available=%s active=%s refresh_needed=%s",
                      id(cover_art_runtime).image_available ? "true" : "false",
                      id(cover_art_screensaver_active) ? "true" : "false",
                      id(cover_art_runtime).refresh_needed ? "true" : "false");
@@ -966,7 +964,7 @@ script:
                 (!id(cover_art_runtime).image_available || id(cover_art_runtime).refresh_needed)) {
               id(cover_art_deferred_download).execute();
             } else if (!id(cover_art_screensaver_active) && id(cover_art_runtime).refresh_needed) {
-              ESP_LOGI("cover_art", "Cached artwork refresh staged while inactive");
+              ESP_LOGD("cover_art", "Cached artwork refresh staged while inactive");
             }
             return;
           }
@@ -977,7 +975,7 @@ script:
             id(cover_art_deferred_download).execute();
             id(cover_art_show_track_overlay).execute();
           } else {
-            ESP_LOGI("cover_art", "Cached artwork URL staged while inactive");
+            ESP_LOGD("cover_art", "Cached artwork URL staged while inactive");
           }
 
   - id: cover_art_prepare_download
@@ -1919,7 +1917,7 @@ script:
                     (id(cover_art_runtime).refresh_needed ||
                      url != id(cover_art_runtime).source_url ||
                      !id(cover_art_runtime).image_available);
-                ESP_LOGI("cover_art", "Artwork %s unchanged (%u chars, url %u chars, active=%s, refresh_needed=%s)",
+                ESP_LOGD("cover_art", "Artwork %s unchanged (%u chars, url %u chars, active=%s, refresh_needed=%s)",
                          local ? "entity_picture_local" : "entity_picture",
                          (unsigned) path.size(), (unsigned) url.size(),
                          id(cover_art_screensaver_active) ? "true" : "false",
@@ -1938,7 +1936,7 @@ script:
                 id(cover_art_runtime).retry_url.clear();
                 id(cover_art_runtime).retry_count = 0;
               }
-              ESP_LOGI("cover_art", "Cached artwork %s (%u chars, url %u chars, active=%s)",
+              ESP_LOGD("cover_art", "Cached artwork %s (%u chars, url %u chars, active=%s)",
                        local ? "entity_picture_local" : "entity_picture",
                        (unsigned) path.size(), (unsigned) url.size(),
                        id(cover_art_screensaver_active) ? "true" : "false");
