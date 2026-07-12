@@ -32,7 +32,7 @@ This detailed routing table is generated directly from `scripts/check_tasks_data
 | `product-snapshot` | product | Yes | deterministic | — | — | `common/config/**`<br>`common/assets/**`<br>`devices/**`<br>`compatibility/**` | `npm run check:product-snapshot` |
 | `local-artifacts` | workflow | No | never | — | — | `scripts/check_local_artifacts.py` | `npm run check:local-artifacts` |
 | `local-esphome` | firmware, workflow | No | never | — | — | `scripts/local_esphome.py` | `npm run check:local-esphome` |
-| `dev-docs` | docs | Yes | deterministic | — | — | `dev-docs/**`<br>`DEVELOPERS.md`<br>`README.md`<br>`product/README.md`<br>`scripts/check_dev_docs.py` | `npm run check:dev-docs` |
+| `dev-docs` | docs | Yes | deterministic | — | — | `dev-docs/**`<br>`DEVELOPERS.md`<br>`README.md`<br>`product/README.md`<br>`scripts/check_dev_docs.py`<br>`package.json`<br>`.github/workflows/**`<br>`common/config/card_contract.json`<br>`src/webserver/types/**`<br>`components/espcontrol/button_grid*.h` | `npm run check:dev-docs` |
 | `pr-process` | workflow | No | never | — | — | `.github/**`<br>`scripts/check_pr_process.py` | `npm run check:pr-process` |
 | `pr-testing-guidance` | workflow | No | never | — | — | `.github/**`<br>`scripts/pr_testing_guidance.py` | `npm run check:pr-testing-guidance` |
 | `config` | product, web | Yes | deterministic | — | — | `common/config/**`<br>`src/webserver/**`<br>`scripts/check_config_formats.js`<br>`scripts/web_source.js`<br>`scripts/web_modules.json` | `npm run check:config` |

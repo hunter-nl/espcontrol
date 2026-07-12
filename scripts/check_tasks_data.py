@@ -88,7 +88,11 @@ TASKS = (
     task("local-esphome", ("python3", "scripts/local_esphome.py", "--self-test"), profiles=FAST,
          domains=("firmware", "workflow"), inputs=("scripts/local_esphome.py",), cache="never"),
     task("dev-docs", ("python3", "scripts/check_dev_docs.py", "--check"), profiles=FAST,
-         domains=("docs",), inputs=MAINTAINER_DOCS + ("scripts/check_dev_docs.py",), parallel_safe=True),
+         domains=("docs",), inputs=MAINTAINER_DOCS + (
+             "scripts/check_dev_docs.py", "package.json", ".github/workflows/**",
+             "common/config/card_contract.json", "src/webserver/types/**",
+             "components/espcontrol/button_grid*.h",
+         ), parallel_safe=True),
     task("pr-process", ("python3", "scripts/check_pr_process.py", "--self-test"), profiles=FAST,
          domains=("workflow",), inputs=(".github/**", "scripts/check_pr_process.py"), cache="never"),
     task("pr-testing-guidance", ("python3", "scripts/pr_testing_guidance.py", "--self-test"), profiles=FAST,

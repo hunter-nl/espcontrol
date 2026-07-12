@@ -1257,6 +1257,12 @@ def self_test() -> None:
     for task_id in ("config", "backup-contract", "web-smoke"):
         if not {"scripts/web_source.js", "scripts/web_modules.json"} <= set(registry[task_id].inputs):
             raise AssertionError(f"{task_id} cache keys omit shared web-source helpers")
+    if not {
+        "package.json",
+        ".github/workflows/**",
+        "common/config/card_contract.json",
+    } <= set(registry["dev-docs"].inputs):
+        raise AssertionError("dev-docs cache keys omit runtime validation inputs")
     if not {"c++", "g++", "clang++"} <= set(registry["firmware-parser"].cache_tools):
         raise AssertionError("firmware parser cache keys omit compiler tool versions")
 
