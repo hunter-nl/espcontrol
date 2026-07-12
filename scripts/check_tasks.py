@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from contextlib import contextmanager, redirect_stdout
 from datetime import datetime, timezone
@@ -517,6 +518,49 @@ class CacheKeyBuilder:
             or self.browser_fingerprint().get("state") != "unavailable"
         )
 
+    def python_command_dependencies(self, item: Task) -> list[dict[str, object]]:
+        """Fingerprint repo-local Python modules imported by task entry points."""
+        pending: list[Path] = []
+        for command in item.commands:
+            if len(command) > 1 and Path(command[1]).suffix == ".py":
+                candidate = (self.root / command[1]).absolute()
+                if candidate.is_relative_to(self.root.absolute()) and candidate.exists():
+                    pending.append(candidate)
+
+        discovered: set[Path] = set()
+        while pending:
+            source = pending.pop()
+            if source in discovered:
+                continue
+            discovered.add(source)
+            try:
+                tree = ast.parse(source.read_text(encoding="utf-8"))
+            except (OSError, SyntaxError, UnicodeError):
+                continue
+            module_names: set[str] = set()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    module_names.update(alias.name for alias in node.names)
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    module_names.add(node.module)
+            for module_name in module_names:
+                relative = Path(*module_name.split("."))
+                for base in (source.parent, self.root):
+                    candidates = (base / relative).with_suffix(".py"), base / relative / "__init__.py"
+                    local = next((path.absolute() for path in candidates if path.exists()), None)
+                    if (
+                        local is not None
+                        and local.is_relative_to(self.root.absolute())
+                        and local not in discovered
+                    ):
+                        pending.append(local)
+                        break
+
+        return [
+            self.file_fingerprint(path)
+            for path in sorted(discovered)
+        ]
+
     def key(
         self,
         item: Task,
@@ -538,6 +582,7 @@ class CacheKeyBuilder:
             },
             "inputs": self.pattern_fingerprints(item.inputs),
             "generated_inputs": self.pattern_fingerprints(item.generated_inputs),
+            "python_command_dependencies": self.python_command_dependencies(item),
             "orchestrator": [
                 self.file_fingerprint(self.root / "scripts" / "check_tasks.py"),
                 self.file_fingerprint(self.root / "scripts" / "check_tasks_data.py"),
@@ -1542,6 +1587,8 @@ def self_test() -> None:
             (repo / "scripts").mkdir()
             (repo / "scripts" / "check_tasks.py").write_text("runner-v1\n")
             (repo / "scripts" / "check_tasks_data.py").write_text("registry-v1\n")
+            (repo / "scripts" / "cache_entry.py").write_text("import cache_helper\n")
+            (repo / "scripts" / "cache_helper.py").write_text("VALUE = 'helper-v1'\n")
             (repo / "input.txt").write_text("authored-v1\n")
             (repo / "generated.txt").write_text("generated-v1\n")
             (repo / "package-lock.json").write_text("lock-v1\n")
@@ -1564,6 +1611,18 @@ def self_test() -> None:
                 cache="deterministic",
                 cache_env=("CHECK_TASK_TEST_ENV",),
             )
+
+            helper_task = Task(
+                "helper-import",
+                (("python3", "scripts/cache_entry.py"),),
+                inputs=("input.txt",),
+                cache="deterministic",
+            )
+            helper_key_v1 = CacheKeyBuilder(linked).key(helper_task, {})
+            (linked / "scripts" / "cache_helper.py").write_text("VALUE = 'helper-v2'\n")
+            helper_key_v2 = CacheKeyBuilder(linked).key(helper_task, {})
+            if helper_key_v1 == helper_key_v2:
+                raise AssertionError("a repo-local imported Python helper did not invalidate the cache")
 
             os.environ["CHECK_TASK_TEST_ENV"] = "one"
             with redirect_stdout(StringIO()):
