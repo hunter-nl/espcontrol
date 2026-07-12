@@ -813,6 +813,16 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: reset artwork retry state when playback resumes without a visible image")
     if playback_started_body and "espcontrol::cover_art::display_allowed(" in playback_started_body:
         errors.append(f"{rel}: let the playback-start event activate cover art before mirrored playback state settles")
+    if (
+        "script.execute: cover_art_pause_after_touch" in text
+        and "script.execute: cover_art_pause_after_touch\n              - script.wait: cover_art_pause_after_touch" not in text
+    ):
+        errors.append(f"{rel}: finish recording the cover art touch pause before waking the display")
+    if (
+        "cover_art_artist_label" in text
+        and "if (!id(cover_art_artist).empty()) return id(cover_art_artist);" not in text
+    ):
+        errors.append(f"{rel}: prefer a real artist name over the external-source fallback label")
     return errors
 
 

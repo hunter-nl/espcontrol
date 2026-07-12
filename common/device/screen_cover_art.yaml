@@ -196,6 +196,7 @@ lvgl:
           on_press:
             then:
               - script.execute: cover_art_pause_after_touch
+              - script.wait: cover_art_pause_after_touch
               - script.execute: screensaver_wake
           widgets:
             - obj:
@@ -1077,10 +1078,8 @@ script:
             - lvgl.label.update:
                 id: cover_art_artist_label
                 text: !lambda |-
-                  if (id(cover_art_external_input_active)) {
-                    return espcontrol_i18n(std::string("Source"));
-                  }
-                  return id(cover_art_artist);
+                  if (!id(cover_art_artist).empty()) return id(cover_art_artist);
+                  return espcontrol_i18n(std::string("Source"));
             - lvgl.widget.show: cover_art_artist_label
           else:
             - lvgl.widget.hide: cover_art_artist_label
