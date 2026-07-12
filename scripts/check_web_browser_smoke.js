@@ -787,80 +787,81 @@ async function assertSettingsPage(page, label, options = {}) {
     await firmwareCard.isVisible(),
     `${label}: firmware settings card should render`,
   );
-  await firmwareCard.locator(":scope > .card-header").click();
-  await page.waitForSelector("#sp-fw-previous-panel", { state: "visible" });
-  assert.deepStrictEqual(
-    await firmwareCard
-      .locator(".sp-fw-subpanels > .sp-disclosure")
-      .evaluateAll((nodes) => nodes.map((node) => node.id)),
-    ["sp-fw-auto-panel", "sp-fw-wifi-panel", "sp-fw-previous-panel"],
-    `${label}: firmware sub-panels should use the requested order`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-fw-auto-panel").getAttribute("class"),
-    "sp-disclosure",
-    `${label}: auto updates should start closed`,
-  );
-  assert(
-    await page.locator("#sp-fw-auto-panel .sp-disclosure-badge").isVisible(),
-    `${label}: enabled auto updates should show an On badge while closed`,
-  );
-  await page.locator("#sp-fw-auto-panel .sp-disclosure-button").click();
-  assert.strictEqual(
-    await page.locator("#sp-fw-auto-panel .sp-disclosure-button").getAttribute("aria-expanded"),
-    "true",
-    `${label}: auto updates should expose its expanded state`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-fw-auto-panel .sp-disclosure-badge").isVisible(),
-    false,
-    `${label}: auto-update badge should hide while open`,
-  );
-  assert(
-    await page.locator("#sp-set-update-freq").isVisible(),
-    `${label}: enabled auto updates should show frequency inside the panel`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-fw-previous-panel .sp-disclosure-button").getAttribute("aria-expanded"),
-    "false",
-    `${label}: previous firmware should start closed`,
-  );
-  await page.locator("#sp-fw-previous-panel .sp-disclosure-button").click();
-  assert.strictEqual(
-    await page.locator("#sp-fw-previous-info").innerText(),
-    "Installing an older firmware version may remove features or settings added in later versions.",
-    `${label}: previous firmware warning should match`,
-  );
-  assert.deepStrictEqual(
-    await page.locator("#sp-set-firmware-version option").evaluateAll(
-      (options) => options.map((option) => option.value),
-    ),
-    ["v1.11.0"],
-    `${label}: previous firmware should exclude latest and installed versions`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-fw-previous-panel .sp-fw-btn").isEnabled(),
-    true,
-    `${label}: a previous firmware selection should enable Install`,
-  );
-  const confirmPromise = page.waitForEvent("dialog");
-  await page.locator("#sp-fw-previous-panel .sp-fw-btn").click();
-  const confirmDialog = await confirmPromise;
-  assert.strictEqual(
-    confirmDialog.message(),
-    "Install older firmware v1.11.0? The display will restart during installation.",
-    `${label}: previous firmware installation should require confirmation`,
-  );
-  await confirmDialog.dismiss();
-  assert.strictEqual(
-    await page
-      .locator("#sp-settings .card-header h3")
-      .filter({ hasText: /^WiFi$/ })
-      .count(),
-    0,
-    `${label}: WiFi firmware should not remain a standalone settings card`,
-  );
   if (options.exerciseInteractions) {
+    await firmwareCard.locator(":scope > .card-header").click();
+    await page.waitForSelector("#sp-fw-previous-panel", { state: "visible" });
+    assert.deepStrictEqual(
+      await firmwareCard
+        .locator(".sp-fw-subpanels > .sp-disclosure")
+        .evaluateAll((nodes) => nodes.map((node) => node.id)),
+      ["sp-fw-auto-panel", "sp-fw-wifi-panel", "sp-fw-previous-panel"],
+      `${label}: firmware sub-panels should use the requested order`,
+    );
+    assert.strictEqual(
+      await page.locator("#sp-fw-auto-panel").getAttribute("class"),
+      "sp-disclosure",
+      `${label}: auto updates should start closed`,
+    );
+    assert(
+      await page.locator("#sp-fw-auto-panel .sp-disclosure-badge").isVisible(),
+      `${label}: enabled auto updates should show an On badge while closed`,
+    );
+    await page.locator("#sp-fw-auto-panel .sp-disclosure-button").click();
+    assert.strictEqual(
+      await page.locator("#sp-fw-auto-panel .sp-disclosure-button").getAttribute("aria-expanded"),
+      "true",
+      `${label}: auto updates should expose its expanded state`,
+    );
+    assert.strictEqual(
+      await page.locator("#sp-fw-auto-panel .sp-disclosure-badge").isVisible(),
+      false,
+      `${label}: auto-update badge should hide while open`,
+    );
+    assert(
+      await page.locator("#sp-set-update-freq").isVisible(),
+      `${label}: enabled auto updates should show frequency inside the panel`,
+    );
+    assert.strictEqual(
+      await page.locator("#sp-fw-previous-panel .sp-disclosure-button").getAttribute("aria-expanded"),
+      "false",
+      `${label}: previous firmware should start closed`,
+    );
+    await page.locator("#sp-fw-previous-panel .sp-disclosure-button").click();
+    assert.strictEqual(
+      await page.locator("#sp-fw-previous-info").innerText(),
+      "Installing an older firmware version may remove features or settings added in later versions.",
+      `${label}: previous firmware warning should match`,
+    );
+    assert.deepStrictEqual(
+      await page.locator("#sp-set-firmware-version option").evaluateAll(
+        (options) => options.map((option) => option.value),
+      ),
+      ["v1.11.0"],
+      `${label}: previous firmware should exclude latest and installed versions`,
+    );
+    assert.strictEqual(
+      await page.locator("#sp-fw-previous-panel .sp-fw-btn").isEnabled(),
+      true,
+      `${label}: a previous firmware selection should enable Install`,
+    );
+    const confirmPromise = page.waitForEvent("dialog");
+    const installClick = page.locator("#sp-fw-previous-panel .sp-fw-btn").click();
+    const confirmDialog = await confirmPromise;
+    assert.strictEqual(
+      confirmDialog.message(),
+      "Install older firmware v1.11.0? The display will restart during installation.",
+      `${label}: previous firmware installation should require confirmation`,
+    );
+    await confirmDialog.dismiss();
+    await installClick;
+    assert.strictEqual(
+      await page
+        .locator("#sp-settings .card-header h3")
+        .filter({ hasText: /^WiFi$/ })
+        .count(),
+      0,
+      `${label}: WiFi firmware should not remain a standalone settings card`,
+    );
     await page.evaluate(() => window.__seedEspState([
       { id: "text_sensor-esp32_c6__current_firmware", state: "2.12.8" },
       { id: "text_sensor-esp32_c6__latest_firmware", state: "2.12.9" },
@@ -3011,10 +3012,15 @@ async function runCase(browser, testCase) {
     }
   } catch (error) {
     fs.mkdirSync(FAILURE_DIR, { recursive: true });
-    await page.screenshot({
-      path: path.join(FAILURE_DIR, `${testCase.name}-${testCase.slug}.png`),
-      fullPage: true,
-    });
+    try {
+      await page.screenshot({
+        path: path.join(FAILURE_DIR, `${testCase.name}-${testCase.slug}.png`),
+        fullPage: true,
+        timeout: 5000,
+      });
+    } catch (screenshotError) {
+      console.error(`${testCase.name}: could not capture failure screenshot: ${screenshotError.message}`);
+    }
     throw error;
   } finally {
     await context.close();
