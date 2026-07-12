@@ -25,10 +25,11 @@ committed, staged, unstaged, renamed, deleted, and untracked files, run:
 python3 scripts/check_tasks.py changed --explain
 ```
 
-This command never reduces CI coverage. Unknown paths and changes to generators,
-validators, the task runner, registry, package lock, or workflow definitions
-select the complete fast profile. Profiles can also be narrowed explicitly by
-domain, for example `python3 scripts/check_tasks.py run ci --domain web`.
+This command never reduces CI coverage. Unknown paths and changes to shared
+script helpers, generators, validators, the task runner, registry, package lock,
+or workflow definitions select the complete fast profile. Profiles can also be
+narrowed explicitly by domain, for example
+`python3 scripts/check_tasks.py run ci --domain web`.
 
 ## Common Checks
 

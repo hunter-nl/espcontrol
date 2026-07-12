@@ -248,6 +248,7 @@ def changed_plan(
         "scripts/check_*",
         "scripts/generate_*",
     )
+    catch_all_task_ids = {"public-firmware-script"}
 
     for path in paths:
         path_matches = []
@@ -263,7 +264,7 @@ def changed_plan(
             or matches_input(path, ".github/workflows/**")
         ):
             force_fast.append(path)
-        elif not path_matches:
+        elif not (set(path_matches) - catch_all_task_ids):
             unmatched.append(path)
 
     fallback_paths = sorted(set(force_fast + unmatched))
@@ -683,6 +684,10 @@ def self_test() -> None:
             raise AssertionError(
                 f"generator or validator change {safety_script} does not select the full fast profile"
             )
+
+    helper_selected, _, helper_fallback = changed_plan(["scripts/device_matrix.py"])
+    if helper_fallback is None or task_ids(helper_selected) != task_ids(plan("fast")):
+        raise AssertionError("shared script helpers matched only by a catch-all do not select fast")
 
     broadened_selected, _, broadened_fallback = changed_plan([
         "docs/reference/faq.md",
