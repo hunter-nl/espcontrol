@@ -4,13 +4,17 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
+from contextlib import contextmanager, redirect_stdout
 from datetime import datetime, timezone
 from fnmatch import fnmatchcase
+from io import StringIO
 import json
 import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -47,6 +51,8 @@ def validate_registry(tasks: tuple[Task, ...] = TASKS) -> dict[str, Task]:
             raise ConfigurationError(f"task {item.id} has invalid domains: {sorted(invalid_domains)}")
         if item.cache != "never" and not item.inputs:
             raise ConfigurationError(f"cacheable task {item.id} has no inputs")
+        if not isinstance(item.parallel_safe, bool):
+            raise ConfigurationError(f"task {item.id} has invalid parallel safety")
     for item in tasks:
         missing = set(item.dependencies) - set(registry)
         if missing:
@@ -322,6 +328,7 @@ def task_json(item: Task) -> dict[str, object]:
         "inputs": list(item.inputs),
         "generated_inputs": list(item.generated_inputs),
         "cache": item.cache,
+        "parallel_safe": item.parallel_safe,
     }
 
 
@@ -350,35 +357,147 @@ def depends_on(task_id: str, failed_id: str, registry: dict[str, Task]) -> bool:
     )
 
 
-def run_command(command: tuple[str, ...], root: Path) -> int:
-    process: subprocess.Popen[bytes] | None = None
-    interrupted = False
+class ProcessController:
+    """Track active child process groups so the main thread can interrupt all of them."""
+
+    def __init__(self) -> None:
+        self.interrupted = False
+        self._lock = threading.Lock()
+        self._processes: set[subprocess.Popen[str]] = set()
+
+    def add(self, process: subprocess.Popen[str]) -> None:
+        with self._lock:
+            self._processes.add(process)
+
+    def remove(self, process: subprocess.Popen[str]) -> None:
+        with self._lock:
+            self._processes.discard(process)
+
+    def forward(self, signum: int, _frame: object) -> None:
+        self.interrupted = True
+        with self._lock:
+            processes = tuple(self._processes)
+        for process in processes:
+            if process.poll() is not None:
+                continue
+            try:
+                os.killpg(process.pid, signum)
+            except (ProcessLookupError, PermissionError):
+                try:
+                    process.send_signal(signum)
+                except ProcessLookupError:
+                    pass
+
+
+@contextmanager
+def forward_interrupts(controller: ProcessController):
     previous_handlers: dict[int, object] = {}
-
-    def forward(signum: int, _frame: object) -> None:
-        nonlocal interrupted
-        interrupted = True
-        if process is None or process.poll() is not None:
-            return
-        try:
-            os.killpg(process.pid, signum)
-        except (ProcessLookupError, PermissionError):
-            process.send_signal(signum)
-
-    for signum in (signal.SIGINT, signal.SIGTERM):
-        previous_handlers[signum] = signal.getsignal(signum)
-        signal.signal(signum, forward)
+    if threading.current_thread() is threading.main_thread():
+        for signum in (signal.SIGINT, signal.SIGTERM):
+            previous_handlers[signum] = signal.getsignal(signum)
+            signal.signal(signum, controller.forward)
     try:
-        try:
-            process = subprocess.Popen(command, cwd=root, start_new_session=True)
-        except FileNotFoundError:
-            print(f"error: executable not found: {command[0]}", file=sys.stderr)
-            return 1
-        return_code = process.wait()
-        return 130 if interrupted or return_code < 0 else return_code
+        yield
     finally:
         for signum, handler in previous_handlers.items():
             signal.signal(signum, handler)
+
+
+def run_process(
+    command: tuple[str, ...],
+    root: Path,
+    controller: ProcessController,
+    *,
+    capture: bool,
+) -> tuple[int, str]:
+    try:
+        process = subprocess.Popen(
+            command,
+            cwd=root,
+            start_new_session=True,
+            stdout=subprocess.PIPE if capture else None,
+            stderr=subprocess.STDOUT if capture else None,
+            text=True,
+        )
+    except FileNotFoundError:
+        message = f"error: executable not found: {command[0]}\n"
+        if not capture:
+            print(message, end="", file=sys.stderr)
+        return 1, message if capture else ""
+    except OSError as error:
+        message = f"error: could not run {command[0]}: {error}\n"
+        if not capture:
+            print(message, end="", file=sys.stderr)
+        return 1, message if capture else ""
+
+    controller.add(process)
+    try:
+        output, _ = process.communicate()
+    finally:
+        controller.remove(process)
+    return_code = process.returncode
+    code = 130 if controller.interrupted or return_code < 0 else return_code
+    return code, output or ""
+
+
+def run_command(command: tuple[str, ...], root: Path) -> int:
+    controller = ProcessController()
+    with forward_interrupts(controller):
+        code, _ = run_process(command, root, controller, capture=False)
+    return code
+
+
+def execute_task(
+    item: Task,
+    root: Path,
+    controller: ProcessController,
+    *,
+    capture: bool,
+) -> tuple[dict[str, object], str]:
+    output: list[str] = []
+
+    def emit(line: str) -> None:
+        if capture:
+            output.append(line + "\n")
+        else:
+            print(line, flush=True)
+
+    emit(f"\n==> {item.id}")
+    task_started = time.monotonic()
+    task_exit = 0
+    for command in item.commands:
+        emit(f"$ {' '.join(command)}")
+        task_exit, command_output = run_process(
+            command,
+            root,
+            controller,
+            capture=capture,
+        )
+        if capture and command_output:
+            output.append(command_output)
+            if not command_output.endswith("\n"):
+                output.append("\n")
+        if task_exit != 0:
+            break
+    duration = round(time.monotonic() - task_started, 3)
+    result = {
+        "id": item.id,
+        "status": "passed" if task_exit == 0 else "failed",
+        "duration_seconds": duration,
+        "exit_code": task_exit,
+        "commands": [list(command) for command in item.commands],
+    }
+    return result, "".join(output)
+
+
+def skipped_result(item: Task, status: str) -> dict[str, object]:
+    return {
+        "id": item.id,
+        "status": status,
+        "duration_seconds": 0.0,
+        "exit_code": None,
+        "commands": [list(command) for command in item.commands],
+    }
 
 
 def execute_tasks(
@@ -388,46 +507,124 @@ def execute_tasks(
     profile: str | None,
     domain: str | None,
     requested_task: str | None,
+    jobs: int = 1,
 ) -> tuple[int, dict[str, object]]:
+    if jobs < 1:
+        raise ConfigurationError("--jobs must be at least 1")
     started_at = utc_now()
     run_started = time.monotonic()
-    results: list[dict[str, object]] = []
-    failed_id: str | None = None
+    requested_jobs = jobs
+    jobs = 1 if profile == "release" else jobs
+    result_by_id: dict[str, dict[str, object]] = {}
     exit_code = 0
     registry = validate_registry(tuple(selected))
+    controller = ProcessController()
 
-    for item in selected:
-        if failed_id is not None:
-            status = "blocked" if depends_on(item.id, failed_id, registry) else "not_run"
-            results.append({
-                "id": item.id,
-                "status": status,
-                "duration_seconds": 0.0,
-                "exit_code": None,
-                "commands": [list(command) for command in item.commands],
-            })
-            continue
+    with forward_interrupts(controller):
+        if jobs == 1:
+            failed_id: str | None = None
+            for item in selected:
+                if controller.interrupted and failed_id is None:
+                    result_by_id[item.id] = skipped_result(item, "not_run")
+                    exit_code = 130
+                    continue
+                if failed_id is not None:
+                    status = "blocked" if depends_on(item.id, failed_id, registry) else "not_run"
+                    result_by_id[item.id] = skipped_result(item, status)
+                    continue
+                result, _ = execute_task(item, root, controller, capture=False)
+                result_by_id[item.id] = result
+                task_exit = int(result["exit_code"])
+                if task_exit != 0:
+                    failed_id = item.id
+                    exit_code = 130 if task_exit == 130 else 1
+        else:
+            pending = list(selected)
+            failed_ids: set[str] = set()
+            captured_outputs: dict[str, str] = {}
+            replayed: set[str] = set()
 
-        print(f"\n==> {item.id}", flush=True)
-        task_started = time.monotonic()
-        task_exit = 0
-        for command in item.commands:
-            print(f"$ {' '.join(command)}", flush=True)
-            task_exit = run_command(command, root)
-            if task_exit != 0:
-                break
-        duration = round(time.monotonic() - task_started, 3)
-        status = "passed" if task_exit == 0 else "failed"
-        results.append({
-            "id": item.id,
-            "status": status,
-            "duration_seconds": duration,
-            "exit_code": task_exit,
-            "commands": [list(command) for command in item.commands],
-        })
-        if task_exit != 0:
-            failed_id = item.id
-            exit_code = 130 if task_exit == 130 else 1
+            def replay_completed() -> None:
+                for planned in selected:
+                    if planned.id in captured_outputs and planned.id not in replayed:
+                        print(captured_outputs[planned.id], end="", flush=True)
+                        replayed.add(planned.id)
+
+            with ThreadPoolExecutor(max_workers=jobs) as executor:
+                active: dict[Future[tuple[dict[str, object], str]], Task] = {}
+                while (pending or active) and not failed_ids and not controller.interrupted:
+                    passed_ids = {
+                        task_id
+                        for task_id, result in result_by_id.items()
+                        if result["status"] == "passed"
+                    }
+                    ready_parallel = [
+                        item
+                        for item in pending
+                        if item.parallel_safe and set(item.dependencies) <= passed_ids
+                    ]
+                    while ready_parallel and len(active) < jobs:
+                        item = ready_parallel.pop(0)
+                        pending.remove(item)
+                        future = executor.submit(
+                            execute_task,
+                            item,
+                            root,
+                            controller,
+                            capture=True,
+                        )
+                        active[future] = item
+
+                    if active:
+                        done, _ = wait(active, return_when=FIRST_COMPLETED)
+                        for future in sorted(done, key=lambda value: selected.index(active[value])):
+                            item = active.pop(future)
+                            result, task_output = future.result()
+                            result_by_id[item.id] = result
+                            captured_outputs[item.id] = task_output
+                            if result["status"] == "failed":
+                                failed_ids.add(item.id)
+                        continue
+
+                    ready_serial = [
+                        item
+                        for item in pending
+                        if not item.parallel_safe and set(item.dependencies) <= passed_ids
+                    ]
+                    if ready_serial:
+                        replay_completed()
+                        item = ready_serial[0]
+                        pending.remove(item)
+                        result, _ = execute_task(item, root, controller, capture=False)
+                        result_by_id[item.id] = result
+                        if result["status"] == "failed":
+                            failed_ids.add(item.id)
+                        continue
+                    if pending:
+                        raise ConfigurationError("parallel scheduler could not find a runnable task")
+
+                if (failed_ids or controller.interrupted) and active:
+                    done, _ = wait(active)
+                    for future in sorted(done, key=lambda value: selected.index(active[value])):
+                        item = active[future]
+                        result, task_output = future.result()
+                        result_by_id[item.id] = result
+                        captured_outputs[item.id] = task_output
+                        if result["status"] == "failed":
+                            failed_ids.add(item.id)
+                replay_completed()
+
+            if failed_ids or controller.interrupted:
+                exit_code = 130 if controller.interrupted or any(
+                    result_by_id[task_id]["exit_code"] == 130 for task_id in failed_ids
+                ) else 1
+                for item in pending:
+                    status = "blocked" if any(
+                        depends_on(item.id, failed_id, registry) for failed_id in failed_ids
+                    ) else "not_run"
+                    result_by_id[item.id] = skipped_result(item, status)
+
+    results = [result_by_id[item.id] for item in selected]
 
     duration = round(time.monotonic() - run_started, 3)
     summary: dict[str, object] = {
@@ -439,6 +636,7 @@ def execute_tasks(
         "started_at": started_at,
         "finished_at": utc_now(),
         "duration_seconds": duration,
+        "jobs": {"requested": requested_jobs, "used": jobs},
         "cache": {"enabled": False, "reason": "result caching is not implemented in this stage"},
         "status": "passed" if exit_code == 0 else "interrupted" if exit_code == 130 else "failed",
         "exit_code": exit_code,
@@ -452,6 +650,7 @@ def summary_markdown(summary: dict[str, object]) -> str:
         "## Check task graph",
         "",
         f"Overall: **{summary['status']}** in {summary['duration_seconds']:.3f}s",
+        f"Workers: **{summary['jobs']['used']}**",
         "",
         "| Task | Status | Duration |",
         "| --- | --- | ---: |",
@@ -463,6 +662,15 @@ def summary_markdown(summary: dict[str, object]) -> str:
 
 def print_summary(summary: dict[str, object], output: TextIO = sys.stdout) -> None:
     print("\nCheck task summary", file=output)
+    print(
+        f"Workers: {summary['jobs']['used']}"
+        + (
+            f" (requested {summary['jobs']['requested']})"
+            if summary["jobs"]["requested"] != summary["jobs"]["used"]
+            else ""
+        ),
+        file=output,
+    )
     print(f"{'TASK':28} {'STATUS':10} {'SECONDS':>8}", file=output)
     for result in summary["tasks"]:
         print(f"{result['id']:28} {result['status']:10} {result['duration_seconds']:8.3f}", file=output)
@@ -515,13 +723,15 @@ def self_test() -> None:
         expected_command = f"python3 scripts/check_tasks.py run {profile}"
         if package_scripts.get(alias) != expected_command:
             raise AssertionError(f"{alias} does not route through the {profile} graph")
+    if package_scripts.get("check:parallel") != "python3 scripts/check_tasks.py run fast --jobs 4":
+        raise AssertionError("check:parallel does not use the fast graph with four workers")
 
     public_aliases = {
         name: command for name, command in package_scripts.items()
         if name.startswith("check:") and not name.endswith(":legacy")
     }
     for alias, command in public_aliases.items():
-        if alias in profile_aliases:
+        if alias in profile_aliases or alias == "check:parallel":
             continue
         task_id = alias.removeprefix("check:")
         if task_id not in registry:
@@ -529,9 +739,28 @@ def self_test() -> None:
         expected_command = f"python3 scripts/check_tasks.py run-task {task_id}"
         if command != expected_command:
             raise AssertionError(f"{alias} does not route through run-task {task_id}")
-    missing_legacy = sorted(alias for alias in public_aliases if f"{alias}:legacy" not in package_scripts)
+    missing_legacy = sorted(
+        alias
+        for alias in public_aliases
+        if alias != "check:parallel" and f"{alias}:legacy" not in package_scripts
+    )
     if missing_legacy:
         raise AssertionError(f"public check aliases are missing temporary legacy commands: {missing_legacy}")
+
+    never_parallel = {
+        "local-artifacts",
+        "local-esphome",
+        "pr-process",
+        "pr-testing-guidance",
+        "firmware-release",
+        "release-confidence",
+        "release-changelog",
+        "web-browser-smoke",
+        "docs-build",
+    }
+    unsafe = sorted(task_id for task_id in never_parallel if registry[task_id].parallel_safe)
+    if unsafe:
+        raise AssertionError(f"unsafe tasks are marked parallel-safe: {unsafe}")
 
     if registry["types"].commands != (("npm", "exec", "--", "tsc", "--noEmit"),):
         raise AssertionError("TypeScript checks do not use the project-managed compiler")
@@ -557,10 +786,21 @@ def self_test() -> None:
     expect_invalid((Task("profile", (("true",),), profiles=("unknown",), inputs=("x",)),), "invalid profile")
     expect_invalid((Task("domain", (("true",),), domains=("unknown",), inputs=("x",)),), "invalid domain")
     expect_invalid((Task("inputs", (("true",),), cache="deterministic"),), "cacheable task with empty inputs")
+    expect_invalid(
+        (Task("parallel", (("true",),), parallel_safe="yes"),),  # type: ignore[arg-type]
+        "invalid parallel safety",
+    )
 
     first = Task("first", (("true",),), dependencies=("second",), inputs=("x",))
     second = Task("second", (("true",),), dependencies=("first",), inputs=("x",))
     expect_invalid((first, second), "dependency cycle")
+
+    try:
+        execute_tasks([], ROOT, profile="fast", domain=None, requested_task=None, jobs=0)
+    except ConfigurationError:
+        pass
+    else:
+        raise AssertionError("zero parallel workers were accepted")
 
     ordered = (
         Task("consumer", (("true",),), dependencies=("shared",), profiles=("fast",), inputs=("x",)),
@@ -604,6 +844,170 @@ def self_test() -> None:
         if missing_code != 1 or missing_summary["tasks"][0]["status"] != "failed":
             raise AssertionError("missing executables are not reported as task failures")
 
+        marker_a = root / "parallel-a"
+        marker_b = root / "parallel-b"
+        sync_command = (
+            "from pathlib import Path; import sys, time; "
+            "own, other = Path(sys.argv[1]), Path(sys.argv[2]); "
+            "own.write_text('started'); print(sys.argv[3], flush=True); "
+            "deadline = time.monotonic() + 2; "
+            "exec(\"while not other.exists() and time.monotonic() < deadline:\\n time.sleep(0.01)\"); "
+            "assert other.exists(); "
+            "print(sys.argv[4], flush=True)"
+        )
+        parallel_tasks = [
+            Task(
+                "parallel-a",
+                ((sys.executable, "-c", sync_command, str(marker_a), str(marker_b), "A-BEGIN", "A-END"),),
+                parallel_safe=True,
+            ),
+            Task(
+                "parallel-b",
+                ((sys.executable, "-c", sync_command, str(marker_b), str(marker_a), "B-BEGIN", "B-END"),),
+                parallel_safe=True,
+            ),
+        ]
+        parallel_output = StringIO()
+        with redirect_stdout(parallel_output):
+            parallel_code, parallel_summary = execute_tasks(
+                parallel_tasks,
+                root,
+                profile="fast",
+                domain=None,
+                requested_task=None,
+                jobs=2,
+            )
+        captured = parallel_output.getvalue()
+        if parallel_code != 0 or parallel_summary["jobs"] != {"requested": 2, "used": 2}:
+            raise AssertionError("parallel-safe independent tasks did not run with two workers")
+        if not (
+            captured.index("A-BEGIN")
+            < captured.index("A-END")
+            < captured.index("B-BEGIN")
+            < captured.index("B-END")
+        ):
+            raise AssertionError("parallel task output was not replayed in stable grouped blocks")
+
+        exclusive_flag = root / "parallel-safe-running"
+        exclusive_tasks = [
+            Task(
+                "parallel-safe-long",
+                ((
+                    sys.executable,
+                    "-c",
+                    "import time; from pathlib import Path; "
+                    f"p=Path({str(exclusive_flag)!r}); "
+                    "p.write_text('running'); time.sleep(0.15); p.unlink()",
+                ),),
+                parallel_safe=True,
+            ),
+            Task(
+                "parallel-unsafe",
+                ((
+                    sys.executable,
+                    "-c",
+                    "import sys; from pathlib import Path; "
+                    f"sys.exit(1 if Path({str(exclusive_flag)!r}).exists() else 0)",
+                ),),
+            ),
+        ]
+        with redirect_stdout(StringIO()):
+            exclusive_code, _ = execute_tasks(
+                exclusive_tasks,
+                root,
+                profile="fast",
+                domain=None,
+                requested_task=None,
+                jobs=2,
+            )
+        if exclusive_code != 0:
+            raise AssertionError("a task without parallel safety ran beside an active task")
+
+        active_marker = root / "active-finished"
+        failure_tasks = [
+            Task(
+                "parallel-fail",
+                ((sys.executable, "-c", "print('failure output'); raise SystemExit(7)"),),
+                parallel_safe=True,
+            ),
+            Task(
+                "parallel-active",
+                ((
+                    sys.executable,
+                    "-c",
+                    "import time; from pathlib import Path; time.sleep(0.1); "
+                    f"Path({str(active_marker)!r}).write_text('done')",
+                ),),
+                parallel_safe=True,
+            ),
+            Task(
+                "parallel-blocked",
+                ((sys.executable, "-c", "raise SystemExit(0)"),),
+                dependencies=("parallel-fail",),
+                parallel_safe=True,
+            ),
+            Task(
+                "parallel-not-run",
+                ((sys.executable, "-c", "raise SystemExit(0)"),),
+                parallel_safe=True,
+            ),
+        ]
+        with redirect_stdout(StringIO()):
+            failure_code, failure_summary = execute_tasks(
+                failure_tasks,
+                root,
+                profile="fast",
+                domain=None,
+                requested_task=None,
+                jobs=2,
+            )
+        failure_statuses = {item["id"]: item["status"] for item in failure_summary["tasks"]}
+        if failure_code != 1 or failure_statuses != {
+            "parallel-fail": "failed",
+            "parallel-active": "passed",
+            "parallel-blocked": "blocked",
+            "parallel-not-run": "not_run",
+        }:
+            raise AssertionError(f"parallel fail-stop execution is incorrect: {failure_statuses}")
+        if active_marker.read_text() != "done":
+            raise AssertionError("an active parallel task was not allowed to finish after failure")
+
+        release_flag = root / "release-running"
+        release_tasks = [
+            Task(
+                "release-first",
+                ((
+                    sys.executable,
+                    "-c",
+                    "import time; from pathlib import Path; "
+                    f"p=Path({str(release_flag)!r}); "
+                    "p.write_text('running'); time.sleep(0.15); p.unlink()",
+                ),),
+                parallel_safe=True,
+            ),
+            Task(
+                "release-second",
+                ((
+                    sys.executable,
+                    "-c",
+                    "import sys, time; from pathlib import Path; time.sleep(0.03); "
+                    f"sys.exit(1 if Path({str(release_flag)!r}).exists() else 0)",
+                ),),
+                parallel_safe=True,
+            ),
+        ]
+        with redirect_stdout(StringIO()):
+            release_code, release_summary = execute_tasks(
+                release_tasks,
+                root,
+                profile="release",
+                domain=None,
+                requested_task=None,
+                jobs=2,
+            )
+        if release_code != 0 or release_summary["jobs"] != {"requested": 2, "used": 1}:
+            raise AssertionError("release execution was not forced to one worker")
+
         summary_path = root / "summary.json"
         markdown_path = root / "github-summary.md"
         previous_github_summary = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -625,7 +1029,8 @@ def self_test() -> None:
             "from pathlib import Path; "
             "from check_tasks import run_command; "
             "threading.Timer(0.1, lambda: os.kill(os.getpid(), signal.SIGINT)).start(); "
-            "child = \"import os, signal, time; signal.signal(signal.SIGINT, lambda *_: os._exit(130)); time.sleep(30)\"; "
+            "child = \"import os, signal, time; "
+            "signal.signal(signal.SIGINT, lambda *_: os._exit(130)); time.sleep(30)\"; "
             "code = run_command((sys.executable, '-c', child), Path.cwd()); "
             "raise SystemExit(0 if code == 130 else 1)"
         )
@@ -637,6 +1042,29 @@ def self_test() -> None:
         )
         if interrupted.returncode != 0:
             raise AssertionError("interrupts are not forwarded to the active child process")
+
+        parallel_interrupt_test = (
+            "import os, signal, sys, threading; "
+            "from pathlib import Path; "
+            "from check_tasks import Task, execute_tasks; "
+            "child = \"import os, signal, time; "
+            "signal.signal(signal.SIGINT, lambda *_: os._exit(130)); time.sleep(30)\"; "
+            "tasks = [Task(f'sleep-{index}', ((sys.executable, '-c', child),), "
+            "parallel_safe=True) for index in range(2)]; "
+            "threading.Timer(0.2, lambda: os.kill(os.getpid(), signal.SIGINT)).start(); "
+            "code, summary = execute_tasks(tasks, Path.cwd(), profile='fast', "
+            "domain=None, requested_task=None, jobs=2); "
+            "raise SystemExit(0 if code == 130 and summary['status'] == 'interrupted' else 1)"
+        )
+        parallel_interrupted = subprocess.run(
+            [sys.executable, "-c", parallel_interrupt_test],
+            cwd=ROOT,
+            env={**os.environ, "PYTHONPATH": str(ROOT / "scripts")},
+            capture_output=True,
+            timeout=5,
+        )
+        if parallel_interrupted.returncode != 0:
+            raise AssertionError("interrupts are not forwarded to all active parallel tasks")
 
     def task_ids(selected: list[Task]) -> set[str]:
         return {item.id for item in selected}
@@ -851,11 +1279,14 @@ def main() -> int:
                     print(f"{index:2}. {item.id}{reason}")
             return 0
         if args.command == "run":
-            if args.jobs != 1:
-                raise ConfigurationError("only --jobs 1 is available until parallel execution is introduced")
             selected = plan(args.profile, args.domain)
             exit_code, summary = execute_tasks(
-                selected, ROOT, profile=args.profile, domain=args.domain, requested_task=None
+                selected,
+                ROOT,
+                profile=args.profile,
+                domain=args.domain,
+                requested_task=None,
+                jobs=args.jobs,
             )
             print_summary(summary)
             write_summary(summary, args.summary_json)

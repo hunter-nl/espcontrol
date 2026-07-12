@@ -16,7 +16,30 @@ chains for one release cycle while the migration is observed.
 Use `python3 scripts/check_tasks.py list` to see registered tasks or
 `python3 scripts/check_tasks.py plan fast --explain` to preview a profile without
 running it. The registry in `scripts/check_tasks_data.py` is the maintained source
-for task commands, dependencies, profiles, domains, and input paths.
+for task commands, dependencies, profiles, domains, input paths, and parallel
+safety.
+
+All existing check aliases and CI use one worker by default. For an opt-in local
+fast run with no more than four workers, use:
+
+```bash
+npm run check:parallel
+```
+
+Only dependency-independent tasks explicitly marked parallel-safe may overlap.
+Their output is captured and replayed as complete task blocks. Browser, release,
+Git-state, and shared-output checks always run alone; release profiles use one
+worker even if a larger `--jobs` value is requested. After the first failure, no
+new tasks start, already-running tasks finish, and dependent tasks are reported
+as blocked.
+
+The initial Darwin arm64 benchmark on 2026-07-12 ran the complete non-browser
+fast profile 20 times sequentially and 20 times with four workers. Every run
+passed with the same task statuses and left the tracked diff fingerprint
+unchanged. Median duration improved from 11.850 seconds to 9.635 seconds, an
+18.7% reduction. Because that is below the planned 20% threshold, parallel mode
+remains explicit-only through `check:parallel`; normal npm aliases and CI retain
+their one-worker default.
 
 For an advisory local route based on everything changed from `main`, including
 committed, staged, unstaged, renamed, deleted, and untracked files, run:
