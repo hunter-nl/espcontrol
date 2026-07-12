@@ -888,6 +888,11 @@ def firmware_media_sleep_prevention_errors(
             )
             if cover_art_sleep_match and cover_art_sleep_match.group(1) != "show_cover_art_view":
                 errors.append(f"{rel}: start cover art directly after the normal screensaver timeout")
+        if (
+            "cover_art_touch_return_pending" in text
+            and "id(cover_art_delay).state <= 0.0f" not in text
+        ):
+            errors.append(f"{rel}: re-arm cover art after touch when Show After is immediate")
 
     if display_path.exists():
         rel = display_path.relative_to(root)
