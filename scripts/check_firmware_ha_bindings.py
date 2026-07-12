@@ -814,16 +814,6 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
     if playback_started_body and "espcontrol::cover_art::display_allowed(" in playback_started_body:
         errors.append(f"{rel}: let the playback-start event activate cover art before mirrored playback state settles")
     if (
-        "script.execute: cover_art_pause_after_touch" in text
-        and "script.execute: cover_art_pause_after_touch\n              - script.wait: cover_art_pause_after_touch" not in text
-    ):
-        errors.append(f"{rel}: finish recording the cover art touch delay before waking the display")
-    if (
-        "script.execute: cover_art_pause_after_touch" in text
-        and "script.execute: screensaver_wake\n              - script.wait: screensaver_wake" not in text
-    ):
-        errors.append(f"{rel}: finish cover art wake cleanup before starting its return timer")
-    if (
         "cover_art_artist_label" in text
         and "if (!id(cover_art_artist).empty()) return id(cover_art_artist);" not in text
     ):
@@ -854,6 +844,7 @@ def firmware_media_sleep_prevention_errors(
         rel = backlight_path.relative_to(root)
         text = backlight_path.read_text(encoding="utf-8")
         idle_body = yaml_script_body(text, "screensaver_idle_check")
+        wake_body = yaml_script_body(text, "screensaver_wake")
         if idle_body is None:
             errors.append(f"{rel}: missing screensaver_idle_check script")
         else:
@@ -870,6 +861,12 @@ def firmware_media_sleep_prevention_errors(
                 idle_body,
             ):
                 errors.append(f"{rel}: do not let cover art alone keep the idle timer awake")
+        if wake_body is not None and (
+            "return id(cover_art_screensaver_active);" not in wake_body
+            or "script.execute: cover_art_pause_after_touch" not in wake_body
+            or "script.wait: cover_art_pause_after_touch" not in wake_body
+        ):
+            errors.append(f"{rel}: record the cover art return delay in the shared touchscreen wake path")
         sleep_body = yaml_script_body(text, "screensaver_sleep_timer")
         if sleep_body is not None:
             cover_art_sleep_match = re.search(

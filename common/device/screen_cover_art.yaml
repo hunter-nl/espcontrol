@@ -193,20 +193,6 @@ lvgl:
           scrollbar_mode: "off"
           clickable: true
           hidden: true
-          on_press:
-            then:
-              - script.execute: cover_art_pause_after_touch
-              - script.wait: cover_art_pause_after_touch
-              - script.execute: screensaver_wake
-              - script.wait: screensaver_wake
-              - if:
-                  condition:
-                    lambda: |-
-                      return id(cover_art_screensaver_enabled).state &&
-                             id(cover_art_media_playing) &&
-                             !alarm_display_takeover_active();
-                  then:
-                    - script.execute: cover_art_delay_timer
           widgets:
             - obj:
                 id: cover_art_backdrop
