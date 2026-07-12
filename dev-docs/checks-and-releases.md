@@ -18,6 +18,18 @@ Use `python3 scripts/check_tasks.py list` to see registered tasks or
 running it. The registry in `scripts/check_tasks_data.py` is the maintained source
 for task commands, dependencies, profiles, domains, and input paths.
 
+For an advisory local route based on everything changed from `main`, including
+committed, staged, unstaged, renamed, deleted, and untracked files, run:
+
+```bash
+python3 scripts/check_tasks.py changed --explain
+```
+
+This command never reduces CI coverage. Unknown paths and changes to the task
+runner, registry, package lock, or workflow definitions select the complete fast
+profile. Profiles can also be narrowed explicitly by domain, for example
+`python3 scripts/check_tasks.py run ci --domain web`.
+
 ## Common Checks
 
 | Command | Use when |

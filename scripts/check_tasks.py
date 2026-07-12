@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+from fnmatch import fnmatchcase
 import json
 import os
 import signal
@@ -117,6 +118,164 @@ def plan_task(task_id: str, tasks: tuple[Task, ...] = TASKS) -> list[Task]:
 
     emit(task_id)
     return ordered
+
+
+def plan_task_ids(task_ids: set[str], tasks: tuple[Task, ...] = TASKS) -> list[Task]:
+    registry = validate_registry(tasks)
+    unknown = task_ids - set(registry)
+    if unknown:
+        raise ConfigurationError(f"unknown task IDs: {sorted(unknown)}")
+    selected = set(task_ids)
+
+    def add_dependencies(task_id: str) -> None:
+        for dependency in registry[task_id].dependencies:
+            if dependency not in selected:
+                selected.add(dependency)
+                add_dependencies(dependency)
+
+    for task_id in tuple(selected):
+        add_dependencies(task_id)
+
+    ordered: list[Task] = []
+    emitted: set[str] = set()
+
+    def emit(task_id: str) -> None:
+        if task_id in emitted:
+            return
+        for dependency in registry[task_id].dependencies:
+            emit(dependency)
+        emitted.add(task_id)
+        ordered.append(registry[task_id])
+
+    for item in tasks:
+        if item.id in selected:
+            emit(item.id)
+    return ordered
+
+
+def git_output(root: Path, *args: str) -> str:
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as error:
+        raise ConfigurationError("git executable not found") from error
+    except subprocess.CalledProcessError as error:
+        message = error.stderr.strip() or error.stdout.strip() or "git command failed"
+        raise ConfigurationError(message) from error
+    return result.stdout
+
+
+def resolve_changed_base(root: Path, requested: str | None = None) -> tuple[str, str]:
+    candidates = (requested,) if requested else ("origin/main", "main")
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        exists = subprocess.run(
+            ["git", "rev-parse", "--verify", "--quiet", f"{candidate}^{{commit}}"],
+            cwd=root,
+            capture_output=True,
+        )
+        if exists.returncode == 0:
+            merge_base = subprocess.run(
+                ["git", "merge-base", "HEAD", candidate],
+                cwd=root,
+                capture_output=True,
+                text=True,
+            )
+            if merge_base.returncode == 0 and merge_base.stdout.strip():
+                return candidate, merge_base.stdout.strip()
+            if requested:
+                raise ConfigurationError(f"could not find merge base with {candidate}")
+    if requested:
+        raise ConfigurationError(f"changed-file base ref does not exist: {requested}")
+    raise ConfigurationError("changed-file routing requires origin/main or local main")
+
+
+def parse_name_status(output: str) -> set[str]:
+    fields = output.split("\0")
+    if fields and fields[-1] == "":
+        fields.pop()
+    paths: set[str] = set()
+    index = 0
+    while index < len(fields):
+        status = fields[index]
+        index += 1
+        path_count = 2 if status.startswith(("R", "C")) else 1
+        if index + path_count > len(fields):
+            raise ConfigurationError("git returned malformed changed-path data")
+        paths.update(fields[index:index + path_count])
+        index += path_count
+    return {path for path in paths if path}
+
+
+def changed_paths(root: Path, merge_base: str) -> list[str]:
+    tracked = git_output(root, "diff", "--name-status", "-z", "-M", merge_base)
+    untracked = git_output(root, "ls-files", "--others", "--exclude-standard", "-z")
+    paths = parse_name_status(tracked)
+    paths.update(path for path in untracked.split("\0") if path)
+    return sorted(paths)
+
+
+def matches_input(path: str, pattern: str) -> bool:
+    patterns = {pattern}
+    if "/**/" in pattern:
+        patterns.add(pattern.replace("/**/", "/"))
+    return any(fnmatchcase(path, candidate) for candidate in patterns)
+
+
+def changed_plan(
+    paths: list[str], tasks: tuple[Task, ...] = TASKS
+) -> tuple[list[Task], dict[str, list[str]], str | None]:
+    validate_registry(tasks)
+    matched: dict[str, list[str]] = {}
+    unmatched: list[str] = []
+    force_fast: list[str] = []
+    sensitive = (
+        "scripts/check_tasks.py",
+        "scripts/check_tasks_data.py",
+        "package-lock.json",
+    )
+
+    for path in paths:
+        path_matches = []
+        for item in tasks:
+            patterns = item.inputs + item.generated_inputs
+            if any(matches_input(path, pattern) for pattern in patterns):
+                matched.setdefault(item.id, []).append(path)
+                path_matches.append(item.id)
+        if path in sensitive or matches_input(path, ".github/workflows/**"):
+            force_fast.append(path)
+        elif not path_matches:
+            unmatched.append(path)
+
+    fallback_paths = sorted(set(force_fast + unmatched))
+    if fallback_paths:
+        selected = plan("fast", tasks=tasks)
+        reason = "full fast profile required by " + ", ".join(fallback_paths)
+        reasons = {item.id: [reason] for item in selected}
+        return selected, reasons, reason
+
+    direct_ids = set(matched)
+    selected = plan_task_ids(direct_ids, tasks)
+    reasons: dict[str, list[str]] = {}
+    for item in selected:
+        if item.id in matched:
+            reasons[item.id] = [f"input matched {path}" for path in sorted(matched[item.id])]
+            continue
+        consumers = sorted(
+            task_id for task_id in direct_ids
+            if item.id in {dependency.id for dependency in plan_task(task_id, tasks)[:-1]}
+        )
+        reasons[item.id] = [
+            f"dependency of {task_id} selected by {', '.join(sorted(matched[task_id]))}"
+            for task_id in consumers
+        ]
+    return selected, reasons, None
 
 
 def task_json(item: Task) -> dict[str, object]:
@@ -445,6 +604,111 @@ def self_test() -> None:
         if interrupted.returncode != 0:
             raise AssertionError("interrupts are not forwarded to the active child process")
 
+    def task_ids(selected: list[Task]) -> set[str]:
+        return {item.id for item in selected}
+
+    docs_selected, _, docs_fallback = changed_plan(["dev-docs/README.md"])
+    if docs_fallback is not None or "dev-docs" not in task_ids(docs_selected):
+        raise AssertionError("docs-only changes do not select documentation checks")
+
+    web_selected, _, web_fallback = changed_plan(["src/webserver/modules/example.js"])
+    if web_fallback is not None or "web-smoke" not in task_ids(web_selected):
+        raise AssertionError("web changes do not select web checks")
+
+    firmware_selected, _, firmware_fallback = changed_plan(["components/espcontrol/example.h"])
+    if firmware_fallback is not None or "firmware-parser" not in task_ids(firmware_selected):
+        raise AssertionError("firmware changes do not select firmware checks")
+
+    generated_selected, _, generated_fallback = changed_plan(["components/espcontrol/i18n_generated.h"])
+    if generated_fallback is not None or "generated" not in task_ids(generated_selected):
+        raise AssertionError("generated inputs do not select their validation task")
+
+    unknown_selected, _, unknown_fallback = changed_plan(["unexpected-area/file.xyz"])
+    if unknown_fallback is None or task_ids(unknown_selected) != task_ids(plan("fast")):
+        raise AssertionError("unknown paths do not fall back to the full fast profile")
+
+    workflow_selected, _, workflow_fallback = changed_plan([".github/workflows/example.yml"])
+    if workflow_fallback is None or task_ids(workflow_selected) != task_ids(plan("fast")):
+        raise AssertionError("workflow changes do not fall back to the full fast profile")
+
+    clean_selected, clean_reasons, clean_fallback = changed_plan([])
+    if clean_selected or clean_reasons or clean_fallback is not None:
+        raise AssertionError("clean trees should not select changed-file checks")
+
+    if not task_ids(plan("ci", "web")) < task_ids(plan("ci")):
+        raise AssertionError("profile and domain combinations do not narrow direct selection")
+
+    with TemporaryDirectory() as tmp:
+        repo = Path(tmp)
+
+        def run_git(*args: str) -> None:
+            subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True)
+
+        run_git("init", "-b", "main")
+        run_git("config", "user.name", "Check Graph Test")
+        run_git("config", "user.email", "check-graph@example.invalid")
+        initial = {
+            "docs/guide.md": "initial\n",
+            "src/webserver/old.js": "initial\n",
+            "components/espcontrol/example.h": "initial\n",
+            "devices/catalog.json": "{}\n",
+        }
+        for relative, content in initial.items():
+            destination = repo / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(content)
+        run_git("add", ".")
+        run_git("commit", "-m", "initial")
+        run_git("update-ref", "refs/remotes/origin/main", "main")
+
+        base_ref, merge_base = resolve_changed_base(repo)
+        if base_ref != "origin/main" or changed_paths(repo, merge_base):
+            raise AssertionError("clean repository base discovery is incorrect")
+        run_git("update-ref", "-d", "refs/remotes/origin/main")
+        fallback_ref, fallback_merge_base = resolve_changed_base(repo)
+        if fallback_ref != "main" or fallback_merge_base != merge_base:
+            raise AssertionError("local main is not used when origin/main is unavailable")
+        run_git("update-ref", "refs/remotes/origin/main", "main")
+
+        run_git("switch", "-c", "feature")
+        (repo / "docs/guide.md").write_text("committed\n")
+        run_git("add", "docs/guide.md")
+        run_git("commit", "-m", "docs change")
+        run_git("mv", "src/webserver/old.js", "src/webserver/new.js")
+        (repo / "components/espcontrol/example.h").unlink()
+        (repo / "devices/catalog.json").write_text('{"changed": true}\n')
+        run_git("add", "devices/catalog.json")
+        (repo / "untracked.txt").write_text("untracked\n")
+
+        _, merge_base = resolve_changed_base(repo)
+        discovered = set(changed_paths(repo, merge_base))
+        expected_paths = {
+            "docs/guide.md",
+            "src/webserver/old.js",
+            "src/webserver/new.js",
+            "components/espcontrol/example.h",
+            "devices/catalog.json",
+            "untracked.txt",
+        }
+        if not expected_paths <= discovered:
+            raise AssertionError(f"changed paths omit workspace states: {sorted(expected_paths - discovered)}")
+
+    with TemporaryDirectory() as tmp:
+        repo = Path(tmp)
+        subprocess.run(["git", "init", "-b", "feature"], cwd=repo, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "Check Graph Test"], cwd=repo, check=True)
+        subprocess.run(["git", "config", "user.email", "check-graph@example.invalid"], cwd=repo, check=True)
+        (repo / "README.md").write_text("initial\n")
+        subprocess.run(["git", "add", "README.md"], cwd=repo, check=True)
+        subprocess.run(["git", "commit", "-m", "initial"], cwd=repo, check=True, capture_output=True)
+        try:
+            resolve_changed_base(repo)
+        except ConfigurationError as error:
+            if "origin/main or local main" not in str(error):
+                raise
+        else:
+            raise AssertionError("missing default changed-file bases were accepted")
+
     print(f"check task registry self-test passed ({len(TASKS)} tasks, {len(PROFILES)} profiles)")
 
 
@@ -468,6 +732,10 @@ def parse_args() -> argparse.Namespace:
     task_parser = subparsers.add_parser("run-task", help="run one task and its dependencies")
     task_parser.add_argument("task_id")
     task_parser.add_argument("--summary-json", type=Path)
+    changed_parser = subparsers.add_parser("changed", help="plan checks from branch and workspace changes")
+    changed_parser.add_argument("--base")
+    changed_parser.add_argument("--explain", action="store_true")
+    changed_parser.add_argument("--json", action="store_true")
     return parser.parse_args()
 
 
@@ -514,7 +782,39 @@ def main() -> int:
             print_summary(summary)
             write_summary(summary, args.summary_json)
             return exit_code
-        print("choose 'list', 'plan', 'run', or 'run-task', or use --self-test", file=sys.stderr)
+        if args.command == "changed":
+            base_ref, merge_base = resolve_changed_base(ROOT, args.base)
+            paths = changed_paths(ROOT, merge_base)
+            selected, reasons, fallback = changed_plan(paths)
+            if args.json:
+                print(json.dumps({
+                    "base": base_ref,
+                    "merge_base": merge_base,
+                    "paths": paths,
+                    "fallback": fallback,
+                    "tasks": [
+                        {**task_json(item), "reasons": reasons.get(item.id, [])}
+                        for item in selected
+                    ],
+                }, indent=2))
+            else:
+                print(f"Base: {base_ref} ({merge_base[:12]})")
+                if not paths:
+                    print("No changed files; no tasks selected.")
+                    return 0
+                print("Changed files:")
+                for path in paths:
+                    print(f"  {path}")
+                if fallback:
+                    print(f"Fallback: {fallback}")
+                print("Selected tasks:")
+                for index, item in enumerate(selected, 1):
+                    print(f"{index:2}. {item.id}")
+                    if args.explain:
+                        for reason in reasons.get(item.id, []):
+                            print(f"    - {reason}")
+            return 0
+        print("choose 'list', 'plan', 'run', 'run-task', or 'changed', or use --self-test", file=sys.stderr)
         return 2
     except ConfigurationError as error:
         print(f"check task configuration error: {error}", file=sys.stderr)
