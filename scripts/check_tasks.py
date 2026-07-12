@@ -1257,8 +1257,9 @@ def self_test() -> None:
     for task_id in ("config", "backup-contract", "web-smoke"):
         if not {"scripts/web_source.js", "scripts/web_modules.json"} <= set(registry[task_id].inputs):
             raise AssertionError(f"{task_id} cache keys omit shared web-source helpers")
-    if "compatibility/fixtures/product_compatibility.json" not in registry["config"].inputs:
-        raise AssertionError("config cache keys omit compatibility fixtures")
+    for task_id in ("config", "model-contract"):
+        if "compatibility/fixtures/product_compatibility.json" not in registry[task_id].inputs:
+            raise AssertionError(f"{task_id} cache keys omit compatibility fixtures")
     if not {
         "package.json",
         ".github/workflows/**",
