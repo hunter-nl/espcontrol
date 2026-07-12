@@ -42,7 +42,7 @@ This detailed routing table is generated directly from `scripts/check_tasks_data
 | `cover-art-contract` | firmware | Yes | deterministic | — | `c++` | `common/device/screen_cover_art.yaml`<br>`components/espcontrol/cover_art.h`<br>`scripts/check_cover_art_contract.py` | `npm run check:cover-art-contract` |
 | `web-smoke` | web, product | Yes | deterministic | — | — | `src/webserver/**`<br>`scripts/check_web_smoke.js`<br>`scripts/web_source.js`<br>`scripts/web_modules.json` | `npm run check:web-smoke` |
 | `types` | web | Yes | deterministic | — | `node_modules/.bin/tsc` | `src/**/*.ts`<br>`tsconfig.json`<br>`package-lock.json` | `npm run check:types` |
-| `firmware-parser` | firmware | Yes | deterministic | — | `c++`<br>`g++`<br>`clang++` | `components/**`<br>`scripts/check_firmware_parser.py` | `npm run check:firmware-parser` |
+| `firmware-parser` | firmware | Yes | deterministic | — | `c++`<br>`g++`<br>`clang++` | `components/**`<br>`common/config/*_card_normalization_fixtures.json`<br>`scripts/check_firmware_parser.py` | `npm run check:firmware-parser` |
 | `firmware-modals` | firmware | Yes | deterministic | — | — | `components/**`<br>`scripts/check_firmware_modals.py` | `npm run check:firmware-modals` |
 | `firmware-display-tokens` | firmware | Yes | deterministic | — | — | `components/**`<br>`scripts/check_firmware_display_tokens.py` | `npm run check:firmware-display-tokens` |
 | `firmware-ha-bindings` | firmware | Yes | deterministic | — | — | `components/**`<br>`devices/**`<br>`scripts/check_firmware_ha_bindings.py` | `npm run check:firmware-ha-bindings` |
@@ -55,7 +55,7 @@ This detailed routing table is generated directly from `scripts/check_tasks_data
 | `card-contract-outputs` | product, firmware, web, docs | Yes | deterministic | — | — | `common/config/card_contract.json`<br>`scripts/check_card_contract_outputs.py` | `npm run check:card-contract-outputs` |
 | `device-slots` | firmware, product | Yes | deterministic | — | — | `devices/**`<br>`scripts/generate_device_slots.py` | `python3 scripts/check_tasks.py run-task device-slots` |
 | `icon-groups` | firmware, product, docs | Yes | deterministic | — | — | `common/assets/**`<br>`devices/**`<br>`docs/.vitepress/theme/components/IconGallery.vue`<br>`scripts/check_icon_groups.py` | `python3 scripts/check_tasks.py run-task icon-groups` |
-| `timezones` | firmware, web | Yes | deterministic | `TZ` | — | `common/**`<br>`src/webserver/**`<br>`scripts/check_timezones.py` | `npm run check:timezones` |
+| `timezones` | firmware, web | Yes | deterministic | `TZ` | — | `common/**`<br>`src/webserver/**`<br>`components/espcontrol/sun_calc.h`<br>`scripts/check_timezones.py` | `npm run check:timezones` |
 | `public-firmware-script` | firmware, workflow | Yes | deterministic | — | — | `scripts/**`<br>`docs/public/**` | `npm run check:public-firmware-script` |
 | `web-browser-smoke` | web | No | deterministic | `PLAYWRIGHT_BROWSERS_PATH`<br>`PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD` | — | `src/webserver/**`<br>`scripts/check_web_browser_smoke.js`<br>`package-lock.json` | `npm run check:web-browser-smoke` |
 | `docs-build` | docs | No | never | — | — | `docs/**`<br>`dev-docs/**`<br>`DEVELOPERS.md`<br>`README.md`<br>`product/README.md`<br>`package-lock.json` | `python3 scripts/check_tasks.py run-task docs-build` |

@@ -1268,6 +1268,10 @@ def self_test() -> None:
         raise AssertionError("dev-docs cache keys omit runtime validation inputs")
     if not {"c++", "g++", "clang++"} <= set(registry["firmware-parser"].cache_tools):
         raise AssertionError("firmware parser cache keys omit compiler tool versions")
+    if "common/config/*_card_normalization_fixtures.json" not in registry["firmware-parser"].inputs:
+        raise AssertionError("firmware parser cache keys omit normalization fixtures")
+    if "components/espcontrol/sun_calc.h" not in registry["timezones"].inputs:
+        raise AssertionError("timezone cache keys omit the firmware timezone table")
 
     if registry["types"].commands != (("npm", "exec", "--", "tsc", "--noEmit"),):
         raise AssertionError("TypeScript checks do not use the project-managed compiler")
