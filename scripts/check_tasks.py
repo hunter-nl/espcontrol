@@ -257,9 +257,29 @@ def changed_plan(
 
     fallback_paths = sorted(set(force_fast + unmatched))
     if fallback_paths:
-        selected = plan("fast", tasks=tasks)
+        fast_ids = {item.id for item in plan("fast", tasks=tasks)}
+        direct_ids = set(matched)
+        selected = plan_task_ids(fast_ids | direct_ids, tasks)
         reason = "full fast profile required by " + ", ".join(fallback_paths)
-        reasons = {item.id: [reason] for item in selected}
+        reasons: dict[str, list[str]] = {}
+        for item in selected:
+            item_reasons = []
+            if item.id in fast_ids:
+                item_reasons.append(reason)
+            if item.id in matched:
+                item_reasons.extend(
+                    f"input matched {path}" for path in sorted(matched[item.id])
+                )
+            if not item_reasons:
+                consumers = sorted(
+                    task_id for task_id in direct_ids
+                    if item.id in {dependency.id for dependency in plan_task(task_id, tasks)[:-1]}
+                )
+                item_reasons.extend(
+                    f"dependency of {task_id} selected by {', '.join(sorted(matched[task_id]))}"
+                    for task_id in consumers
+                )
+            reasons[item.id] = item_reasons
         return selected, reasons, reason
 
     direct_ids = set(matched)
@@ -632,6 +652,23 @@ def self_test() -> None:
     workflow_selected, _, workflow_fallback = changed_plan([".github/workflows/example.yml"])
     if workflow_fallback is None or task_ids(workflow_selected) != task_ids(plan("fast")):
         raise AssertionError("workflow changes do not fall back to the full fast profile")
+
+    broadened_selected, _, broadened_fallback = changed_plan([
+        "docs/reference/faq.md",
+        "unexpected-area/file.xyz",
+    ])
+    broadened_ids = task_ids(broadened_selected)
+    if (
+        broadened_fallback is None
+        or not task_ids(plan("fast")) <= broadened_ids
+        or "docs-build" not in broadened_ids
+    ):
+        raise AssertionError("fallback discards directly matched tasks outside the fast profile")
+
+    lock_selected, _, lock_fallback = changed_plan(["package-lock.json"])
+    lock_ids = task_ids(lock_selected)
+    if lock_fallback is None or not {"docs-build", "web-browser-smoke", "types"} <= lock_ids:
+        raise AssertionError("package lock fallback discards declared consumers")
 
     clean_selected, clean_reasons, clean_fallback = changed_plan([])
     if clean_selected or clean_reasons or clean_fallback is not None:
