@@ -1236,6 +1236,7 @@ def self_test() -> None:
         raise AssertionError(f"unsafe tasks are marked parallel-safe: {unsafe}")
 
     never_cached = {
+        "generated",
         "local-artifacts",
         "local-esphome",
         "pr-process",
@@ -1244,6 +1245,7 @@ def self_test() -> None:
         "release-confidence",
         "release-changelog",
         "docs-build",
+        "timezones",
     }
     cacheable_unsafe = sorted(task_id for task_id in never_cached if registry[task_id].cache != "never")
     if cacheable_unsafe:
@@ -1256,15 +1258,6 @@ def self_test() -> None:
         or "PLAYWRIGHT_BROWSERS_PATH" not in browser.cache_env
     ):
         raise AssertionError("browser cache policy omits required web, layout, or environment inputs")
-    if not {"node_modules/.bin/esbuild", "esbuild"} <= set(registry["generated"].cache_tools):
-        raise AssertionError("generated-output cache keys omit an esbuild resolution path")
-    if (
-        "compatibility/**" not in registry["generated"].inputs
-        or "builds/**" not in registry["generated"].inputs
-        or "components/espcontrol/**" not in registry["generated"].inputs
-        or "product/product_snapshot.json" not in registry["generated"].generated_inputs
-    ):
-        raise AssertionError("generated-output cache keys omit product inputs or outputs")
     for task_id in ("config", "backup-contract", "web-smoke"):
         if not {"scripts/web_source.js", "scripts/web_modules.json"} <= set(registry[task_id].inputs):
             raise AssertionError(f"{task_id} cache keys omit shared web-source helpers")
