@@ -136,6 +136,9 @@ def firmware_ha_boundary_errors(firmware_dir: Path, root: Path) -> list[str]:
         return []
     rel = path.relative_to(root)
     text = path.read_text(encoding="utf-8")
+    coordinator_path = firmware_dir / "ha_read_coordinator.h"
+    coordinator_text = coordinator_path.read_text(encoding="utf-8") if coordinator_path.exists() else ""
+    read_boundary_text = text + "\n" + coordinator_text
     errors: list[str] = []
 
     state_helper = STATE_HELPER_PATTERN.search(text)
@@ -174,19 +177,23 @@ def firmware_ha_boundary_errors(firmware_dir: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: send Home Assistant actions only after state subscription is ready")
     elif "HA_ACTION_INTERNAL_FREE_MIN_BYTES" not in action_send_match.group("body"):
         errors.append(f"{rel}: defer Home Assistant actions when S3 internal heap is critically low")
-    if "Home Assistant attribute request" not in text:
+    if (
+        "ha_read_coordinator().get(" not in text
+        or "HA_READ_INTERNAL_FREE_MIN_BYTES" not in text
+        or 'heap_probe_.available("Home Assistant state request"' not in coordinator_text
+    ):
         errors.append(f"{rel}: defer one-off Home Assistant attribute reads when S3 internal heap is critically low")
-    if text.count("ha_state_callback_depth() != 0 || !ha_api_state_connected()") < 2:
+    if "callback_depth_ != 0 || !state_connected()" not in coordinator_text:
         errors.append(f"{rel}: queue one-off Home Assistant reads until state subscription is ready")
     if (
-        "request.callbacks.push_back(std::move(callback))" not in text
-        or "request.entity_id == entity_id" not in text
-        or "for (const auto &callback : *callbacks)" not in text
+        "request.callbacks.push_back(std::move(callback))" not in read_boundary_text
+        or "request.entity_id == entity_id" not in read_boundary_text
+        or "for (const auto &callback : *callback_refs)" not in read_boundary_text
     ):
         errors.append(f"{rel}: fan out duplicate deferred Home Assistant reads")
-    if text.count("ha_track_subscription_callback(callback_ref") < 2:
+    if "subscriptions_.push_back({callback_ref, scope})" not in coordinator_text:
         errors.append(f"{rel}: track Home Assistant subscription callbacks for generation cleanup")
-    if "ha_release_subscription_callbacks_now" not in text or "*ref.callback = nullptr" not in text:
+    if "release_subscriptions" not in coordinator_text or "*ref.callback = nullptr" not in coordinator_text:
         errors.append(f"{rel}: release retired Home Assistant subscription callback bodies")
 
     return errors

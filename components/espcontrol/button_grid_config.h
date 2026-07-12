@@ -1634,6 +1634,7 @@ inline void ha_reset_deferred_state_requests() {}
 inline void ha_reset_subscription_callbacks(uint32_t scope = 0) { (void) scope; }
 #endif
 
+#ifndef ESPCONTROL_HA_GENERATION_HELPERS_DEFINED
 inline uint32_t &ha_subscription_generation() {
   static uint32_t generation = 1;
   return generation;
@@ -1646,6 +1647,7 @@ inline void bump_ha_subscription_generation() {
   ha_reset_deferred_state_requests();
   ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_DEFAULT);
 }
+#endif
 
 inline std::string sentence_cap_text(const std::string &state) {
   std::string out;
