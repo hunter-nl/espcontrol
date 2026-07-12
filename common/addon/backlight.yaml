@@ -672,7 +672,10 @@ script:
 
   # Wake from screensaver
   - id: screensaver_wake
-    mode: restart
+    # A held or noisy touch can emit another event before the restore delays
+    # below finish. Do not restart midway through that restore, otherwise the
+    # clock overlay can remain visible indefinitely.
+    mode: single
     then:
       - script.stop: screen_schedule_sleep
       - script.stop: backlight_fade_current_ui_to_black
