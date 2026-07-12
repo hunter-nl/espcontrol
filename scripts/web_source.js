@@ -2,7 +2,9 @@
 "use strict";
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
+const childProcess = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const SOURCE = path.join(ROOT, "src", "webserver", "entry.js");
@@ -86,6 +88,31 @@ function loadBundledWebSource() {
   return source;
 }
 
+let freshOutputDir;
+
+function freshWebOutputDir() {
+  if (freshOutputDir) return freshOutputDir;
+  freshOutputDir = fs.mkdtempSync(path.join(os.tmpdir(), "espcontrol-web-test-"));
+  const result = childProcess.spawnSync(
+    "python3",
+    [path.join(ROOT, "scripts", "build.py"), "www", "--temporary-output", freshOutputDir],
+    { cwd: ROOT, encoding: "utf8" },
+  );
+  if (result.status !== 0) {
+    fs.rmSync(freshOutputDir, { recursive: true, force: true });
+    freshOutputDir = undefined;
+    throw new Error(result.stderr || result.stdout || "Fresh web bundle build failed");
+  }
+  process.once("exit", () => fs.rmSync(freshOutputDir, { recursive: true, force: true }));
+  return freshOutputDir;
+}
+
+function loadBuiltWebSource(slug = "guition-esp32-p4-jc1060p470") {
+  return fs.readFileSync(path.join(freshWebOutputDir(), slug, "www.js"), "utf8");
+}
+
 module.exports = {
+  freshWebOutputDir,
+  loadBuiltWebSource,
   loadBundledWebSource,
 };

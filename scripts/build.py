@@ -11,6 +11,7 @@ Usage:
     python scripts/build.py i18n          # sync firmware translations only
     python scripts/build.py model         # build generated web model only
     python scripts/build.py www           # build www.js only
+    python scripts/build.py www --temporary-output DIR  # isolated fresh bundles
     python scripts/build.py icons --check # check icons only
 """
 import json
@@ -18,6 +19,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.request
 from pathlib import Path
 
@@ -1406,87 +1408,11 @@ def sync_icons(check_only=False):
 # www.js build (formerly build_www.py)
 # ===========================================================================
 
-WWW_SOURCE = ROOT / "src" / "webserver" / "entry.js"
 MODULES_DIR = ROOT / "src" / "webserver" / "modules"
-TYPES_DIR = ROOT / "src" / "webserver" / "types"
 WWW_OUTPUT_DIR = ROOT / "docs" / "public" / "webserver"
-WEB_MODULE_ORDER_PATH = ROOT / "scripts" / "web_modules.json"
 MODEL_ENTRY = ROOT / "src" / "webserver" / "model" / "index.ts"
 MODEL_GENERATED_JS = MODULES_DIR / "model_generated.js"
 TIME_YAML = ROOT / "common" / "addon" / "time.yaml"
-WEB_MODULE_REQUIRES_RE = re.compile(r"^\s*//\s*@web-module-requires:\s*(.*?)\s*$", re.MULTILINE)
-
-CONFIG_START = "__DEVICE_CONFIG_START__"
-CONFIG_END = "__DEVICE_CONFIG_END__"
-MODULES_START = "__WEB_MODULES_START__"
-MODULES_END = "__WEB_MODULES_END__"
-TYPES_START = "__BUTTON_TYPES_START__"
-TYPES_END = "__BUTTON_TYPES_END__"
-
-def load_web_module_order():
-    order = load_json(WEB_MODULE_ORDER_PATH)
-    if not isinstance(order, list) or not all(isinstance(name, str) and name for name in order):
-        raise BuildError(f"Invalid web module order: {WEB_MODULE_ORDER_PATH.relative_to(ROOT)}")
-    actual = sorted(path.stem for path in MODULES_DIR.glob("*.js"))
-    duplicates = sorted({name for name in order if order.count(name) > 1})
-    missing = sorted(set(actual) - set(order))
-    unknown = sorted(set(order) - set(actual))
-    errors = []
-    if duplicates:
-        errors.append("duplicate entries: " + ", ".join(duplicates))
-    if missing:
-        errors.append("missing modules: " + ", ".join(missing))
-    if unknown:
-        errors.append("unknown modules: " + ", ".join(unknown))
-    if errors:
-        raise BuildError(
-            f"{WEB_MODULE_ORDER_PATH.relative_to(ROOT)} does not match "
-            f"{MODULES_DIR.relative_to(ROOT)}: " + "; ".join(errors)
-        )
-    validate_web_module_dependencies(order)
-    return order
-
-
-def web_module_requires(path):
-    text = path.read_text()
-    requires = []
-    for match in WEB_MODULE_REQUIRES_RE.finditer(text):
-        raw = match.group(1).strip()
-        if not raw or raw.lower() == "none":
-            continue
-        for name in raw.split(","):
-            name = name.strip()
-            if name:
-                requires.append(name)
-    return requires
-
-
-def validate_web_module_dependencies(order):
-    order_set = set(order)
-    seen = set()
-    errors = []
-    for name in order:
-        path = MODULES_DIR / f"{name}.js"
-        for dependency in web_module_requires(path):
-            if dependency == name:
-                errors.append(f"{name} cannot require itself")
-            elif dependency not in order_set:
-                errors.append(f"{name} requires unknown module {dependency}")
-            elif dependency not in seen:
-                errors.append(f"{name} requires {dependency}, but it is listed later in web_modules.json")
-        seen.add(name)
-    if errors:
-        raise BuildError("Invalid web module dependency order:\n  " + "\n  ".join(errors))
-
-
-def build_config_block(slug, cfg):
-    cfg_lines = json.dumps(cfg, indent=2).splitlines()
-    cfg_body = "\n".join("  " + line for line in cfg_lines[1:])
-    return (
-        f'  var DEVICE_ID = "{slug}";\n'
-        f"  var CFG = {cfg_lines[0]}\n"
-        f"{cfg_body};\n"
-    )
 
 
 def build_web_devices():
@@ -1510,72 +1436,6 @@ def load_timezone_options():
     return options
 
 
-def load_button_types():
-    if not TYPES_DIR.is_dir():
-        return ""
-    files = sorted(TYPES_DIR.glob("*.js"))
-    if not files:
-        return ""
-    chunks = []
-    for f in files:
-        chunks.append(f"  // --- type: {f.stem} ---")
-        for line in f.read_text().rstrip().splitlines():
-            chunks.append(f"  {line}" if line.strip() else "")
-    return "\n".join(chunks) + "\n"
-
-
-def load_web_modules():
-    chunks = []
-    for name in load_web_module_order():
-        path = MODULES_DIR / f"{name}.js"
-        if not path.exists():
-            raise BuildError(f"Missing web module: {path.relative_to(ROOT)}")
-        chunks.append(f"  // --- module: {name} ---")
-        for line in path.read_text().rstrip().splitlines():
-            chunks.append(f"  {line}" if line.strip() else "")
-    return "\n".join(chunks) + "\n"
-
-
-def replace_marked_block(source_text, start_tag, end_tag, new_content):
-    pattern = re.compile(
-        r"(^[^\n]*" + re.escape(start_tag) + r"[^\n]*\n)"
-        r"(.*?)"
-        r"(^[^\n]*" + re.escape(end_tag) + r"[^\n]*$)",
-        re.MULTILINE | re.DOTALL,
-    )
-    m = pattern.search(source_text)
-    if not m:
-        return None
-    return source_text[: m.start(2)] + new_content + source_text[m.start(3) :]
-
-
-def replace_types(source_text):
-    replaced = replace_marked_block(source_text, TYPES_START, TYPES_END, load_button_types())
-    if replaced is None:
-        return source_text
-    return replaced
-
-
-def replace_modules(source_text):
-    replaced = replace_marked_block(source_text, MODULES_START, MODULES_END, load_web_modules())
-    if replaced is None:
-        raise ValueError(f"Module markers not found: {MODULES_START} / {MODULES_END}")
-    return replaced
-
-
-def replace_config(source_text, slug, cfg):
-    pattern = re.compile(
-        r"(^[^\n]*" + re.escape(CONFIG_START) + r"[^\n]*\n)"
-        r"(.*?)"
-        r"(^[^\n]*" + re.escape(CONFIG_END) + r"[^\n]*$)",
-        re.MULTILINE | re.DOTALL,
-    )
-    m = pattern.search(source_text)
-    if not m:
-        raise ValueError(f"Config markers not found: {CONFIG_START} / {CONFIG_END}")
-    return source_text[: m.start(2)] + build_config_block(slug, cfg) + source_text[m.start(3) :]
-
-
 def esbuild_cmd():
     """Return an esbuild command path, preferring the repo-installed binary."""
     local = ROOT / "node_modules" / ".bin" / ("esbuild.cmd" if sys.platform == "win32" else "esbuild")
@@ -1585,20 +1445,6 @@ def esbuild_cmd():
     if found:
         return found
     raise RuntimeError("esbuild not found. Run 'npm ci' before building www.js outputs.")
-
-
-def minify_js(source_text):
-    """Minify generated web UI JavaScript with esbuild."""
-    result = subprocess.run(
-        [esbuild_cmd(), "--loader=js", "--minify"],
-        input=source_text,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip() or "esbuild failed")
-    return result.stdout
 
 
 def build_model_generated_js():
@@ -1647,17 +1493,38 @@ def sync_web_model(check_only=False):
     return dirty
 
 
-def build_www(check_only=False):
+def build_www(check_only=False, output_dir=None):
     """Build per-device www.js from the single source template."""
     devices = build_web_devices()
-    source_text = WWW_SOURCE.read_text()
-    source_text = replace_types(source_text)
-    source_text = replace_modules(source_text)
+    temporary_root = None
+    if output_dir is None:
+        temporary_root = tempfile.TemporaryDirectory(prefix="espcontrol-www-")
+        build_root = Path(temporary_root.name)
+    else:
+        build_root = Path(output_dir).resolve()
+        build_root.mkdir(parents=True, exist_ok=True)
+
+    result = subprocess.run(
+        ["node", str(ROOT / "scripts" / "build_web_bundle.js")],
+        input=json.dumps({"outputDir": str(build_root), "devices": devices}),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        if temporary_root:
+            temporary_root.cleanup()
+        raise BuildError(result.stderr.strip() or "esbuild failed while building web bundles")
+
+    if output_dir is not None:
+        print(f"Built {len(devices)} www.js bundle(s) in {build_root}")
+        return []
+
     dirty = []
 
-    for slug, cfg in devices.items():
+    for slug in devices:
         output_path = WWW_OUTPUT_DIR / slug / "www.js"
-        generated = minify_js(replace_config(source_text, slug, cfg))
+        generated = (build_root / slug / "www.js").read_text()
 
         if output_path.exists():
             current = output_path.read_text()
@@ -1675,6 +1542,8 @@ def build_www(check_only=False):
         print("www.js outputs are out of date. Run 'python scripts/build.py www' to fix:")
         for slug in dirty:
             print(f"  docs/public/webserver/{slug}/www.js")
+    if temporary_root:
+        temporary_root.cleanup()
     return dirty
 
 
@@ -1685,6 +1554,13 @@ def build_www(check_only=False):
 def main():
     args = sys.argv[1:]
     check_only = "--check" in args
+    temporary_output = None
+    if "--temporary-output" in args:
+        index = args.index("--temporary-output")
+        if index + 1 >= len(args):
+            raise BuildError("--temporary-output requires a directory")
+        temporary_output = args[index + 1]
+        del args[index:index + 2]
     commands = [a for a in args if a != "--check"]
 
     if not commands:
@@ -1761,7 +1637,7 @@ def main():
                 else:
                     print(f"Synced {len(dirty)} web model output(s).")
             elif cmd == "www":
-                dirty = build_www(check_only=check_only)
+                dirty = build_www(check_only=check_only, output_dir=temporary_output)
                 if check_only and dirty:
                     exit_code = 1
                 elif not dirty:

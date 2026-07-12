@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 const zlib = require("zlib");
-const { loadBundledWebSource } = require("./web_source");
+const { freshWebOutputDir, loadBuiltWebSource } = require("./web_source");
 
 const ROOT = path.resolve(__dirname, "..");
 const FIXTURE_PATH = path.join(ROOT, "compatibility", "fixtures", "web_migration_baseline.json");
@@ -30,7 +30,7 @@ function loadRuntime() {
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
-  vm.runInContext(loadBundledWebSource(), sandbox, { filename: "web-migration-baseline.js" });
+  vm.runInContext(loadBuiltWebSource(), sandbox, { filename: "web-migration-baseline.js" });
   return sandbox;
 }
 
@@ -91,8 +91,12 @@ assert.deepStrictEqual(Array.from(hooks.voiceServicesPostUrls(true)), fixture.po
 assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(30)), fixture.postUrls.coverArtDelay30,
   "cover-art fallback request ordering changed");
 
+const freshOutput = freshWebOutputDir();
 for (const slug of fixture.deviceProfiles) {
-  const bytes = fs.readFileSync(path.join(WEB_OUTPUT_DIR, slug, "www.js"));
+  const bytes = fs.readFileSync(path.join(freshOutput, slug, "www.js"));
+  const source = bytes.toString("utf8");
+  assert(source.startsWith("(()=>{"), `${slug}: bundle must remain a normal browser IIFE`);
+  assert(!/\b(?:import|export)\s/.test(source), `${slug}: bundle must not require module script loading`);
   assert.deepStrictEqual({ minified: bytes.length, gzip: zlib.gzipSync(bytes, { level: 9, mtime: 0 }).length },
     fixture.bundleSizes[slug], `${slug}: minified or compressed migration baseline changed`);
 }

@@ -5,7 +5,7 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { loadBundledWebSource } = require("./web_source");
+const { loadBuiltWebSource } = require("./web_source");
 
 const ROOT = path.resolve(__dirname, "..");
 const SOURCE = path.join(ROOT, "src", "webserver", "entry.js");
@@ -31,7 +31,7 @@ function loadHooks(search) {
   };
   sandbox.window = sandbox;
   vm.createContext(sandbox);
-  vm.runInContext(loadBundledWebSource(), sandbox, { filename: SOURCE });
+  vm.runInContext(loadBuiltWebSource(), sandbox, { filename: SOURCE });
   return sandbox.__ESPCONTROL_TEST_HOOKS__.config;
 }
 
@@ -744,7 +744,7 @@ assert.deepStrictEqual({
   grid: Array.from(importedPlainOrder.grid),
   sizes: Object.assign({}, importedPlainOrder.sizes),
 }, {
-  grid: [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  grid: [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   sizes: {},
 }, "same-size imports clear stale button sizing");
 const importedSizedOrder = hooks.importedButtonOrderFor("1d,2,3", {});
@@ -2225,29 +2225,29 @@ const imageLimitSnapshot = {
   buttons: [imageCardForLimit, imageCardForLimit, switchCardForImageLimit, imageCardForLimit],
   subpages: {
     4: {
-      grid: [1, 2, 0],
-      buttons: [imageCardForLimit, imageCardForLimit, imageCardForLimit],
+      grid: [1, 2, 3, 4, 0],
+      buttons: [imageCardForLimit, imageCardForLimit, imageCardForLimit, imageCardForLimit],
     },
   },
 };
-assert.strictEqual(hooks.imageCardLimit(), 4, "image card editor limit matches firmware downloader slots");
-assert.strictEqual(hooks.imageCardCountForTest(imageLimitSnapshot), 4, "image card count spans main page and subpages");
+assert.strictEqual(hooks.imageCardLimit(), 6, "image card editor limit matches the built device profile");
+assert.strictEqual(hooks.imageCardCountForTest(imageLimitSnapshot), 6, "image card count spans main page and subpages");
 assert.strictEqual(hooks.imageCardCandidateAllowedForTest(imageLimitSnapshot, {
   isSub: false,
-  slot: 3,
+  slot: 5,
   button: imageCardForLimit,
-}), false, "saving a fifth image card on the main page is blocked");
+}), false, "saving a seventh image card on the main page is blocked");
 assert.strictEqual(hooks.imageCardCandidateAllowedForTest(imageLimitSnapshot, {
   isSub: true,
   homeSlot: 4,
-  slot: 3,
+  slot: 5,
   button: imageCardForLimit,
-}), false, "saving a fifth image card on a subpage is blocked");
+}), false, "saving a seventh image card on a subpage is blocked");
 assert.strictEqual(hooks.imageCardCandidateAllowedForTest(imageLimitSnapshot, {
   isSub: false,
   slot: 2,
   button: switchCardForImageLimit,
-}), true, "replacing an existing image card frees a firmware slot");
+}), true, "saving a non-image card does not consume a firmware image slot");
 assertButtonRoundTrip(hooks, "image card default options", {
   entity: "camera.front_door",
   label: "",
