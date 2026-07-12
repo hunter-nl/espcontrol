@@ -892,6 +892,29 @@ async function assertSettingsPage(page, label, options = {}) {
       ["2.12.8", "2.12.9"],
       `${label}: WiFi panel should show current and available versions`,
     );
+    assert.strictEqual(
+      await firmwareCard
+        .locator(".sp-fw-overview .sp-fw-actions")
+        .evaluate((node) => getComputedStyle(node).justifyContent),
+      "flex-end",
+      `${label}: firmware actions should align with the version values`,
+    );
+    await page.evaluate(() => window.__seedEspState([{
+      id: "update-firmware__update",
+      state: "INSTALLING",
+      current_version: "v1.12.0",
+      latest_version: "v1.13.0",
+    }]));
+    assert.strictEqual(
+      await firmwareCard.locator(".sp-fw-overview .sp-fw-btn").innerText(),
+      "Installing…",
+      `${label}: install progress should stay in the action button`,
+    );
+    assert.strictEqual(
+      await firmwareCard.locator(".sp-fw-overview .sp-fw-status").innerText(),
+      "",
+      `${label}: install progress should not be duplicated below the action`,
+    );
   }
   const clockBarCard = page
     .locator("#sp-settings .card")
