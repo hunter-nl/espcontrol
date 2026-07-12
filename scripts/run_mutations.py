@@ -43,14 +43,18 @@ def main() -> int:
             raise SystemExit(f"Invalid mutation entry: {mutation_id}")
 
         with tempfile.TemporaryDirectory(prefix=f"espcontrol-{mutation_id}-") as directory:
+            commands = [("replacement", entry["command"])]
+            if entry.get("legacy_command"):
+                commands.append(("legacy", entry["legacy_command"]))
             baseline_copy = Path(directory) / "baseline"
             copy_tracked_files(baseline_copy)
-            baseline = subprocess.run(entry["command"], cwd=baseline_copy, check=False)
-            if baseline.returncode != 0:
-                raise SystemExit(
-                    f"{mutation_id}: replacement check failed before mutation "
-                    f"(exit {baseline.returncode})"
-                )
+            for label, command in commands:
+                baseline = subprocess.run(command, cwd=baseline_copy, check=False)
+                if baseline.returncode != 0:
+                    raise SystemExit(
+                        f"{mutation_id}: {label} check failed before mutation "
+                        f"(exit {baseline.returncode})"
+                    )
 
             mutated_copy = Path(directory) / "mutated"
             copy_tracked_files(mutated_copy)
@@ -63,9 +67,10 @@ def main() -> int:
             )
             if applied.returncode:
                 raise SystemExit(f"{mutation_id}: patch did not apply\n{applied.stderr}")
-            mutated = subprocess.run(entry["command"], cwd=mutated_copy, check=False)
-            if mutated.returncode == 0:
-                raise SystemExit(f"{mutation_id}: replacement check did not catch mutation")
+            for label, command in commands:
+                mutated = subprocess.run(command, cwd=mutated_copy, check=False)
+                if mutated.returncode == 0:
+                    raise SystemExit(f"{mutation_id}: {label} check did not catch mutation")
             print(f"{mutation_id}: caught")
 
     print(f"Mutation checks passed ({len(entries)} registered).")
