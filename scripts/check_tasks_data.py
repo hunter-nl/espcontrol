@@ -67,7 +67,7 @@ WEB_SOURCE_HELPERS = ("scripts/web_source.js", "scripts/web_modules.json")
 # Declaration order is the stable tie-breaker used by the planner.
 TASKS = (
     task("generated", ("python3", "scripts/build.py", "--check"), profiles=PRODUCT,
-         domains=("product", "firmware", "web", "docs"), inputs=("common/**", "devices/**", "src/webserver/**", "compatibility/**", "scripts/build.py", "scripts/web_modules.json"),
+         domains=("product", "firmware", "web", "docs"), inputs=("common/**", "devices/**", "builds/**", "components/espcontrol/**", "src/webserver/**", "compatibility/**", "scripts/build.py", "scripts/web_modules.json"),
          generated_inputs=("components/espcontrol/*_generated.h", "docs/generated/**", "docs/public/**", "product/product_snapshot.json"),
          parallel_safe=True, cache_tools=("node_modules/.bin/esbuild",)),
     task("device-manifest", ("python3", "scripts/check_device_manifest.py"),

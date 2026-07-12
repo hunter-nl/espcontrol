@@ -1256,6 +1256,8 @@ def self_test() -> None:
         raise AssertionError("generated-output cache keys omit the esbuild tool version")
     if (
         "compatibility/**" not in registry["generated"].inputs
+        or "builds/**" not in registry["generated"].inputs
+        or "components/espcontrol/**" not in registry["generated"].inputs
         or "product/product_snapshot.json" not in registry["generated"].generated_inputs
     ):
         raise AssertionError("generated-output cache keys omit product inputs or outputs")
