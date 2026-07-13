@@ -64,7 +64,7 @@ FAST = ("fast", "ci", "all")
 CI = ("ci", "all")
 RELEASE = ("release",)
 MAINTAINER_DOCS = ("dev-docs/**", "DEVELOPERS.md", "README.md", "product/README.md")
-WEB_SOURCE_HELPERS = ("scripts/web_source.js", "scripts/build_web_bundle.js", "scripts/web_modules.json")
+WEB_SOURCE_HELPERS = ("scripts/web_source.js", "scripts/build_web_bundle.js")
 WEB_BUNDLE_INPUTS = ("devices/**", "common/addon/time.yaml")
 WEB_BUNDLE_BUILD_HELPERS = (
     "scripts/build.py",
@@ -88,7 +88,7 @@ TASKS = (
              "common/config/card_normalization_fixtures.json",
              "common/config/*_card_normalization_fixtures.json",
              "scripts/generate_saved_config_parser_test.py",
-             "src/webserver/modules/config_codec.js",
+             "src/webserver/application/config_codec.ts",
          ), parallel_safe=True,
          cache="never"),
     task("web-unit", ("node", "--test", "tests/web/unit/**/*.test.js"), profiles=FAST,
@@ -99,7 +99,7 @@ TASKS = (
          inputs=("tests/mutations/**", "tests/firmware/**", "tests/web/unit/**", "scripts/run_mutations.py"),
          cache="never"),
     task("generated", ("python3", "scripts/build.py", "--check"), profiles=PRODUCT,
-         domains=("product", "firmware", "web", "docs"), inputs=("common/**", "devices/**", "builds/**", "components/espcontrol/**", "src/webserver/**", "compatibility/**", "scripts/build.py", "scripts/build_web_bundle.js", "scripts/web_source.js", "scripts/web_modules.json"),
+         domains=("product", "firmware", "web", "docs"), inputs=("common/**", "devices/**", "builds/**", "components/espcontrol/**", "src/webserver/**", "compatibility/**", "scripts/build.py", "scripts/build_web_bundle.js", "scripts/web_source.js"),
          generated_inputs=("components/espcontrol/*_generated.h", "docs/generated/**", "docs/public/**", "product/product_snapshot.json"),
          parallel_safe=True, cache="never"),
     task("device-manifest", ("python3", "scripts/check_device_manifest.py"),
@@ -122,7 +122,7 @@ TASKS = (
     task("dev-docs", ("python3", "scripts/check_dev_docs.py", "--check"), profiles=FAST,
          domains=("docs",), inputs=MAINTAINER_DOCS + (
              "scripts/check_dev_docs.py", "package.json", ".github/workflows/**",
-             "common/config/card_contract.json", "src/webserver/types/**",
+             "common/config/card_contract.json", "src/webserver/cards/**",
              "components/espcontrol/button_grid*.h",
          ), cache_inputs=(
              "common/**", "components/**", "compatibility/**", "devices/**",

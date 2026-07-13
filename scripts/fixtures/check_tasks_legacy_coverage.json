@@ -1,14 +1,16 @@
 {
   "product": [
     "generated", "device-manifest-output", "product-schema", "product-snapshot",
-    "backup-contract", "model-contract", "web-smoke", "firmware-card-runtime",
+    "backup-contract", "model-contract", "state-contract", "device-api", "preview-features",
+    "web-smoke", "firmware-card-runtime",
     "device-profiles", "release-confidence", "card-contract-outputs", "device-slots",
     "public-firmware-script"
   ],
   "fast": [
     "firmware-tests", "web-unit", "generated", "device-manifest", "device-manifest-output", "product-schema",
     "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
-    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor", "cover-art-contract",
+    "pr-testing-guidance", "config", "backup-contract", "model-contract", "state-contract", "device-api",
+    "preview-features", "memory-monitor", "cover-art-contract",
     "web-smoke", "types", "firmware-parser", "firmware-modals", "firmware-display-tokens",
     "firmware-ha-bindings", "firmware-card-runtime", "firmware-release", "device-matrix",
     "device-profiles", "release-confidence", "release-changelog", "card-contract-outputs",
@@ -17,7 +19,8 @@
   "ci": [
     "firmware-tests", "web-unit", "generated", "device-manifest", "device-manifest-output", "product-schema",
     "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
-    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor", "cover-art-contract",
+    "pr-testing-guidance", "config", "backup-contract", "model-contract", "state-contract", "device-api",
+    "preview-features", "memory-monitor", "cover-art-contract",
     "web-smoke", "types", "firmware-parser", "firmware-modals", "firmware-display-tokens",
     "firmware-ha-bindings", "firmware-card-runtime", "firmware-release", "device-matrix",
     "device-profiles", "release-confidence", "release-changelog", "card-contract-outputs",
@@ -26,7 +29,8 @@
   "all": [
     "firmware-tests", "web-unit", "generated", "device-manifest", "device-manifest-output", "product-schema",
     "product-snapshot", "local-artifacts", "local-esphome", "dev-docs", "pr-process",
-    "pr-testing-guidance", "config", "backup-contract", "model-contract", "memory-monitor", "cover-art-contract",
+    "pr-testing-guidance", "config", "backup-contract", "model-contract", "state-contract", "device-api",
+    "preview-features", "memory-monitor", "cover-art-contract",
     "web-smoke", "types", "firmware-parser", "firmware-modals", "firmware-display-tokens",
     "firmware-ha-bindings", "firmware-card-runtime", "firmware-release", "device-matrix",
     "device-profiles", "release-confidence", "release-changelog", "card-contract-outputs",
@@ -35,7 +39,8 @@
   ],
   "release": [
     "generated", "device-manifest-output", "product-schema", "product-snapshot",
-    "backup-contract", "model-contract", "web-smoke", "firmware-card-runtime",
+    "backup-contract", "model-contract", "state-contract", "device-api", "preview-features",
+    "web-smoke", "firmware-card-runtime",
     "firmware-release", "device-profiles", "release-confidence", "release-changelog",
     "card-contract-outputs", "device-slots", "public-firmware-script", "docs-build"
   ]

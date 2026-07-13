@@ -52,7 +52,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     ),
     SourceTruthRow(
         "common/config/entity_names.json",
-        ("common/config/entity_names.yaml", "src/webserver/modules/entity_catalog.js"),
+        ("common/config/entity_names.yaml", "src/webserver/generated/entity_catalog.ts"),
         "python3 scripts/build.py entities",
         "`python3 scripts/build.py entities --check` and `npm run check:product`",
     ),
@@ -79,7 +79,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
         (
             "generated sections inside `common/assets/icon_glyphs.yaml`",
             "generated sections inside `components/espcontrol/icons.h`",
-            "generated sections inside `src/webserver/entry.js`",
+            "`src/webserver/generated/icons.ts`",
         ),
         "python3 scripts/build.py icons",
         "`python3 scripts/build.py icons --check` and `npm run check:product`",
@@ -175,7 +175,7 @@ CHECK_MATRIX_ROWS: tuple[CheckMatrixRow, ...] = (
         "`npm run check:product` when firmware, web, backup, or release-facing generated output changes",
     ),
     CheckMatrixRow(
-        "`src/webserver/`, `scripts/web_modules.json`",
+        "`src/webserver/`",
         "Web configurator behavior, settings panels, preview rendering, backup UI, served `www.js` bundles",
         "`npm run check:web-smoke`",
         "`npm run check:web-browser-smoke` for browser behavior; `npm run check:product` before release-facing commits",
@@ -187,7 +187,7 @@ CHECK_MATRIX_ROWS: tuple[CheckMatrixRow, ...] = (
         "`npm run check:fast` or compile affected firmware when display layout or device behavior changes",
     ),
     CheckMatrixRow(
-        "`src/webserver/modules/config_codec.js`, `components/espcontrol/button_grid_config.h`, `compatibility/fixtures/product_compatibility.json`",
+        "`src/webserver/application/config_codec.ts`, `components/espcontrol/button_grid_config.h`, `compatibility/fixtures/product_compatibility.json`",
         "Saved card strings, backup/import/export shape, migration compatibility",
         "`npm run check:backup-contract` and `npm run check:firmware-parser`",
         "`npm run check:product` when compact config, backup, or migration behavior changes",
@@ -311,7 +311,7 @@ def package_scripts() -> set[str]:
 
 def web_registration_map() -> dict[str, str]:
     out: dict[str, str] = {}
-    for path in sorted((ROOT / "src/webserver/types").glob("*.js")):
+    for path in sorted((ROOT / "src/webserver/cards").glob("*.ts")):
         text = path.read_text()
         for match in re.finditer(r"registerButtonType\(\s*([\"'])(.*?)\1", text):
             out[match.group(2)] = rel(path)
@@ -418,7 +418,7 @@ def generated_card_map() -> str:
         + markdown_table(("Public card page", "Covered saved type"), public_rows),
         "## Generated Matrix\n\n"
         "This table is generated from the card contract, `registerButtonType(...)` calls in "
-        "`src/webserver/types/`, and matching firmware header references under "
+        "`src/webserver/cards/`, and matching firmware header references under "
         "`components/espcontrol/`.\n\n"
         + markdown_table((
             "Type",

@@ -88,11 +88,12 @@ assert.deepStrictEqual(Array.from(hooks.voiceServicesPostUrls(true)), fixture.po
 assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(30)), fixture.postUrls.coverArtDelay30,
   "cover-art fallback request ordering changed");
 
-const freshOutput = freshWebOutputDir();
+const freshOutput = freshWebOutputDir({ testHooks: false });
 for (const slug of fixture.deviceProfiles) {
   const bytes = fs.readFileSync(path.join(freshOutput, slug, "www.js"));
   const source = bytes.toString("utf8");
-  assert(source.startsWith("(()=>{"), `${slug}: bundle must remain a normal browser IIFE`);
+  assert(/^\s*(?:["']use strict["'];)?\(\(\)=>\{/.test(source),
+    `${slug}: bundle must remain a normal browser IIFE`);
   assert(!/\b(?:import|export)\s/.test(source), `${slug}: bundle must not require module script loading`);
   assert.deepStrictEqual({ minified: bytes.length, gzip: zlib.gzipSync(bytes, { level: 9, mtime: 0 }).length },
     fixture.bundleSizes[slug], `${slug}: minified or compressed migration baseline changed`);

@@ -1259,7 +1259,7 @@ def self_test() -> None:
     ):
         raise AssertionError("browser cache policy omits required web, layout, or environment inputs")
     for task_id in ("config", "backup-contract", "web-smoke"):
-        if not {"scripts/web_source.js", "scripts/web_modules.json"} <= set(registry[task_id].inputs):
+        if not {"scripts/web_source.js", "scripts/build_web_bundle.js"} <= set(registry[task_id].inputs):
             raise AssertionError(f"{task_id} cache keys omit shared web-source helpers")
     for task_id in ("config", "model-contract"):
         if "compatibility/fixtures/product_compatibility.json" not in registry[task_id].inputs:
@@ -1938,7 +1938,7 @@ def self_test() -> None:
         ):
             raise AssertionError(f"{maintainer_doc} does not select maintainer documentation checks")
 
-    web_selected, _, web_fallback = changed_plan(["src/webserver/modules/example.js"])
+    web_selected, _, web_fallback = changed_plan(["src/webserver/application/example.ts"])
     if web_fallback is not None or "web-smoke" not in task_ids(web_selected):
         raise AssertionError("web changes do not select web checks")
 
@@ -1956,7 +1956,7 @@ def self_test() -> None:
         "components/espcontrol/button_grid_config_parser.h",
         "common/config/card_normalization_fixtures.json",
         "scripts/generate_saved_config_parser_test.py",
-        "src/webserver/modules/config_codec.js",
+        "src/webserver/application/config_codec.ts",
     ):
         saved_config_selected, _, _ = changed_plan([saved_config_input])
         if "firmware-tests" not in task_ids(saved_config_selected):

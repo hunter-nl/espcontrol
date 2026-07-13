@@ -76,7 +76,7 @@ jobs:
           if git diff --quiet -- \
             common/assets/icon_glyphs.yaml \
             components/espcontrol/icons.h \
-            src/webserver/entry.js; then
+            src/webserver/entry.ts; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -105,7 +105,7 @@ jobs:
           if git diff --quiet -- \
             common/assets/icon_glyphs.yaml \
             components/espcontrol/icons.h \
-            src/webserver/entry.js \
+            src/webserver/entry.ts \
             docs/public/webserver/*/www.js; then
             echo "Generated icon files are already up to date."
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -117,7 +117,7 @@ jobs:
           git add \
             common/assets/icon_glyphs.yaml \
             components/espcontrol/icons.h \
-            src/webserver/entry.js \
+            src/webserver/entry.ts \
             docs/public/webserver/*/www.js
           git commit -m "Build generated icon files"
           git push

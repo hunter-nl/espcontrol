@@ -79,7 +79,7 @@ or upstream project instead.
 | `common/` | Shared ESPHome YAML, theme, screens, addons, config, assets, icon lists, and glyph sets. |
 | `common/config/card_contract.json` | Source of truth for card metadata, options, defaults, generated web constants, and generated firmware constants. |
 | `components/espcontrol/*.h` | Header-only C++ for the on-device LVGL UI, grid, card faces, modals, parser, and Home Assistant bindings. |
-| `src/webserver/` | Web configurator source. `types/<card>.js` holds card-specific panels; `modules/` holds shared setup-page logic. |
+| `src/webserver/` | TypeScript web configurator source. `cards/<card>.ts` holds card-specific registrations; `application/` holds shared setup-page logic. |
 | `devices/<slug>/` | Per-device ESPHome entry points, package manifests, fonts, display drivers, pins, and local development config. |
 | `docs/public/webserver/<slug>/www.js` | Generated configurator bundles served to devices at runtime. |
 | `scripts/` | Build scripts, generators, validators, smoke checks, and release helpers. |

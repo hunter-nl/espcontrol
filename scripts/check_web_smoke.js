@@ -5,24 +5,14 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { freshWebOutputDir, loadBuiltWebSource, webModuleDependencyErrors } = require("./web_source");
+const { freshWebOutputDir, loadBuiltWebSource } = require("./web_source");
 
 const ROOT = path.resolve(__dirname, "..");
-const SOURCE = path.join(ROOT, "src", "webserver", "entry.js");
+const SOURCE = path.join(ROOT, "src", "webserver", "entry.ts");
 const DEVICE_MANIFEST = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = path.join(ROOT, "docs", "public", "webserver");
 const ALL_ROTATIONS = ["0", "90", "180", "270"];
 const REQUIRED_HOOK_GROUPS = ["config", "preview", "backup", "settings"];
-
-assert.deepStrictEqual(webModuleDependencyErrors(
-  ["state", "app"],
-  (name) => name === "app" ? "// @web-module-requires: state" : "// @web-module-requires: none",
-), [], "web module dependencies accept prerequisites listed earlier");
-assert.deepStrictEqual(webModuleDependencyErrors(
-  ["app", "state"],
-  (name) => name === "app" ? "// @web-module-requires: state" : "// @web-module-requires: none",
-), ["app requires state, but it is listed later in web_modules.json"],
-"web module dependencies reject unsafe manifest reordering");
 
 function createWebSandbox() {
   const domEvents = [];

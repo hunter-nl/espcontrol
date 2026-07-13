@@ -26,7 +26,7 @@ The setup page stores button configuration in ESPHome text entities, usually
 named `Button N Config`. Firmware reads those strings and parses them into
 `ParsedCfg` in `components/espcontrol/button_grid_config.h`.
 
-The web-side equivalent lives in `src/webserver/modules/config_codec.js`.
+The web-side equivalent lives in `src/webserver/application/config_codec.ts`.
 
 When saved config changes, update both sides and keep old config readable when
 possible.
@@ -37,7 +37,7 @@ Several places intentionally clear unknown `options` to prevent stale settings
 from leaking across card types. If a card uses `options`, make sure it is
 preserved in all relevant places:
 
-- `src/webserver/modules/config_codec.js`
+- `src/webserver/application/config_codec.ts`
   - normalization while editing
   - serialization before writing back to the device
 - `components/espcontrol/button_grid_config.h`
@@ -45,8 +45,8 @@ preserved in all relevant places:
 
 This means there are three wipe points:
 
-1. `normalizeButtonConfig` in `src/webserver/modules/config_codec.js`.
-2. `buttonConfigFields` in `src/webserver/modules/config_codec.js`.
+1. `normalizeButtonConfig` in `src/webserver/application/config_codec.ts`.
+2. `buttonConfigFields` in `src/webserver/application/config_codec.ts`.
 3. `parse_cfg` in `components/espcontrol/button_grid_config.h`.
 
 If an option appears to save in the setup page but disappears after reload, or
@@ -87,8 +87,8 @@ Treat saved card config as durable user data.
 | Concern | Typical path |
 |---|---|
 | Type metadata and defaults | `common/config/card_contract.json` |
-| Web settings and preview | `src/webserver/types/<type>.js` |
-| Web parsing/serialization | `src/webserver/modules/config_codec.js` |
+| Web settings and preview | `src/webserver/cards/<type>.ts` |
+| Web parsing/serialization | `src/webserver/application/config_codec.ts` |
 | Firmware parsing | `components/espcontrol/button_grid_config.h` |
 | Firmware rendering/runtime | `components/espcontrol/button_grid_<type>.h` |
 | Grid setup/runtime wiring | `components/espcontrol/button_grid_grid.h` |
@@ -100,9 +100,9 @@ A card type usually spans the contract, setup page, and firmware. Work in this
 order:
 
 1. Register the card in `common/config/card_contract.json`.
-2. Add web settings and preview behavior in `src/webserver/types/<type>.js`.
+2. Add web settings and preview behavior in `src/webserver/cards/<type>.ts`.
 3. If it stores options, update web parsing and option preservation in
-   `src/webserver/modules/config_codec.js`.
+   `src/webserver/application/config_codec.ts`.
 4. Add firmware rendering/runtime behavior in
    `components/espcontrol/button_grid_<type>.h`.
 5. Include the new header from `components/espcontrol/button_grid.h`.
@@ -143,7 +143,7 @@ Regenerate the shared outputs:
 python3 scripts/build.py
 ```
 
-Add option helpers in `src/webserver/modules/config_codec.js`:
+Add option helpers in `src/webserver/application/config_codec.ts`:
 
 ```js
 function helloName(b) {
@@ -159,7 +159,7 @@ function setHelloName(b, name) {
 
 Also add `"hello"` to all option-preservation exclusions listed above.
 
-Create `src/webserver/types/hello.js`:
+Create `src/webserver/cards/hello.ts` and export its registration function:
 
 ```js
 var HELLO_CARD_METADATA = {
@@ -173,6 +173,7 @@ var HELLO_CARD_METADATA = {
   preview: { badge: "hand-wave" },
 };
 
+export function registerHelloCardTypes(): void {
 registerButtonType("hello", {
   label: function () { return cardContractCardLabel("hello"); },
   allowInSubpage: function () { return cardContractAllowInSubpage("hello"); },
@@ -215,6 +216,7 @@ registerButtonType("hello", {
     field.input.addEventListener("blur", save);
   },
 });
+}
 ```
 
 Add the firmware tile in `components/espcontrol/button_grid_hello.h`:
