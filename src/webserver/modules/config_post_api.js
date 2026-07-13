@@ -1,5 +1,5 @@
 // ── Config Post API ───────────────────────────────────────────────────
-// @web-module-requires: state, entity_catalog, entity_state, model_generated, api, config_codec
+// @web-module-requires: state, entity_catalog, entity_state, api, config_codec
 
 function saveButtonConfig(slot) {
   var b = state.buttons[slot - 1];

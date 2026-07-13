@@ -23,6 +23,7 @@ export interface CardOptionSpec {
   defaultValueByMode?: Readonly<Record<string, string>>;
   storage?: readonly string[];
   hidden?: boolean;
+  docsHidden?: boolean;
   migration?: "drop";
   supportedWhen?: {
     precision?: readonly string[];
@@ -66,6 +67,7 @@ export interface CardTypeSpec {
     alarm?: {
       controlPanelValue: string;
       defaultActions: readonly string[];
+      maxVisibleActions: number;
       actions: readonly {
         value: string;
         label: string;
@@ -77,6 +79,7 @@ export interface CardTypeSpec {
     climate?: {
       defaultLabelDisplay: string;
       defaultNumberDisplay: string;
+      defaultTemperatureStep: string;
       precisionValues: readonly string[];
     };
     cover?: {

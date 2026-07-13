@@ -12,12 +12,14 @@ server. It is written as plain JavaScript modules and bundled into a single
 | `src/webserver/modules/` | Shared state, rendering, API, backup, settings, preview, and codec logic. |
 | `src/webserver/types/` | Card-specific settings panels and previews. |
 | `src/webserver/model/*.ts` | Typed model sources. |
-| `src/webserver/modules/model_generated.js` | Generated web model output. |
+| `src/webserver/generated/card_contract.ts` | Typed card metadata generated from the shared contract. |
 | `scripts/web_modules.json` | Explicit order for shared modules. |
 | `docs/public/webserver/<slug>/www.js` | Generated per-device bundles used for bundled firmware and hosted compatibility. |
 
 Files in `src/webserver/types/` are discovered by the build. Shared files in
 `src/webserver/modules/` must be listed in `scripts/web_modules.json`.
+The TypeScript model and generated card contract are imported directly by the
+bundle build, with no separate JavaScript generation step.
 
 ## Build
 

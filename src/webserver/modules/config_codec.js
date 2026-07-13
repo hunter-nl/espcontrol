@@ -1,5 +1,5 @@
 // ── Subpage helpers ────────────────────────────────────────────────────
-// @web-module-requires: model_generated, card_contract_generated, state, grid
+// @web-module-requires: state, grid
 
 
 function normalizeWithRegisteredCardType(b) {

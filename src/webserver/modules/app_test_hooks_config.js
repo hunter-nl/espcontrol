@@ -2,7 +2,6 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
   registerEspControlTestHookGroup("config", {
     parseButtonConfig: parseButtonConfig,
     serializeButtonConfig: serializeButtonConfig,
-    CARD_CONFIG_FIELDS: CARD_CONFIG_FIELDS,
     cardContractSubpageTypeCode: cardContractSubpageTypeCode,
     cardContractSubpageTypeFromCode: cardContractSubpageTypeFromCode,
     cardContractLargeNumbersSupported: cardContractLargeNumbersSupported,
@@ -256,9 +255,6 @@ if (typeof globalThis !== "undefined" && globalThis.__ESPCONTROL_TEST_HOOKS__) {
       state.subpageSavePending[1] = oldPending;
       return out;
     },
-    parseBackOrderToken: parseBackOrderToken,
-    backOrderToken: backOrderToken,
-    backLabelFromOrder: backLabelFromOrder,
     subpageStateDisplayMode: subpageStateDisplayMode,
     subpageKind: subpageKind,
     buttonConfigNeedsMigration: buttonConfigNeedsMigration,

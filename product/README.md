@@ -30,7 +30,7 @@ Do not hand-edit generated sections or files. Rebuild them with
 
 - `common/config/entity_names.yaml`
 - `src/webserver/modules/entity_catalog.js`
-- `src/webserver/modules/card_contract_generated.js`
+- `src/webserver/generated/card_contract.ts`
 - `components/espcontrol/button_grid_contract_generated.h`
 - `docs/generated/cards/capabilities.md`
 - `docs/generated/screens/*.md`

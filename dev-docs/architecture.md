@@ -32,7 +32,7 @@ full source-to-output ownership table lives in
 
 - `common/config/entity_names.yaml`
 - `src/webserver/modules/entity_catalog.js`
-- `src/webserver/modules/card_contract_generated.js`
+- `src/webserver/generated/card_contract.ts`
 - `components/espcontrol/button_grid_contract_generated.h`
 - `components/espcontrol/i18n_generated.h`
 - `docs/generated/cards/capabilities.md`
@@ -70,7 +70,7 @@ Use `python3 scripts/build.py --check` to confirm generated files are current.
 
 ```text
 common/config/card_contract.json
-  -> src/webserver/modules/card_contract_generated.js
+  -> src/webserver/generated/card_contract.ts
   -> components/espcontrol/button_grid_contract_generated.h
   -> docs/generated/cards/capabilities.md
 

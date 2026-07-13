@@ -1,5 +1,5 @@
 // ── Entity State Helpers ───────────────────────────────────────────────
-// @web-module-requires: state, entity_catalog, card_contract_generated
+// @web-module-requires: state, entity_catalog
 
 function uniquePush(list, value) {
   if (value && list.indexOf(value) === -1) list.push(value);

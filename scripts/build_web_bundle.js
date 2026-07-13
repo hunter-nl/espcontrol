@@ -18,7 +18,50 @@ function replaceDeviceConfig(source) {
   const match = source.match(pattern);
   if (!match) throw new Error("Device config markers are missing from the web entry");
   const replacement = "  var DEVICE_ID = deviceId;\n  var CFG = deviceConfig;\n";
-  return `import { deviceId, deviceConfig } from "./src/webserver/device_config.ts";\n${
+  const directImports = `import { deviceId, deviceConfig } from "./src/webserver/device_config.ts";
+import * as EspControlModel from "./src/webserver/model/index.ts";
+import {
+  configOptionEnabled,
+  configOptionValue,
+  setConfigOption,
+  setConfigOptionValue,
+} from "./src/webserver/model/config_primitives.ts";
+import {
+  CARD_CONFIG_FIELDS,
+  CARD_CONTRACT_BRIGHTNESS_SLIDER_TYPES,
+  CARD_CONTRACT_CARDS,
+  CARD_CONTRACT_FAN_DEFAULT_ICONS,
+  CARD_CONTRACT_FAN_DEFAULT_ICON_ON,
+  CARD_CONTRACT_LARGE_NUMBERS,
+  CARD_CONTRACT_MIGRATION_ALIASES,
+  CARD_CONTRACT_OPTION_NAMES,
+  CARD_CONTRACT_OPTION_SELECT_ACTION,
+  CARD_CONTRACT_OPTION_SELECT_ACTIONS,
+  CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE,
+  CARD_CONTRACT_SUBPAGE_TYPE_CODES,
+  cardContractAllowInSubpage,
+  cardContractCard,
+  cardContractCardKeys,
+  cardContractCardLabel,
+  cardContractDefaultConfig,
+  cardContractDomains,
+  cardContractFanDefaultIcon,
+  cardContractFanDefaultIconOn,
+  cardContractHidden,
+  cardContractIsBrightnessSliderType,
+  cardContractIsFanCardType,
+  cardContractIsOptionSelectAction,
+  cardContractIsOptionSelectType,
+  cardContractLargeNumbersSupported,
+  cardContractMigrationAlias,
+  cardContractOptionName,
+  cardContractOptions,
+  cardContractPickerKey,
+  cardContractSubpageTypeCode,
+  cardContractSubpageTypeFromCode,
+} from "./src/webserver/generated/card_contract.ts";
+`;
+  return `${directImports}${
     source.slice(0, match.index + match[1].length)
   }${replacement}${source.slice(match.index + match[1].length + match[2].length)}`;
 }

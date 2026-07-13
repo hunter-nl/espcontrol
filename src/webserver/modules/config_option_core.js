@@ -1,5 +1,5 @@
 // ── Config Option Core ─────────────────────────────────────────────
-// @web-module-requires: card_contract_generated, state
+// @web-module-requires: state
 
 var SENSOR_STATE_LABELS_OPTION = cardContractOptionName("state_labels");
 var SENSOR_STATE_INPUT_OPTION = cardContractOptionName("state_input");
@@ -51,56 +51,6 @@ var COVER_CONTROL_TABS_OPTION = cardContractOptionName("cover_tabs");
 var CLIMATE_CONTROL_TABS_OPTION = cardContractOptionName("climate_tabs");
 var FAN_CONTROL_TABS_OPTION = cardContractOptionName("fan_tabs");
 var IMAGE_CARD_LIMIT = Math.max(0, parseInt(CFG && CFG.imageCardLimit != null ? CFG.imageCardLimit : 4, 10) || 0);
-function configOptionEnabled(options, name) {
-  var parts = String(options || "").split(",");
-  for (var i = 0; i < parts.length; i++) {
-    if (parts[i] === name) return true;
-  }
-  return false;
-}
-
-function setConfigOption(options, name, enabled) {
-  var parts = String(options || "").split(",");
-  var out = [];
-  var found = false;
-  for (var i = 0; i < parts.length; i++) {
-    var part = parts[i];
-    if (!part) continue;
-    if (part === name) {
-      found = true;
-      if (enabled) out.push(part);
-    } else if (out.indexOf(part) < 0) {
-      out.push(part);
-    }
-  }
-  if (enabled && !found) out.push(name);
-  return out.join(",");
-}
-
-function configOptionValue(options, name) {
-  var prefix = name + "=";
-  var parts = String(options || "").split(",");
-  for (var i = 0; i < parts.length; i++) {
-    var part = parts[i];
-    if (part.indexOf(prefix) === 0) return decodeConfigField(part.substring(prefix.length));
-  }
-  return "";
-}
-
-function setConfigOptionValue(options, name, value) {
-  var prefix = name + "=";
-  var parts = String(options || "").split(",");
-  var out = [];
-  for (var i = 0; i < parts.length; i++) {
-    var part = parts[i];
-    if (!part || part.indexOf(prefix) === 0) continue;
-    if (out.indexOf(part) < 0) out.push(part);
-  }
-  value = String(value || "").trim();
-  if (value) out.push(prefix + encodeConfigField(value));
-  return out.join(",");
-}
-
 function largeNumbersExplicitlyDisabled(options) {
   return configOptionValue(options, SENSOR_LARGE_NUMBERS_OPTION) === SENSOR_LARGE_NUMBERS_OFF_VALUE;
 }

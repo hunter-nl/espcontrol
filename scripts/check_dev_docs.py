@@ -43,7 +43,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     SourceTruthRow(
         "common/config/card_contract.json",
         (
-            "src/webserver/modules/card_contract_generated.js",
+            "src/webserver/generated/card_contract.ts",
             "components/espcontrol/button_grid_contract_generated.h",
             "docs/generated/cards/capabilities.md",
         ),
@@ -98,8 +98,8 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     ),
     SourceTruthRow(
         "src/webserver/model/index.ts",
-        ("src/webserver/modules/model_generated.js",),
-        "python3 scripts/build.py model",
+        ("no intermediate output; imported directly into each web bundle",),
+        "python3 scripts/build.py www",
         "`npm run check:model-contract`",
     ),
     SourceTruthRow(
@@ -226,7 +226,7 @@ CHECK_MATRIX_ROWS: tuple[CheckMatrixRow, ...] = (
         "`src/webserver/model/*.ts`, `src/webserver/contracts/*.ts`",
         "Typed model shape and generated browser model constants",
         "`npm run check:model-contract` and `npm run check:types`",
-        "`npm run check:product` when backup, web, or generated model behavior changes",
+        "`npm run check:product` when backup, web, or model behavior changes",
     ),
     CheckMatrixRow(
         "`docs/`, `dev-docs/`, `DEVELOPERS.md`, `README.md`",

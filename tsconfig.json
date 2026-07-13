@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": false,
     "exactOptionalPropertyTypes": true,
+    "isolatedModules": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
@@ -14,6 +15,7 @@
   "include": [
     "src/webserver/contracts/**/*.ts",
     "src/webserver/device_config.ts",
+    "src/webserver/generated/**/*.ts",
     "src/webserver/model/**/*.ts"
   ]
 }

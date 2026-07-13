@@ -7,11 +7,12 @@ const path = require("path");
 const vm = require("vm");
 const zlib = require("zlib");
 const { freshWebOutputDir, loadBuiltWebSource } = require("./web_source");
+const { loadTypeScriptModule } = require("./load_typescript_module");
 
 const ROOT = path.resolve(__dirname, "..");
 const FIXTURE_PATH = path.join(ROOT, "compatibility", "fixtures", "web_migration_baseline.json");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
-const MODEL_PATH = path.join(ROOT, "src", "webserver", "modules", "model_generated.js");
+const MODEL_PATH = path.join(ROOT, "src", "webserver", "model", "index.ts");
 const WEB_OUTPUT_DIR = path.join(ROOT, "docs", "public", "webserver");
 
 function plain(value) {
@@ -35,11 +36,7 @@ function loadRuntime() {
 }
 
 function loadModel() {
-  const sandbox = {};
-  sandbox.window = sandbox;
-  vm.createContext(sandbox);
-  vm.runInContext(fs.readFileSync(MODEL_PATH, "utf8"), sandbox, { filename: MODEL_PATH });
-  return sandbox.EspControlModel;
+  return loadTypeScriptModule(MODEL_PATH);
 }
 
 const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, "utf8"));

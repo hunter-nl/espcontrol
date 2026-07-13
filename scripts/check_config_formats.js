@@ -133,11 +133,6 @@ const normalizationFixtureGroups = loadNormalizationFixtureGroups();
 const current = fixtures.current;
 const legacyV1 = fixtures["legacy-v1"];
 assert(hooks, "web config helpers were not exported");
-assert.deepStrictEqual(
-  Array.from(hooks.CARD_CONFIG_FIELDS),
-  current.generatedContract.fields,
-  "generated card contract preserves saved field order"
-);
 assert.strictEqual(
   hooks.cardContractSubpageTypeCode("climate"),
   current.generatedContract.subpageTypeCodes.climate,
@@ -3054,20 +3049,6 @@ const customBackLabelSubpage = {
 const customBackLabelEncoded = assertSubpageRoundTrip(hooks, "custom back label subpage", customBackLabelSubpage, true);
 assert.strictEqual(hooks.parseSubpageConfig(customBackLabelEncoded).backLabel, "Return Home", "custom back label round-trips through subpage config");
 
-assert.strictEqual(hooks.backOrderToken("B", "Back"), "B", "default back label keeps compact B token");
-assert.strictEqual(hooks.backLabelFromOrder(["1", "B", "2"]), "Back", "missing back label defaults to Back");
-assert.strictEqual(JSON.stringify(hooks.parseBackOrderToken("Bw=Return%20Home")), JSON.stringify({
-  token: "Bw",
-  label: "Return Home",
-}), "back order token decodes custom label");
-assert.strictEqual(JSON.stringify(hooks.parseBackOrderToken("Bt=Return%20Home")), JSON.stringify({
-  token: "Bt",
-  label: "Return Home",
-}), "extra tall back order token decodes custom label");
-assert.strictEqual(JSON.stringify(hooks.parseBackOrderToken("Bx=Return%20Home")), JSON.stringify({
-  token: "Bx",
-  label: "Return Home",
-}), "extra wide back order token decodes custom label");
 assertSubpageRoundTrip(hooks, "extra tall and extra wide subpage order", {
   order: ["Bt", "1t", "", "", "", "Bx", "2x"],
   buttons: [

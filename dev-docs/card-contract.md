@@ -16,7 +16,7 @@ Each card entry can define:
 
 Generated consumers include:
 
-- `src/webserver/modules/card_contract_generated.js`
+- `src/webserver/generated/card_contract.ts`
 - `components/espcontrol/button_grid_contract_generated.h`
 - `docs/generated/cards/capabilities.md`
 
@@ -67,7 +67,7 @@ npm run check:product
 
 Expected generated files commonly include:
 
-- `src/webserver/modules/card_contract_generated.js`
+- `src/webserver/generated/card_contract.ts`
 - `components/espcontrol/button_grid_contract_generated.h`
 - `docs/generated/cards/capabilities.md`
 - `docs/public/webserver/*/www.js`
@@ -92,7 +92,7 @@ Treat saved card config as durable user data.
 | Firmware parsing | `components/espcontrol/button_grid_config.h` |
 | Firmware rendering/runtime | `components/espcontrol/button_grid_<type>.h` |
 | Grid setup/runtime wiring | `components/espcontrol/button_grid_grid.h` |
-| Shared generated constants | `button_grid_contract_generated.h` and `card_contract_generated.js` |
+| Shared generated constants | `button_grid_contract_generated.h` and `src/webserver/generated/card_contract.ts` |
 
 ## Adding or Fixing a Card Type
 

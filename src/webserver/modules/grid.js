@@ -1,5 +1,5 @@
 // ── Context abstraction ────────────────────────────────────────────────
-// @web-module-requires: state, model_generated
+// @web-module-requires: state
 
 function ctx() {
   if (state.editingSubpage) {

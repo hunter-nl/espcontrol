@@ -68,7 +68,7 @@ No critical issues were found in this pass. I did not find an obvious data-loss 
 
 ### 3.2 Generated and vendored files dominate simple scans
 
-- Where: `docs/public/webserver/**`, `components/libjpeg-turbo-esp32/**`, and generated files such as `src/webserver/modules/model_generated.js`.
+- Where: `docs/public/webserver/**`, `components/libjpeg-turbo-esp32/**`, and generated files such as `src/webserver/generated/card_contract.ts`.
 - Why it matters: Basic repository scans produce noisy results unless generated and vendor paths are excluded. That makes cleanup work look worse than it is.
 - Recommendation: Add a short note or helper command for maintainability scans that excludes generated bundles and vendored libraries.
 - Safe to fix now: Yes, but documentation-only and not required for this pass.

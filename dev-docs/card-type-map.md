@@ -11,7 +11,7 @@ All card types also share these core files:
 - Firmware parser: `components/espcontrol/button_grid_config.h`
 - Firmware setup and binding: `components/espcontrol/button_grid_grid.h`
 - Generated contract outputs:
-  `src/webserver/modules/card_contract_generated.js`,
+  `src/webserver/generated/card_contract.ts`,
   `components/espcontrol/button_grid_contract_generated.h`, and
   `docs/generated/cards/capabilities.md`
 
@@ -22,7 +22,7 @@ All card types also share these core files:
 | Contract | `npm run check:card-contract-outputs` | Card metadata, labels, defaults, domains, picker grouping, generated contract files |
 | Generated | `npm run check:generated` | Any source change that should rebuild generated web, firmware, or docs output |
 | Codec | `npm run check:web-smoke` | Web settings, preview, saved config, import/export, compact config shape |
-| Types | `npm run check:types` | TypeScript model or generated model surface changes |
+| Types | `npm run check:types` | TypeScript model or generated typed-contract changes |
 | Parser | `npm run check:firmware-parser` | Firmware saved-config parsing, options preservation, aliases, legacy config |
 | Runtime | `npm run check:firmware-card-runtime` | Shared card modes, service mappings, generated contract access |
 | HA | `npm run check:firmware-ha-bindings` | Home Assistant subscriptions, actions, response callbacks, reconnect behavior |

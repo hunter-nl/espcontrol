@@ -47,7 +47,7 @@ Do not edit generated files directly. The source-to-generated mapping is in
 
 Expected generated files commonly include:
 
-- `src/webserver/modules/card_contract_generated.js`
+- `src/webserver/generated/card_contract.ts`
 - `components/espcontrol/button_grid_contract_generated.h`
 - `docs/generated/cards/capabilities.md`
 - `docs/public/webserver/*/www.js`
