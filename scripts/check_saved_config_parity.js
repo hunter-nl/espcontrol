@@ -36,8 +36,11 @@ function shape(value) {
 
 function loadCases() {
   const cases = [];
-  for (const fileName of fs.readdirSync(CONFIG_DIR).sort()) {
-    if (!fileName.endsWith("_card_normalization_fixtures.json")) continue;
+  const fixtureFiles = [
+    "card_normalization_fixtures.json",
+    ...fs.readdirSync(CONFIG_DIR).sort().filter((fileName) => fileName.endsWith("_card_normalization_fixtures.json")),
+  ];
+  for (const fileName of fixtureFiles) {
     const document = JSON.parse(fs.readFileSync(path.join(CONFIG_DIR, fileName), "utf8"));
     const groups = Array.isArray(document) ? [[fileName.replace(/_card_normalization_fixtures\.json$/, ""), document]] : Object.entries(document);
     for (const [group, fixtures] of groups) {

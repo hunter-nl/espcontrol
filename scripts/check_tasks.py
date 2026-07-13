@@ -1283,6 +1283,8 @@ def self_test() -> None:
         raise AssertionError("cover-art cache keys omit the downloader source")
     if "common/config/*_card_normalization_fixtures.json" not in registry["firmware-parser"].inputs:
         raise AssertionError("firmware parser cache keys omit normalization fixtures")
+    if "common/config/card_normalization_fixtures.json" not in registry["saved-config-parity"].inputs:
+        raise AssertionError("saved config parity cache keys omit base normalization fixtures")
     if "components/espcontrol/sun_calc.h" not in registry["timezones"].inputs:
         raise AssertionError("timezone cache keys omit the firmware timezone table")
     if registry["timezones"].cache != "never":
