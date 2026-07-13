@@ -18,7 +18,7 @@ function parsedEntityKey(value: unknown): { domain: string; name?: string; objec
   if (id.includes("/")) {
     const parts = id.split("/");
     const domain = parts[0];
-    const name = parts.at(-1);
+    const name = parts[parts.length - 1];
     if (!domain || !name) return null;
     return { domain, name, objectId: objectId(name) };
   }
