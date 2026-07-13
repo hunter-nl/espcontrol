@@ -67,6 +67,26 @@ int main() {
   assert(text_sensor.type == "sensor" && text_sensor.precision == "text");
   assert(text_sensor.entity.empty() && text_sensor.label.empty() && text_sensor.unit.empty());
   assert(text_sensor.icon_on == "Auto");
+  bool fields_called = false;
+  bool options_called = false;
+  assert(normalize_saved_config_sensor(
+    text_sensor, true,
+    [&](Config &config, bool was_legacy_text_sensor) {
+      fields_called = was_legacy_text_sensor;
+      if (was_legacy_text_sensor) config.sensor = "field-hook";
+    },
+    [&](const std::string &options, const std::string &precision) {
+      options_called = precision == "text";
+      return options + "option-hook";
+    }
+  ));
+  assert(fields_called && options_called);
+  assert(text_sensor.sensor == "field-hook" && text_sensor.options == "unknown=1option-hook");
+  assert(!normalize_saved_config_sensor(
+    unrelated, false,
+    [](Config &, bool) {},
+    [](const std::string &options, const std::string &) { return options; }
+  ));
 }
 `);
     childProcess.execFileSync(compiler(), [
@@ -118,6 +138,26 @@ function main() {
   const textSensor = { type: "text_sensor", entity: "sensor.old", label: "Old label", unit: "°C", precision: "7", icon_on: "Custom" };
   assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy(textSensor), true);
   assert.deepStrictEqual(textSensor, { type: "sensor", entity: "", label: "", unit: "", precision: "text", icon_on: "Auto" });
+  let sensorFieldsCalled = false;
+  let sensorOptionsCalled = false;
+  assert.strictEqual(generatedSensor.normalizeSavedConfigSensor(
+    textSensor,
+    true,
+    (config, wasLegacyTextSensor) => {
+      sensorFieldsCalled = wasLegacyTextSensor;
+      config.sensor = "field-hook";
+    },
+    (options, precision) => {
+      sensorOptionsCalled = precision === "text";
+      return options + "option-hook";
+    },
+  ), true);
+  assert(sensorFieldsCalled && sensorOptionsCalled);
+  assert.strictEqual(textSensor.sensor, "field-hook");
+  assert.strictEqual(textSensor.options, "option-hook");
+  assert.strictEqual(generatedSensor.normalizeSavedConfigSensor(
+    { type: "action", options: "keep", precision: "" }, false, () => {}, (options) => options,
+  ), false);
 
   const browser = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_codec.ts"), "utf8");
   assert.match(browser, /from "\.\.\/generated\/saved_config_vacuum";/);
@@ -130,8 +170,10 @@ function main() {
   assert.doesNotMatch(browser, /type === "vacuum" \|\| type === "lawn_mower"/);
   assert.match(browser, /from "\.\.\/generated\/saved_config_sensor";/);
   assert.match(browser, /migrateSavedConfigSensorLegacy\(b\)/);
+  assert.match(browser, /normalizeSavedConfigSensor\(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "local_sensor"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "text_sensor"\)/);
+  assert.doesNotMatch(browser, /else if \(b && b\.type === "sensor"\)/);
 
   const vacuumCard = fs.readFileSync(path.join(ROOT, "src/webserver/cards/vacuum.ts"), "utf8");
   assert.match(vacuumCard, /normalizeSavedConfigVacuumSensor\(String\(b\.sensor \|\| ""\)\)/);
@@ -155,11 +197,12 @@ function main() {
   assert.doesNotMatch(vacuumBlock, /p\.options\.clear\(\);/);
   assert.match(firmware, /#include "button_grid_saved_config_sensor_generated\.h"/);
   assert.match(firmware, /migrate_saved_config_sensor_legacy\(p\)/);
+  assert.match(firmware, /normalize_saved_config_sensor\(p, was_legacy_text_sensor,/);
   assert.doesNotMatch(firmware, /p\.type == "local_sensor"/);
   assert.doesNotMatch(firmware, /if \(p\.type == "text_sensor"\)/);
 
   checkCompiledHelper();
-  console.log("Saved-config production check passed: Vacuum production normalization and Sensor type migrations use generated browser and compiled firmware helpers.");
+  console.log("Saved-config production check passed: Vacuum and Sensor routine orchestration use generated browser and compiled firmware helpers.");
 }
 
 main();

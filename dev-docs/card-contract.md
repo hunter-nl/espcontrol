@@ -50,9 +50,11 @@ Vacuum's routine saved-field policies and legacy migration actions are
 generated for both browser and firmware. Its mode-specific unit and icon
 decisions remain in the reviewed `normalize_vacuum_fields` hook.
 
-Sensor's legacy `local_sensor` and `text_sensor` type migrations are also
-generated for browser and firmware. Its precision, icon, and option decisions remain in the reviewed
-`normalize_sensor_fields` and `normalize_sensor_options` hooks.
+Sensor's legacy `local_sensor` and `text_sensor` type migrations and routine
+orchestration are generated for browser and firmware. The generated routine
+invokes the named `normalize_sensor_fields` hook before
+`normalize_sensor_options`, keeping Sensor-specific decisions explicit and
+reviewed in those hooks.
 
 An `allowed` field policy may declare `aliases` whose targets are in its
 allowed-value list. This preserves renamed legacy values before applying the

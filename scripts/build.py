@@ -656,6 +656,28 @@ def saved_config_sensor_field_migrations(data):
     return migrations
 
 
+def saved_config_sensor_normalization(data):
+    normalization = data["cards"]["sensor"]["normalization"]
+    fields = normalization["fields"]
+    type_rule = fields.get("type", {})
+    if type_rule.get("policy") != "default" or not isinstance(type_rule.get("value"), str):
+        raise BuildError("sensor production normalization requires an authored default type")
+    field_hooks = {
+        rule.get("hook")
+        for name, rule in fields.items()
+        if name != "options" and rule.get("policy") == "hook"
+    }
+    if field_hooks != {"normalize_sensor_fields"}:
+        raise BuildError("sensor production field normalization requires the authored Sensor field hook")
+    option_rule = fields.get("options", {})
+    option_hook = normalization.get("optionHook")
+    if option_rule.get("policy") != "hook" or option_rule.get("hook") != option_hook:
+        raise BuildError("sensor production option normalization requires the authored option hook")
+    if option_hook != "normalize_sensor_options":
+        raise BuildError("sensor production normalization requires the authored Sensor option hook")
+    return type_rule["value"]
+
+
 def saved_config_migration_condition(condition, target, language):
     name = condition["name"]
     value = json.dumps(condition["value"], ensure_ascii=False)
@@ -748,6 +770,7 @@ def gen_saved_config_vacuum_h(data):
 
 def gen_saved_config_sensor_ts(data):
     migrations = saved_config_sensor_field_migrations(data)
+    sensor_type = json.dumps(saved_config_sensor_normalization(data), ensure_ascii=False)
     lines = [
         "// =============================================================================\n",
         "// GENERATED SAVED-CONFIG SENSOR HELPERS - do not edit by hand\n",
@@ -762,12 +785,28 @@ def gen_saved_config_sensor_ts(data):
         for field, value in action["set"].items():
             lines.append(f"    config.{field} = {json.dumps(value, ensure_ascii=False)};\n")
         lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n")
+    lines.append("  return false;\n}\n\n")
+    lines.extend([
+        "export type SavedConfigSensorFieldHook = (config: CardConfig, wasLegacyTextSensor: boolean) => void;\n",
+        "export type SavedConfigSensorOptionHook = (options: string, precision: string) => string;\n\n",
+        "export function normalizeSavedConfigSensor(\n",
+        "  config: CardConfig,\n",
+        "  wasLegacyTextSensor: boolean,\n",
+        "  normalizeFields: SavedConfigSensorFieldHook,\n",
+        "  normalizeOptions: SavedConfigSensorOptionHook,\n",
+        "): boolean {\n",
+        f"  if (config.type !== {sensor_type}) return false;\n",
+        "  normalizeFields(config, wasLegacyTextSensor);\n",
+        "  config.options = normalizeOptions(config.options || \"\", config.precision || \"\");\n",
+        "  return true;\n",
+        "}\n",
+    ])
     return "".join(lines)
 
 
 def gen_saved_config_sensor_h(data):
     migrations = saved_config_sensor_field_migrations(data)
+    sensor_type = json.dumps(saved_config_sensor_normalization(data), ensure_ascii=False)
     lines = [
         "#pragma once\n\n",
         "// =============================================================================\n",
@@ -782,7 +821,17 @@ def gen_saved_config_sensor_h(data):
         for field, value in action["set"].items():
             lines.append(f"    config.{field} = {json.dumps(value, ensure_ascii=False)};\n")
         lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n")
+    lines.append("  return false;\n}\n\n")
+    lines.extend([
+        "template<typename Config, typename FieldHook, typename OptionHook>\n",
+        "inline bool normalize_saved_config_sensor(Config &config, bool was_legacy_text_sensor,\n",
+        "                                          FieldHook normalize_fields, OptionHook normalize_options) {\n",
+        f"  if (config.type != {sensor_type}) return false;\n",
+        "  normalize_fields(config, was_legacy_text_sensor);\n",
+        "  config.options = normalize_options(config.options, config.precision);\n",
+        "  return true;\n",
+        "}\n",
+    ])
     return "".join(lines)
 
 

@@ -520,6 +520,16 @@ inline std::string sensor_card_options_normalized(const std::string &options,
   return out;
 }
 
+inline void normalize_saved_config_sensor_fields(ParsedCfg &p,
+                                                 bool was_legacy_text_sensor) {
+  if (was_legacy_text_sensor && p.icon.empty()) p.icon = "Auto";
+  if (!sensor_card_local_sensor(p)) return;
+  p.icon_on = "Auto";
+  p.options.clear();
+  if (p.precision != "text" && p.precision != "1" && p.precision != "2") p.precision.clear();
+  if (p.precision != "text" && (p.icon.empty() || p.icon == "Auto")) p.icon = "Auto";
+}
+
 inline std::string normalize_subpage_kind(const std::string &value) {
   return value == "lights" || value == "media" ||
     value == "climate" || value == "presence" ||
@@ -952,7 +962,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   }
   const bool was_legacy_text_sensor = p.type == "text_sensor";
   migrate_saved_config_sensor_legacy(p);
-  if (was_legacy_text_sensor && p.icon.empty()) p.icon = "Auto";
   // Slider cards used to store "h" here for horizontal layout. Sliders are
   // now always vertical, so treat any saved slider sensor value as legacy.
   if (brightness_slider_type(p.type) && !p.sensor.empty()) p.sensor.clear();
@@ -1217,14 +1226,9 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (!p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "cover" && p.type != "garage" && p.type != "gate" && p.type != "webhook" && p.type != "screen_lock" && p.type != "todo" && p.type != "sensor" && p.type != "door_window" && p.type != "presence" && p.type != "media" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "lawn_mower" && !fan_card_type(p.type) && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
-  if (sensor_card_local_sensor(p)) {
-    p.icon_on = "Auto";
-    p.options.clear();
-    if (p.precision != "text" && p.precision != "1" && p.precision != "2") p.precision.clear();
-    if (p.precision != "text" && (p.icon.empty() || p.icon == "Auto")) p.icon = "Auto";
-  } else if (p.type == "sensor") {
-    p.options = sensor_card_options_normalized(p.options, p.precision);
-  }
+  normalize_saved_config_sensor(p, was_legacy_text_sensor,
+                                normalize_saved_config_sensor_fields,
+                                sensor_card_options_normalized);
   return p;
 }
 

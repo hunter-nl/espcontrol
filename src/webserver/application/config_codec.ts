@@ -6,7 +6,7 @@ import {
     normalizeSavedConfigVacuumPrecision,
     normalizeSavedConfigVacuumSensor,
 } from "../generated/saved_config_vacuum";
-import { migrateSavedConfigSensorLegacy } from "../generated/saved_config_sensor";
+import { migrateSavedConfigSensorLegacy, normalizeSavedConfigSensor } from "../generated/saved_config_sensor";
 export function installConfigCodecModule(): GlobalDescriptors {
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
@@ -17,6 +17,22 @@ export function installConfigCodecModule(): GlobalDescriptors {
             return false;
         typeDef.normalizeConfig(b);
         return true;
+    }
+    function normalizeSavedConfigSensorFields(this: any, b?: any, wasLegacyTextSensor?: any) {
+        if (!b)
+            return;
+        if (wasLegacyTextSensor && !b.icon)
+            b.icon = "Auto";
+        if (sensorCardIsLocal(b)) {
+            b.type = "sensor";
+            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
+            b.icon_on = "Auto";
+            b.options = "";
+            if (b.precision !== "text" && b.precision !== "1" && b.precision !== "2")
+                b.precision = "";
+            if (b.precision !== "text" && (!b.icon || b.icon === "Auto"))
+                b.icon = "Auto";
+        }
     }
     function normalizeButtonConfig(this: any, b?: any) {
         if (b)
@@ -34,8 +50,6 @@ export function installConfigCodecModule(): GlobalDescriptors {
         var wasLegacyTextSensor: any = !!(b && b.type === "text_sensor");
         if (b)
             migrateSavedConfigSensorLegacy(b);
-        if (b && wasLegacyTextSensor && !b.icon)
-            b.icon = "Auto";
         if (b && migrateSavedConfigVacuumLegacy(b)) {
             if (!b.icon || b.icon === "Auto")
                 b.icon = vacuumModeDefaultIcon(b.sensor);
@@ -284,21 +298,9 @@ export function installConfigCodecModule(): GlobalDescriptors {
         else if (b && b.type === "action") {
             b.options = normalizeActionOptions(b.options, b.sensor);
         }
-        if (b && sensorCardIsLocal(b)) {
-            b.type = "sensor";
-            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
-            b.icon_on = "Auto";
-            b.options = "";
-            if (b.precision !== "text" && b.precision !== "1" && b.precision !== "2")
-                b.precision = "";
-            if (b.precision !== "text" && (!b.icon || b.icon === "Auto"))
-                b.icon = "Auto";
-        }
-        else if (b && !b.type) {
+        var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
+        if (b && !normalizedSavedSensor && !b.type) {
             b.options = normalizeSwitchConfirmationOptions(b.options);
-        }
-        else if (b && b.type === "sensor") {
-            b.options = normalizeSensorOptions(b.options, b.precision);
         }
         else if (b && b.type === "door_window") {
             b.entity = "";
@@ -320,7 +322,7 @@ export function installConfigCodecModule(): GlobalDescriptors {
                 b.icon_on = "Motion Sensor";
             b.options = normalizePresenceOptions(b.options);
         }
-        else if (b && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "cover" && b.type !== "garage" && b.type !== "gate" && b.type !== "webhook" && b.type !== "screen_lock" && b.type !== "todo" && b.type !== "media" && b.type !== "presence" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "lawn_mower" && !isFanCardType(b.type) && !cardLargeNumbersSupported(b)) {
+        else if (b && !normalizedSavedSensor && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "cover" && b.type !== "garage" && b.type !== "gate" && b.type !== "webhook" && b.type !== "screen_lock" && b.type !== "todo" && b.type !== "media" && b.type !== "presence" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "lawn_mower" && !isFanCardType(b.type) && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         return b;
