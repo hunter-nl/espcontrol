@@ -105,6 +105,11 @@ function shadowCases() {
       input: "media_player.office;Media Control;Auto;Auto;control_modal;;media;;label_display=label,number_display=volume,volume_max=40",
       expected: config({ entity: "media_player.office", label: "Media Control", icon: "Auto", sensor: "control_modal", type: "media", options: "label_display=label,number_display=volume,volume_max=40" }),
     },
+    {
+      name: "media control modal trims saved choices",
+      input: "media_player.office;Media Control;Auto;Auto;control_modal;;media;;label_display=%20label%20,number_display=%20volume%20",
+      expected: config({ entity: "media_player.office", label: "Media Control", icon: "Auto", sensor: "control_modal", type: "media", options: "label_display=label,number_display=volume" }),
+    },
   ]);
   return vacuum.concat(sensor, sensorAliases, action, media);
 }

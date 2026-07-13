@@ -182,6 +182,12 @@ inline int saved_config_shadow_media_volume(const std::string &value) {
   return static_cast<int>(parsed);
 }
 
+inline std::string saved_config_shadow_trim(const std::string &value) {
+  const size_t first = value.find_first_not_of(" \t\r\n");
+  if (first == std::string::npos) return "";
+  return value.substr(first, value.find_last_not_of(" \t\r\n") - first + 1);
+}
+
 template<typename Config>
 inline bool normalize_saved_config_media_shadow(Config &config) {
   if (config.type != "media") return false;
@@ -203,8 +209,8 @@ inline bool normalize_saved_config_media_shadow(Config &config) {
   else if (!saved_config_shadow_string_in(config.sensor, SAVED_CONFIG_SHADOW_MEDIA_STATE_DISPLAY_MODES, sizeof(SAVED_CONFIG_SHADOW_MEDIA_STATE_DISPLAY_MODES) / sizeof(SAVED_CONFIG_SHADOW_MEDIA_STATE_DISPLAY_MODES[0])) || config.precision != "state") config.precision.clear();
   const std::string source = config.options; std::string out; const int max_volume = saved_config_shadow_media_volume(cfg_option_value(source, "volume_max"));
   if (config.sensor == "control_modal") {
-    if (cfg_option_value(source, "label_display") == "label") saved_config_shadow_append_option(out, "label_display", "label");
-    if (cfg_option_value(source, "number_display") == "volume") saved_config_shadow_append_option(out, "number_display", "volume");
+    if (saved_config_shadow_trim(cfg_option_value(source, "label_display")) == "label") saved_config_shadow_append_option(out, "label_display", "label");
+    if (saved_config_shadow_trim(cfg_option_value(source, "number_display")) == "volume") saved_config_shadow_append_option(out, "number_display", "volume");
     if (max_volume != SAVED_CONFIG_SHADOW_MEDIA_VOLUME_DEFAULT) saved_config_shadow_append_option(out, "volume_max", std::to_string(max_volume));
   } else if (config.sensor == "playlist") {
     const std::string content_id = cfg_option_value(source, "playlist_content_id");
