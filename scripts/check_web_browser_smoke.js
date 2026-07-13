@@ -6,10 +6,11 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { chromium } = require("playwright");
+const { freshWebOutputDir } = require("./web_source");
 
 const ROOT = path.resolve(__dirname, "..");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
-const WEB_OUTPUT_DIR = path.join(ROOT, "docs", "public", "webserver");
+const WEB_OUTPUT_DIR = freshWebOutputDir();
 const FAILURE_DIR = path.join(ROOT, ".cache", "web-browser-smoke");
 
 function readManifest() {

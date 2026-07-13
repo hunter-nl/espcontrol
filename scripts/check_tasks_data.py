@@ -64,7 +64,14 @@ FAST = ("fast", "ci", "all")
 CI = ("ci", "all")
 RELEASE = ("release",)
 MAINTAINER_DOCS = ("dev-docs/**", "DEVELOPERS.md", "README.md", "product/README.md")
-WEB_SOURCE_HELPERS = ("scripts/web_source.js", "scripts/web_modules.json")
+WEB_SOURCE_HELPERS = ("scripts/web_source.js", "scripts/build_web_bundle.js", "scripts/web_modules.json")
+WEB_BUNDLE_INPUTS = ("devices/**", "common/addon/time.yaml")
+WEB_BUNDLE_BUILD_HELPERS = (
+    "scripts/build.py",
+    "scripts/check_timezones.py",
+    "scripts/device_profiles.py",
+    "scripts/product_schema.py",
+)
 
 
 # Declaration order is the stable tie-breaker used by the planner.
@@ -92,7 +99,7 @@ TASKS = (
          inputs=("tests/mutations/**", "tests/firmware/**", "tests/web/unit/**", "scripts/run_mutations.py"),
          cache="never"),
     task("generated", ("python3", "scripts/build.py", "--check"), profiles=PRODUCT,
-         domains=("product", "firmware", "web", "docs"), inputs=("common/**", "devices/**", "builds/**", "components/espcontrol/**", "src/webserver/**", "compatibility/**", "scripts/build.py", "scripts/web_modules.json"),
+         domains=("product", "firmware", "web", "docs"), inputs=("common/**", "devices/**", "builds/**", "components/espcontrol/**", "src/webserver/**", "compatibility/**", "scripts/build.py", "scripts/build_web_bundle.js", "scripts/web_source.js", "scripts/web_modules.json"),
          generated_inputs=("components/espcontrol/*_generated.h", "docs/generated/**", "docs/public/**", "product/product_snapshot.json"),
          parallel_safe=True, cache="never"),
     task("device-manifest", ("python3", "scripts/check_device_manifest.py"),
@@ -126,7 +133,8 @@ TASKS = (
     task("pr-testing-guidance", ("python3", "scripts/pr_testing_guidance.py", "--self-test"), profiles=FAST,
          domains=("workflow",), inputs=(".github/**", "scripts/pr_testing_guidance.py"), cache="never"),
     task("config", ("node", "scripts/check_config_formats.js"), profiles=FAST,
-         domains=("product", "web"), inputs=("common/config/**", "src/webserver/**", "compatibility/fixtures/product_compatibility.json", "scripts/check_config_formats.js") + WEB_SOURCE_HELPERS, parallel_safe=True),
+         domains=("product", "web"), inputs=("common/config/**", "src/webserver/**", "compatibility/fixtures/product_compatibility.json", "scripts/check_config_formats.js") + WEB_SOURCE_HELPERS + WEB_BUNDLE_INPUTS,
+         cache_inputs=WEB_BUNDLE_BUILD_HELPERS, parallel_safe=True),
     task("backup-contract", ("node", "scripts/check_backup_contract.js"), dependencies=("generated",), profiles=PRODUCT,
          domains=("product", "web", "firmware"), inputs=("compatibility/**", "common/config/**", "src/webserver/**", "components/**", "scripts/check_backup_contract.js") + WEB_SOURCE_HELPERS, parallel_safe=True),
     task("model-contract", ("node", "scripts/check_model_contract.js"), dependencies=("generated",), profiles=PRODUCT,
@@ -183,7 +191,7 @@ TASKS = (
     task("public-firmware-script", ("python3", "scripts/check_public_firmware.py", "--self-test"), profiles=PRODUCT,
          domains=("firmware", "workflow"), inputs=("scripts/**", "docs/public/**"), parallel_safe=True),
     task("web-browser-smoke", ("node", "scripts/check_web_browser_smoke.js"), dependencies=("generated", "device-manifest-output"), profiles=CI,
-         domains=("web",), inputs=("src/webserver/**", "scripts/check_web_browser_smoke.js", "package-lock.json"),
+         domains=("web",), inputs=("src/webserver/**", "devices/**", "common/addon/time.yaml", "scripts/check_web_browser_smoke.js", "package-lock.json") + WEB_SOURCE_HELPERS,
          generated_inputs=("docs/public/webserver/**",),
          cache_env=("PLAYWRIGHT_BROWSERS_PATH", "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD")),
     task("docs-build", ("npm", "run", "docs:build"), dependencies=("generated",), profiles=("all", "release"),

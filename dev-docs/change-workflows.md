@@ -119,6 +119,9 @@ npm run check:web-browser-smoke
 ```
 
 Commit the rebuilt `docs/public/webserver/*/www.js` bundles when they change.
+The Python command prepares device configuration and delegates bundling to the
+single esbuild API pipeline in `scripts/build_web_bundle.js`; tests use its
+temporary-output mode to avoid relying on tracked bundles.
 
 ## Change Firmware UI Behavior
 

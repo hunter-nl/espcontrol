@@ -123,6 +123,15 @@ new `builds/*.yaml` entry points use `web_server.js_include` so the setup page
 matches the firmware branch being flashed. Local testing can still override
 `web_server.js_url` to load a bundle served from a development machine.
 
+`scripts/build.py` derives each device profile and passes it to the Node bundle
+builder. That builder uses esbuild's API to produce a minified browser IIFE with
+an ES2020 target. VM and browser smoke tests build fresh copies through the same
+pipeline instead of reading the committed files. For an isolated build, run:
+
+```bash
+python3 scripts/build.py www --temporary-output /tmp/espcontrol-www
+```
+
 ## Firmware Build Artifacts
 
 Release-facing firmware YAML lives in `builds/`:

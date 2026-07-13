@@ -5,7 +5,7 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { loadBundledWebSource } = require("./web_source");
+const { freshWebOutputDir, loadBuiltWebSource, webModuleDependencyErrors } = require("./web_source");
 
 const ROOT = path.resolve(__dirname, "..");
 const SOURCE = path.join(ROOT, "src", "webserver", "entry.js");
@@ -13,6 +13,16 @@ const DEVICE_MANIFEST = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = path.join(ROOT, "docs", "public", "webserver");
 const ALL_ROTATIONS = ["0", "90", "180", "270"];
 const REQUIRED_HOOK_GROUPS = ["config", "preview", "backup", "settings"];
+
+assert.deepStrictEqual(webModuleDependencyErrors(
+  ["state", "app"],
+  (name) => name === "app" ? "// @web-module-requires: state" : "// @web-module-requires: none",
+), [], "web module dependencies accept prerequisites listed earlier");
+assert.deepStrictEqual(webModuleDependencyErrors(
+  ["app", "state"],
+  (name) => name === "app" ? "// @web-module-requires: state" : "// @web-module-requires: none",
+), ["app requires state, but it is listed later in web_modules.json"],
+"web module dependencies reject unsafe manifest reordering");
 
 function createWebSandbox() {
   const domEvents = [];
@@ -39,7 +49,7 @@ function createWebSandbox() {
 function loadHooks() {
   const sandbox = createWebSandbox();
   vm.createContext(sandbox);
-  vm.runInContext(loadBundledWebSource(), sandbox, { filename: SOURCE });
+  vm.runInContext(loadBuiltWebSource(), sandbox, { filename: SOURCE });
   assertRequiredHookGroups(sandbox.__ESPCONTROL_TEST_HOOKS__.groups);
   return sandbox.__ESPCONTROL_TEST_HOOKS__.config;
 }
@@ -72,6 +82,8 @@ function assertGeneratedConfigValue(slug, generated, key, value) {
 function generatedDeviceId(generated) {
   const readable = generated.match(/\bvar\s+DEVICE_ID\s*=\s*"([^"]+)"/);
   if (readable) return readable[1];
+  const bundled = generated.match(/\bvar\s+[A-Za-z_$][\w$]*="([^"]+)",[A-Za-z_$][\w$]*=[A-Za-z_$][\w$]*;\(function/);
+  if (bundled) return bundled[1];
   const minified = generated.match(/^\(function\(\)\{var\s+[A-Za-z_$][\w$]*="([^"]+)",[A-Za-z_$][\w$]*=\{/);
   return minified && minified[1];
 }
@@ -192,8 +204,9 @@ assert.deepStrictEqual(plain(hooks.firmwareFailureStatusFor("Could not download 
 }, "firmware update failures leave a visible status reason");
 
 const manifest = JSON.parse(fs.readFileSync(DEVICE_MANIFEST, "utf8"));
+const freshOutput = freshWebOutputDir();
 for (const [slug, device] of Object.entries(manifest.devices || {})) {
-  const webOutput = path.join(WEB_OUTPUT_DIR, slug, "www.js");
+  const webOutput = path.join(freshOutput, slug, "www.js");
   const generated = fs.readFileSync(webOutput, "utf8");
   assertGeneratedConfigValue(slug, generated, "slots", device.slots);
   assertGeneratedConfigValue(slug, generated, "cols", device.layout.cols);
@@ -280,7 +293,7 @@ for (const [slug, device] of Object.entries(manifest.devices || {})) {
 
 for (const [slug, device] of Object.entries(manifest.devices || {})) {
   if (!device.rotation || !device.rotation.enabled) continue;
-  const webOutput = path.join(WEB_OUTPUT_DIR, slug, "www.js");
+  const webOutput = path.join(freshOutput, slug, "www.js");
   const generated = fs.readFileSync(webOutput, "utf8");
   const featureConfig = generated.match(/features:\{[^}]*\}/)?.[0] || "";
   assert(

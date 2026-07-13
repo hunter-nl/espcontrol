@@ -2,7 +2,9 @@
 "use strict";
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
+const childProcess = require("child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const SOURCE = path.join(ROOT, "src", "webserver", "entry.js");
@@ -33,6 +35,45 @@ function assertWebModuleOrderCoversFiles() {
   if (errors.length) {
     throw new Error(`scripts/web_modules.json does not match src/webserver/modules: ${errors.join("; ")}`);
   }
+  assertWebModuleDependencies(WEB_MODULE_ORDER);
+}
+
+function webModuleRequires(source) {
+  const requires = [];
+  const pattern = /^\s*\/\/\s*@web-module-requires:\s*(.*?)\s*$/gm;
+  for (const match of source.matchAll(pattern)) {
+    const raw = match[1].trim();
+    if (!raw || raw.toLowerCase() === "none") continue;
+    for (const name of raw.split(",")) {
+      const dependency = name.trim();
+      if (dependency) requires.push(dependency);
+    }
+  }
+  return requires;
+}
+
+function webModuleDependencyErrors(order, sourceFor = (name) => {
+  return fs.readFileSync(path.join(MODULES_DIR, `${name}.js`), "utf8");
+}) {
+  const orderSet = new Set(order);
+  const seen = new Set();
+  const errors = [];
+  for (const name of order) {
+    for (const dependency of webModuleRequires(sourceFor(name))) {
+      if (dependency === name) errors.push(`${name} cannot require itself`);
+      else if (!orderSet.has(dependency)) errors.push(`${name} requires unknown module ${dependency}`);
+      else if (!seen.has(dependency)) {
+        errors.push(`${name} requires ${dependency}, but it is listed later in web_modules.json`);
+      }
+    }
+    seen.add(name);
+  }
+  return errors;
+}
+
+function assertWebModuleDependencies(order) {
+  const errors = webModuleDependencyErrors(order);
+  if (errors.length) throw new Error(`Invalid web module dependency order:\n  ${errors.join("\n  ")}`);
 }
 
 function indentChunk(text) {
@@ -86,6 +127,32 @@ function loadBundledWebSource() {
   return source;
 }
 
+let freshOutputDir;
+
+function freshWebOutputDir() {
+  if (freshOutputDir) return freshOutputDir;
+  freshOutputDir = fs.mkdtempSync(path.join(os.tmpdir(), "espcontrol-web-test-"));
+  const result = childProcess.spawnSync(
+    "python3",
+    [path.join(ROOT, "scripts", "build.py"), "www", "--temporary-output", freshOutputDir],
+    { cwd: ROOT, encoding: "utf8" },
+  );
+  if (result.status !== 0) {
+    fs.rmSync(freshOutputDir, { recursive: true, force: true });
+    freshOutputDir = undefined;
+    throw new Error(result.stderr || result.stdout || "Fresh web bundle build failed");
+  }
+  process.once("exit", () => fs.rmSync(freshOutputDir, { recursive: true, force: true }));
+  return freshOutputDir;
+}
+
+function loadBuiltWebSource(slug = "guition-esp32-p4-jc1060p470") {
+  return fs.readFileSync(path.join(freshWebOutputDir(), slug, "www.js"), "utf8");
+}
+
 module.exports = {
+  freshWebOutputDir,
+  loadBuiltWebSource,
   loadBundledWebSource,
+  webModuleDependencyErrors,
 };
