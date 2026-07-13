@@ -386,3 +386,5 @@ Cover, Garage, Gate, and Lock also use generated production routing, with only
 their named mode-sensitive field and option hooks kept by hand.
 Alarm and Alarm Action also use generated production routing, with only their
 named action/default-icon and option hooks kept by hand.
+Weather and its legacy Weather Forecast alias also use generated production
+routing, with only their named supported-mode and Large Numbers hooks kept by hand.

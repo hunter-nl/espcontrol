@@ -10,7 +10,7 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_sensor_fields", "normalize_sensor_options", "normalize_vacuum_fields"] as const;
+export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_sensor_fields", "normalize_sensor_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
   "legacy_local_action": {
     "when": [
@@ -135,6 +135,20 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
       "icon_on": "Auto"
     },
     "hook": "normalize_sensor_fields"
+  },
+  "legacy_weather_forecast": {
+    "when": [
+      {
+        "source": "field",
+        "name": "type",
+        "operator": "equals",
+        "value": "weather_forecast"
+      }
+    ],
+    "set": {
+      "type": "weather",
+      "precision": "tomorrow"
+    }
   },
   "legacy_sensor_state_high_label": {
     "when": [
@@ -3168,12 +3182,15 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "today",
           "tomorrow"
         ],
-        "defaultValue": ""
+        "defaultValue": "",
+        "storageField": "precision",
+        "omitDefault": true
       },
       {
         "name": "large_numbers",
         "label": "Large Temperature Numbers",
         "kind": "flag",
+        "omitDefault": true,
         "supportedWhen": {
           "precision": [
             "today",
@@ -3182,6 +3199,49 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         }
       }
     ],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "hook",
+          "hook": "normalize_weather_fields"
+        },
+        "icon": {
+          "policy": "keep"
+        },
+        "icon_on": {
+          "policy": "keep"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "keep"
+        },
+        "type": {
+          "policy": "default",
+          "value": "weather"
+        },
+        "precision": {
+          "policy": "hook",
+          "hook": "normalize_weather_fields"
+        },
+        "options": {
+          "policy": "hook",
+          "hook": "normalize_weather_options"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": [
+        "large_numbers"
+      ],
+      "migrationActions": [
+        "legacy_weather_forecast"
+      ],
+      "optionHook": "normalize_weather_options"
+    },
     "default": {
       "entity": "",
       "label": "",

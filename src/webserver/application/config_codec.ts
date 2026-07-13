@@ -16,6 +16,7 @@ import { normalizeSavedConfigMower } from "../generated/saved_config_mower";
 import { normalizeSavedConfigOccupancy } from "../generated/saved_config_occupancy";
 import { normalizeSavedConfigAccess } from "../generated/saved_config_access";
 import { normalizeSavedConfigSecurity } from "../generated/saved_config_security";
+import { migrateSavedConfigWeatherLegacy, normalizeSavedConfigWeather } from "../generated/saved_config_weather";
 export function installConfigCodecModule(): GlobalDescriptors {
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
@@ -178,6 +179,16 @@ export function installConfigCodecModule(): GlobalDescriptors {
     function normalizeSavedConfigSecurityOptions(this: any, options?: any, _b?: any) {
         return normalizeAlarmOptions(options || "");
     }
+    function normalizeSavedConfigWeatherFields(this: any, b?: any, wasLegacyForecast?: any) {
+        if (!b)
+            return;
+        if (wasLegacyForecast && b.label === "Weather")
+            b.label = "";
+        b.precision = normalizeWeatherCardMode(b.precision);
+    }
+    function normalizeSavedConfigWeatherOptions(this: any, options?: any, b?: any) {
+        return b && cardLargeNumbersSupported(b) ? copyLargeNumbersOption("", options || "") : "";
+    }
     function normalizeButtonConfig(this: any, b?: any) {
         if (b)
             b.options = b.options || "";
@@ -192,18 +203,9 @@ export function installConfigCodecModule(): GlobalDescriptors {
         }
         var normalizedSavedFan: any = !!(b && normalizeSavedConfigFan(b, normalizeSavedConfigFanFields, normalizeFanControlOptions));
         var normalizedSavedMower: any = !!(b && normalizeSavedConfigMower(b, normalizeSavedConfigMowerFields));
-        if (b && b.type === "weather_forecast") {
-            var weatherAlias: any = cardContractMigrationAlias(b.type);
-            b.type = weatherAlias && weatherAlias.type || "weather";
-            b.precision = weatherAlias && weatherAlias.precision || "tomorrow";
-            if (b.label === "Weather")
-                b.label = "";
-        }
-        if (b && b.type === "weather") {
-            b.sensor = "";
-            b.precision = normalizeWeatherCardMode(b.precision);
-            b.options = cardLargeNumbersSupported(b) ? copyLargeNumbersOption("", b.options) : "";
-        }
+        var wasLegacyWeatherForecast: any = !!(b && migrateSavedConfigWeatherLegacy(b));
+        if (b)
+            normalizeSavedConfigWeather(b, wasLegacyWeatherForecast, normalizeSavedConfigWeatherFields, normalizeSavedConfigWeatherOptions);
         if (b)
             normalizeSavedConfigMedia(b, normalizeSavedConfigMediaFields, normalizeMediaOptions);
         if (b && isClimateCardType(b.type)) {

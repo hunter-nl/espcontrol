@@ -13,6 +13,7 @@
 #include "button_grid_saved_config_action_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
+#include "button_grid_saved_config_weather_generated.h"
 #include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
@@ -1086,24 +1087,26 @@ inline std::string normalize_saved_config_security_options(
   return alarm_card_options_normalized(options);
 }
 
+inline void normalize_saved_config_weather_fields(ParsedCfg &p, bool was_legacy_forecast) {
+  if (was_legacy_forecast && p.label == "Weather") p.label.clear();
+  if (!card_runtime_weather_forecast_precision(p.precision)) p.precision.clear();
+}
+
+inline std::string normalize_saved_config_weather_options(
+    const std::string &options, const ParsedCfg &p) {
+  return weather_card_options_normalized(options, p);
+}
+
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   migrate_saved_config_action_legacy(p);
   const bool was_legacy_text_sensor = p.type == "text_sensor";
   migrate_saved_config_sensor_legacy(p);
   const bool normalized_saved_fan = normalize_saved_config_fan(
       p, normalize_saved_config_fan_fields, fan_control_card_options_normalized);
-  if (p.type == "weather_forecast") {
-    p.type = "weather";
-    p.precision = "tomorrow";
-    if (p.label == "Weather") p.label.clear();
-  }
-  if (p.type == "weather" && !card_runtime_weather_forecast_precision(p.precision)) {
-    p.precision.clear();
-  }
-  if (p.type == "weather") {
-    p.sensor.clear();
-    p.options = weather_card_options_normalized(p.options, p);
-  }
+  const bool was_legacy_weather_forecast = migrate_saved_config_weather_legacy(p);
+  normalize_saved_config_weather(
+      p, was_legacy_weather_forecast, normalize_saved_config_weather_fields,
+      normalize_saved_config_weather_options);
   normalize_saved_config_media(p, normalize_saved_config_media_fields,
                                media_card_options_normalized);
   if (climate_card_type(p.type)) {

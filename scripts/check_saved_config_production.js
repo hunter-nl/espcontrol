@@ -28,6 +28,7 @@ function checkCompiledHelper() {
 #include "button_grid_saved_config_action_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
+#include "button_grid_saved_config_weather_generated.h"
 #include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
@@ -331,6 +332,31 @@ int main() {
     unrelated, [](Config &) {},
     [](const std::string &options, const Config &) { return options; }
   ));
+  Config legacy_weather{"weather_forecast", "stale", "unit", "2", "large_numbers,unknown=1", "Auto", "weather.home", "Weather", "Auto"};
+  assert(migrate_saved_config_weather_legacy(legacy_weather));
+  assert(legacy_weather.type == "weather" && legacy_weather.precision == "tomorrow");
+  bool weather_fields_called = false;
+  bool weather_options_called = false;
+  assert(normalize_saved_config_weather(
+    legacy_weather, true,
+    [&](Config &config, bool was_legacy) {
+      weather_fields_called = was_legacy;
+      config.label.clear();
+    },
+    [&](const std::string &, const Config &config) {
+      weather_options_called = config.sensor.empty() && config.precision == "tomorrow";
+      return std::string("large_numbers");
+    }
+  ));
+  assert(weather_fields_called && weather_options_called);
+  assert(legacy_weather.entity == "weather.home" && legacy_weather.label.empty());
+  assert(legacy_weather.sensor.empty() && legacy_weather.unit == "unit");
+  assert(legacy_weather.precision == "tomorrow" && legacy_weather.options == "large_numbers");
+  assert(!migrate_saved_config_weather_legacy(unrelated));
+  assert(!normalize_saved_config_weather(
+    unrelated, false, [](Config &, bool) {},
+    [](const std::string &options, const Config &) { return options; }
+  ));
 }
 `);
     childProcess.execFileSync(compiler(), [
@@ -561,6 +587,21 @@ function main() {
   assert.deepStrictEqual(alarmAction, { type: "alarm_action", entity: "alarm_control_panel.home", label: "Arm Away", icon: "Shield Lock", icon_on: "Auto", sensor: "away", unit: "", precision: "", options: "pin_arm=0" });
   assert.strictEqual(generatedSecurity.normalizeSavedConfigSecurity({ type: "sensor", options: "keep" }, () => {}, (options) => options), false);
 
+  const generatedWeather = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_weather.ts"));
+  const legacyWeather = { type: "weather_forecast", entity: "weather.home", label: "Weather", icon: "Auto", icon_on: "Auto", sensor: "stale", unit: "unit", precision: "bad", options: "large_numbers,unknown=1" };
+  assert.strictEqual(generatedWeather.migrateSavedConfigWeatherLegacy(legacyWeather), true);
+  let weatherFieldsCalled = false;
+  let weatherOptionsCalled = false;
+  assert.strictEqual(generatedWeather.normalizeSavedConfigWeather(
+    legacyWeather, true,
+    (config, wasLegacy) => { weatherFieldsCalled = wasLegacy; config.label = ""; },
+    (_options, config) => { weatherOptionsCalled = config.sensor === "" && config.precision === "tomorrow"; return "large_numbers"; },
+  ), true);
+  assert(weatherFieldsCalled && weatherOptionsCalled);
+  assert.deepStrictEqual(legacyWeather, { type: "weather", entity: "weather.home", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "unit", precision: "tomorrow", options: "large_numbers" });
+  assert.strictEqual(generatedWeather.migrateSavedConfigWeatherLegacy({ type: "sensor" }), false);
+  assert.strictEqual(generatedWeather.normalizeSavedConfigWeather({ type: "sensor" }, false, () => {}, (options) => options), false);
+
   const browser = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_codec.ts"), "utf8");
   assert.match(browser, /from "\.\.\/generated\/saved_config_vacuum";/);
   assert.match(browser, /migrateSavedConfigVacuumLegacy\(b\)/);
@@ -616,6 +657,11 @@ function main() {
   assert.match(browser, /normalizeSavedConfigSecurity\(b, normalizeSavedConfigSecurityFields, normalizeSavedConfigSecurityOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "alarm"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "alarm_action"\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_weather";/);
+  assert.match(browser, /migrateSavedConfigWeatherLegacy\(b\)/);
+  assert.match(browser, /normalizeSavedConfigWeather\(b, wasLegacyWeatherForecast,/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "weather_forecast"\)/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "weather"\)/);
 
   const vacuumCard = fs.readFileSync(path.join(ROOT, "src/webserver/cards/vacuum.ts"), "utf8");
   assert.match(vacuumCard, /normalizeSavedConfigVacuumSensor\(String\(b\.sensor \|\| ""\)\)/);
@@ -682,9 +728,14 @@ function main() {
   assert.match(firmware, /normalize_saved_config_security\(\s*p, normalize_saved_config_security_fields,/);
   assert.doesNotMatch(normalizeParser, /if \(p\.type == "alarm"\) \{\s*p\.sensor\.clear\(\);/);
   assert.doesNotMatch(normalizeParser, /if \(p\.type == "alarm_action"\) \{\s*if \(!alarm_action_mode_valid/);
+  assert.match(firmware, /#include "button_grid_saved_config_weather_generated\.h"/);
+  assert.match(firmware, /migrate_saved_config_weather_legacy\(p\)/);
+  assert.match(firmware, /normalize_saved_config_weather\(\s*p, was_legacy_weather_forecast,/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "weather_forecast"\)/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "weather"\)/);
 
   checkCompiledHelper();
-  console.log("Saved-config production check passed: Access, Action, Date/Time, Fan, Lawn Mower, Media, Occupancy, Security, Sensor, Vacuum, and static card normalization use generated browser and compiled firmware helpers.");
+  console.log("Saved-config production check passed: Access, Action, Date/Time, Fan, Lawn Mower, Media, Occupancy, Security, Sensor, Vacuum, Weather, and static card normalization use generated browser and compiled firmware helpers.");
 }
 
 main();

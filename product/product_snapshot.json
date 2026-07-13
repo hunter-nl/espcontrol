@@ -1139,6 +1139,8 @@
       "normalize_access_options",
       "normalize_security_fields",
       "normalize_security_options",
+      "normalize_weather_fields",
+      "normalize_weather_options",
       "normalize_sensor_fields",
       "normalize_sensor_options",
       "normalize_vacuum_fields"
@@ -4177,12 +4179,15 @@
               "today",
               "tomorrow"
             ],
-            "defaultValue": ""
+            "defaultValue": "",
+            "storageField": "precision",
+            "omitDefault": true
           },
           {
             "name": "large_numbers",
             "label": "Large Temperature Numbers",
             "kind": "flag",
+            "omitDefault": true,
             "supportedWhen": {
               "precision": [
                 "today",
@@ -4191,6 +4196,49 @@
             }
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "hook",
+              "hook": "normalize_weather_fields"
+            },
+            "icon": {
+              "policy": "keep"
+            },
+            "icon_on": {
+              "policy": "keep"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "keep"
+            },
+            "type": {
+              "policy": "default",
+              "value": "weather"
+            },
+            "precision": {
+              "policy": "hook",
+              "hook": "normalize_weather_fields"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_weather_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "large_numbers"
+          ],
+          "migrationActions": [
+            "legacy_weather_forecast"
+          ],
+          "optionHook": "normalize_weather_options"
+        },
         "default": {
           "entity": "",
           "label": "",
@@ -4388,6 +4436,20 @@
           "icon_on": "Auto"
         },
         "hook": "normalize_sensor_fields"
+      },
+      "legacy_weather_forecast": {
+        "when": [
+          {
+            "source": "field",
+            "name": "type",
+            "operator": "equals",
+            "value": "weather_forecast"
+          }
+        ],
+        "set": {
+          "type": "weather",
+          "precision": "tomorrow"
+        }
       },
       "legacy_sensor_state_high_label": {
         "when": [
