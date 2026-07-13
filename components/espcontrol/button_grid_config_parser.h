@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "button_grid_card_runtime.h"
+#include "button_grid_saved_config_sensor_generated.h"
 #include "button_grid_saved_config_vacuum_generated.h"
 
 constexpr const char *SENSOR_STATE_LABELS_OPTION = card_runtime_option_name_state_labels();
@@ -949,14 +950,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.icon_on = "Auto";
     if (p.icon.empty() || p.icon == "Auto" || p.icon == "Flash") p.icon = "Gesture Tap";
   }
-  if (p.type == "local_sensor") {
-    p.type = "sensor";
-    p.sensor = "local";
-    p.icon_on = "Auto";
-    p.options.clear();
-    if (p.precision != "text" && p.precision != "1" && p.precision != "2") p.precision.clear();
-    if (p.precision != "text" && (p.icon.empty() || p.icon == "Auto")) p.icon = "Auto";
-  }
+  migrate_saved_config_sensor_legacy(p);
   if (p.type == "text_sensor") {
     p.type = "sensor";
     p.precision = "text";

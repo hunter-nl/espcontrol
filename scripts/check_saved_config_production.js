@@ -25,6 +25,7 @@ function checkCompiledHelper() {
     fs.writeFileSync(source, `
 #include <cassert>
 #include <string>
+#include "button_grid_saved_config_sensor_generated.h"
 #include "button_grid_saved_config_vacuum_generated.h"
 struct Config {
   std::string type;
@@ -53,6 +54,12 @@ int main() {
   assert(normalize_saved_config_vacuum_precision("2").empty());
   assert(normalize_saved_config_vacuum_options("").empty());
   assert(normalize_saved_config_vacuum_options("unknown=1").empty());
+  Config local_sensor{"local_sensor", "stale", "unit", "7", "unknown=1", "Custom"};
+  assert(migrate_saved_config_sensor_legacy(local_sensor));
+  assert(local_sensor.type == "sensor" && local_sensor.sensor == "local");
+  assert(local_sensor.icon_on == "Auto" && local_sensor.options.empty());
+  Config regular_sensor{"sensor", "", "", "", "", "Auto"};
+  assert(!migrate_saved_config_sensor_legacy(regular_sensor));
 }
 `);
     childProcess.execFileSync(compiler(), [
@@ -95,6 +102,13 @@ function main() {
   assert.strictEqual(generated.normalizeSavedConfigVacuumOptions(""), "");
   assert.strictEqual(generated.normalizeSavedConfigVacuumOptions("unknown=1"), "");
 
+  assert.deepStrictEqual(contract.cards.sensor.normalization.migrationActions.slice(0, 1), ["legacy_local_sensor"]);
+  const generatedSensor = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_sensor.ts"));
+  const localSensor = { type: "local_sensor", sensor: "stale", precision: "7", options: "unknown=1", icon_on: "Custom" };
+  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy(localSensor), true);
+  assert.deepStrictEqual(localSensor, { type: "sensor", sensor: "local", precision: "7", options: "", icon_on: "Auto" });
+  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy({ type: "sensor", sensor: "local" }), false);
+
   const browser = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_codec.ts"), "utf8");
   assert.match(browser, /from "\.\.\/generated\/saved_config_vacuum";/);
   assert.match(browser, /migrateSavedConfigVacuumLegacy\(b\)/);
@@ -104,6 +118,9 @@ function main() {
   assert.match(browser, /iconOn = normalizeSavedConfigVacuumIconOn\(iconOn\);/);
   assert.match(browser, /type === "vacuum"[\s\S]*?normalizeSavedConfigVacuumOptions\(options\)/);
   assert.doesNotMatch(browser, /type === "vacuum" \|\| type === "lawn_mower"/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_sensor";/);
+  assert.match(browser, /migrateSavedConfigSensorLegacy\(b\)/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "local_sensor"\)/);
 
   const vacuumCard = fs.readFileSync(path.join(ROOT, "src/webserver/cards/vacuum.ts"), "utf8");
   assert.match(vacuumCard, /normalizeSavedConfigVacuumSensor\(String\(b\.sensor \|\| ""\)\)/);
@@ -125,9 +142,12 @@ function main() {
   assert.match(vacuumBlock, /p\.icon_on = normalize_saved_config_vacuum_icon_on\(p\.icon_on\);/);
   assert.match(vacuumBlock, /p\.options = normalize_saved_config_vacuum_options\(p\.options\);/);
   assert.doesNotMatch(vacuumBlock, /p\.options\.clear\(\);/);
+  assert.match(firmware, /#include "button_grid_saved_config_sensor_generated\.h"/);
+  assert.match(firmware, /migrate_saved_config_sensor_legacy\(p\)/);
+  assert.doesNotMatch(firmware, /p\.type == "local_sensor"/);
 
   checkCompiledHelper();
-  console.log("Saved-config production check passed: Vacuum migrations and routine fields use generated browser and compiled firmware helpers.");
+  console.log("Saved-config production check passed: Vacuum production normalization and the Sensor local migration use generated browser and compiled firmware helpers.");
 }
 
 main();

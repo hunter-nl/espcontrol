@@ -6,6 +6,7 @@ import {
     normalizeSavedConfigVacuumPrecision,
     normalizeSavedConfigVacuumSensor,
 } from "../generated/saved_config_vacuum";
+import { migrateSavedConfigSensorLegacy } from "../generated/saved_config_sensor";
 export function installConfigCodecModule(): GlobalDescriptors {
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
@@ -30,16 +31,8 @@ export function installConfigCodecModule(): GlobalDescriptors {
             if (!b.icon || b.icon === "Auto" || b.icon === "Flash")
                 b.icon = "Gesture Tap";
         }
-        if (b && b.type === "local_sensor") {
-            b.type = "sensor";
-            b.sensor = SENSOR_CARD_LOCAL_SENSOR;
-            b.icon_on = "Auto";
-            b.options = "";
-            if (b.precision !== "text" && b.precision !== "1" && b.precision !== "2")
-                b.precision = "";
-            if (b.precision !== "text" && (!b.icon || b.icon === "Auto"))
-                b.icon = "Auto";
-        }
+        if (b)
+            migrateSavedConfigSensorLegacy(b);
         if (b && migrateSavedConfigVacuumLegacy(b)) {
             if (!b.icon || b.icon === "Auto")
                 b.icon = vacuumModeDefaultIcon(b.sensor);

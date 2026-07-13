@@ -19,6 +19,7 @@ SCREEN_LOCK_STATE_HEADER = ROOT / "components" / "espcontrol" / "screen_lock_sta
 CONTRACT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_contract_generated.h"
 CARD_RUNTIME_HEADER = ROOT / "components" / "espcontrol" / "button_grid_card_runtime.h"
 SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_vacuum_generated.h"
+SAVED_CONFIG_SENSOR_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_sensor_generated.h"
 BACKLIGHT_HEADER = ROOT / "components" / "espcontrol" / "backlight.h"
 CLOCK_BAR_HEADER = ROOT / "components" / "espcontrol" / "clock_bar.h"
 LAYOUT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_layout.h"
@@ -682,6 +683,7 @@ def main() -> int:
         shutil.copy2(CONTRACT_HEADER, tmp_path / "button_grid_contract_generated.h")
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
         shutil.copy2(SAVED_CONFIG_VACUUM_HEADER, tmp_path / "button_grid_saved_config_vacuum_generated.h")
+        shutil.copy2(SAVED_CONFIG_SENSOR_HEADER, tmp_path / "button_grid_saved_config_sensor_generated.h")
         shutil.copy2(CLOCK_BAR_HEADER, tmp_path / "clock_bar.h")
         shutil.copy2(BACKLIGHT_HEADER, tmp_path / "backlight.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")

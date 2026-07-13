@@ -40,13 +40,19 @@ Generated consumers include:
 
 - `src/webserver/generated/card_contract.ts`
 - `src/webserver/generated/saved_config_vacuum.ts`
+- `src/webserver/generated/saved_config_sensor.ts`
 - `components/espcontrol/button_grid_contract_generated.h`
 - `components/espcontrol/button_grid_saved_config_vacuum_generated.h`
+- `components/espcontrol/button_grid_saved_config_sensor_generated.h`
 - `docs/generated/cards/capabilities.md`
 
 Vacuum's routine saved-field policies and legacy migration actions are
 generated for both browser and firmware. Its mode-specific unit and icon
 decisions remain in the reviewed `normalize_vacuum_fields` hook.
+
+Sensor's legacy `local_sensor` type migration is also generated for browser
+and firmware. Its precision, icon, and option decisions remain in the reviewed
+`normalize_sensor_fields` and `normalize_sensor_options` hooks.
 
 An `allowed` field policy may declare `aliases` whose targets are in its
 allowed-value list. This preserves renamed legacy values before applying the
@@ -307,4 +313,4 @@ Saved-configuration normalization moves to generated helpers one card family at 
 
 Shadow helpers are deliberately not included by production firmware yet, so this stage adds 0 bytes of device flash and 0 bytes of RAM. The shadow check fails if the generated C++ header is included from another firmware header; this preserves the 8 KiB flash guard until a later PR deliberately switches a production family.
 
-Production rollout starts with one low-risk field at a time. Vacuum saved `options` normalization now uses generated browser and firmware helpers, while the rest of Vacuum normalization and all other card families remain on the established production paths. This keeps the first switch independently testable on P4 and S3 hardware before broader field and family migrations.
+Production rollout starts with one low-risk field or migration at a time. Vacuum routine fields and legacy actions now use generated browser and firmware helpers. Sensor rollout has begun with its declarative legacy local-sensor migration; the remaining Sensor hooks and other card families stay on their established production paths until their focused production steps.
