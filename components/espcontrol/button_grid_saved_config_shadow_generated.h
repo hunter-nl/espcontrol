@@ -190,12 +190,6 @@ inline int saved_config_shadow_media_volume(const std::string &value) {
   return static_cast<int>(parsed);
 }
 
-inline std::string saved_config_shadow_trim(const std::string &value) {
-  const size_t first = value.find_first_not_of(" \t\r\n");
-  if (first == std::string::npos) return "";
-  return value.substr(first, value.find_last_not_of(" \t\r\n") - first + 1);
-}
-
 template<typename Config>
 inline bool normalize_saved_config_media_shadow(Config &config) {
   if (config.type != "media") return false;
