@@ -356,8 +356,8 @@ export function normalizeSavedConfigSensorShadow(input: Partial<CardConfig>): Ca
   if (config.precision === "text" && optionPresent(source, "state_labels")) {
     out.push("state_labels");
     let stateInput = optionValue(source, "state_input"); let stateOutput = optionValue(source, "state_output");
-    if (!stateInput && optionValue(source, "state_high_label")) { stateInput = "high"; stateOutput = optionValue(source, "state_high_label"); }
-    else if (!stateInput && optionValue(source, "state_low_label")) { stateInput = "low"; stateOutput = optionValue(source, "state_low_label"); }
+    if (!stateInput && optionValue(source, "state_high_label")) { stateInput = "high"; if (!stateOutput) stateOutput = optionValue(source, "state_high_label"); }
+    else if (!stateInput && optionValue(source, "state_low_label")) { stateInput = "low"; if (!stateOutput) stateOutput = optionValue(source, "state_low_label"); }
     for (const [name, value] of [["state_input", stateInput], ["state_output", stateOutput], ["state_input_2", optionValue(source, "state_input_2")], ["state_output_2", optionValue(source, "state_output_2")]] as const) {
       const trimmed = value.trim();
       if (trimmed) out.push(name + "=" + encodeOptionValue(trimmed));

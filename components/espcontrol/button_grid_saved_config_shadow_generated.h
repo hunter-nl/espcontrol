@@ -113,8 +113,8 @@ inline bool normalize_saved_config_sensor_shadow(Config &config) {
   if (config.precision != "icon" && config.precision != "text") append_large_numbers_option(out, source);
   if (config.precision == "text" && cfg_option_token_present(source, "state_labels")) {
     saved_config_shadow_append_option(out, "state_labels"); std::string input = cfg_option_value(source, "state_input"); std::string output = cfg_option_value(source, "state_output");
-    if (input.empty() && !cfg_option_value(source, "state_high_label").empty()) { input = "high"; output = cfg_option_value(source, "state_high_label"); }
-    else if (input.empty() && !cfg_option_value(source, "state_low_label").empty()) { input = "low"; output = cfg_option_value(source, "state_low_label"); }
+    if (input.empty() && !cfg_option_value(source, "state_high_label").empty()) { input = "high"; if (output.empty()) output = cfg_option_value(source, "state_high_label"); }
+    else if (input.empty() && !cfg_option_value(source, "state_low_label").empty()) { input = "low"; if (output.empty()) output = cfg_option_value(source, "state_low_label"); }
     input = saved_config_shadow_trim(input); output = saved_config_shadow_trim(output);
     if (!input.empty()) saved_config_shadow_append_option(out, "state_input", input);
     if (!output.empty()) saved_config_shadow_append_option(out, "state_output", output);

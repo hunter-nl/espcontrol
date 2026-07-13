@@ -106,6 +106,10 @@ Treat saved card config as durable user data.
 
 Baseline migration decision: leading and trailing whitespace in saved Media playlist text values is not meaningful. Browser and firmware normalization trim it, and a padded `playlist` content type is treated as the default and omitted. Existing stored strings are still read without a new format and are not rewritten until an existing save or backup-import action persists the normalized value.
 
+Malformed UTF-8 percent runs are preserved as literal saved text, matching the browser's safe decoder. Valid percent-encoded UTF-8 and delimiters continue to decode normally.
+
+When a partly migrated Sensor translation contains both a current state output and a legacy high/low label, the current output wins; the legacy value supplies only the missing input/output parts.
+
 ## Where Card Logic Lives
 
 | Concern | Typical path |

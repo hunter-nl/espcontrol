@@ -698,8 +698,8 @@ def gen_saved_config_shadow_ts(data):
         "  if (config.precision === \"text\" && optionPresent(source, \"state_labels\")) {\n"
         "    out.push(\"state_labels\");\n"
         "    let stateInput = optionValue(source, \"state_input\"); let stateOutput = optionValue(source, \"state_output\");\n"
-        "    if (!stateInput && optionValue(source, \"state_high_label\")) { stateInput = \"high\"; stateOutput = optionValue(source, \"state_high_label\"); }\n"
-        "    else if (!stateInput && optionValue(source, \"state_low_label\")) { stateInput = \"low\"; stateOutput = optionValue(source, \"state_low_label\"); }\n"
+        "    if (!stateInput && optionValue(source, \"state_high_label\")) { stateInput = \"high\"; if (!stateOutput) stateOutput = optionValue(source, \"state_high_label\"); }\n"
+        "    else if (!stateInput && optionValue(source, \"state_low_label\")) { stateInput = \"low\"; if (!stateOutput) stateOutput = optionValue(source, \"state_low_label\"); }\n"
         "    for (const [name, value] of [[\"state_input\", stateInput], [\"state_output\", stateOutput], [\"state_input_2\", optionValue(source, \"state_input_2\")], [\"state_output_2\", optionValue(source, \"state_output_2\")]] as const) {\n"
         "      const trimmed = value.trim();\n"
         "      if (trimmed) out.push(name + \"=\" + encodeOptionValue(trimmed));\n"
@@ -823,8 +823,8 @@ def gen_saved_config_shadow_h(data):
         "  if (config.precision != \"icon\" && config.precision != \"text\") append_large_numbers_option(out, source);\n",
         "  if (config.precision == \"text\" && cfg_option_token_present(source, \"state_labels\")) {\n",
         "    saved_config_shadow_append_option(out, \"state_labels\"); std::string input = cfg_option_value(source, \"state_input\"); std::string output = cfg_option_value(source, \"state_output\");\n",
-        "    if (input.empty() && !cfg_option_value(source, \"state_high_label\").empty()) { input = \"high\"; output = cfg_option_value(source, \"state_high_label\"); }\n",
-        "    else if (input.empty() && !cfg_option_value(source, \"state_low_label\").empty()) { input = \"low\"; output = cfg_option_value(source, \"state_low_label\"); }\n",
+        "    if (input.empty() && !cfg_option_value(source, \"state_high_label\").empty()) { input = \"high\"; if (output.empty()) output = cfg_option_value(source, \"state_high_label\"); }\n",
+        "    else if (input.empty() && !cfg_option_value(source, \"state_low_label\").empty()) { input = \"low\"; if (output.empty()) output = cfg_option_value(source, \"state_low_label\"); }\n",
         "    input = saved_config_shadow_trim(input); output = saved_config_shadow_trim(output);\n",
         "    if (!input.empty()) saved_config_shadow_append_option(out, \"state_input\", input);\n",
         "    if (!output.empty()) saved_config_shadow_append_option(out, \"state_output\", output);\n",
