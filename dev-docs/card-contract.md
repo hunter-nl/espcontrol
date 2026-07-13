@@ -110,6 +110,8 @@ Malformed UTF-8 percent runs are preserved as literal saved text, matching the b
 
 When a partly migrated Sensor translation contains both a current state output and a legacy high/low label, the current output wins; the legacy value supplies only the missing input/output parts.
 
+Action state, script-field, and confirmation text values also ignore leading and trailing whitespace during normalization. Padded confirmation defaults are omitted so a second normalization pass is identical to the first.
+
 ## Where Card Logic Lives
 
 | Concern | Typical path |

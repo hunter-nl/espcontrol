@@ -895,14 +895,14 @@ inline void append_config_token(std::string &out, const std::string &token) {
 inline std::string action_card_options_normalized(const std::string &options,
                                                   const std::string &action) {
   std::string out;
-  std::string state_entity = cfg_option_value(options, "state_entity");
+  std::string state_entity = trim_saved_option_value(cfg_option_value(options, "state_entity"));
   if (!state_entity.empty()) {
     append_config_token(out, "state_entity=" + encode_compact_field(state_entity));
     std::string state_precision = cfg_option_value(options, "state_precision");
     if (state_precision == "icon" || state_precision == "text") {
       append_config_token(out, "state_precision=" + state_precision);
     } else {
-      std::string state_unit = cfg_option_value(options, "state_unit");
+      std::string state_unit = trim_saved_option_value(cfg_option_value(options, "state_unit"));
       if (!state_unit.empty()) {
         append_config_token(out, "state_unit=" + encode_compact_field(state_unit));
       }
@@ -914,7 +914,7 @@ inline std::string action_card_options_normalized(const std::string &options,
   }
 
   if (action == "script.turn_on") {
-    std::string fields = cfg_option_value(options, "script_fields");
+    std::string fields = trim_saved_option_value(cfg_option_value(options, "script_fields"));
     if (!fields.empty()) {
       append_config_token(out, "script_fields=" + encode_compact_field(fields));
     }
@@ -922,9 +922,9 @@ inline std::string action_card_options_normalized(const std::string &options,
 
   if (action == "script.turn_on" && cfg_option_token_present(options, "confirm_on")) {
     append_config_token(out, "confirm_on");
-    std::string message = cfg_option_value(options, "confirm_message");
-    std::string yes = cfg_option_value(options, "confirm_yes");
-    std::string no = cfg_option_value(options, "confirm_no");
+    std::string message = trim_saved_option_value(cfg_option_value(options, "confirm_message"));
+    std::string yes = trim_saved_option_value(cfg_option_value(options, "confirm_yes"));
+    std::string no = trim_saved_option_value(cfg_option_value(options, "confirm_no"));
     if (!message.empty() && message != "Run this script?") {
       append_config_token(out, "confirm_message=" + encode_compact_field(message));
     }

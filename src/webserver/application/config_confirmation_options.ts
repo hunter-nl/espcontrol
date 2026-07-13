@@ -134,7 +134,7 @@ export function installConfigConfirmationOptionsModule(): GlobalDescriptors {
         return actionCardIsScript(b) ? configOptionValue(b && b.options, ACTION_SCRIPT_FIELDS_OPTION) : "";
     }
     function copyActionCardStateOptions(this: any, out?: any, options?: any) {
-        var stateEntity: any = configOptionValue(options, ACTION_CARD_STATE_ENTITY_OPTION);
+        var stateEntity: any = configOptionValue(options, ACTION_CARD_STATE_ENTITY_OPTION).trim();
         if (!stateEntity)
             return out;
         out = setConfigOptionValue(out, ACTION_CARD_STATE_ENTITY_OPTION, stateEntity);
@@ -143,7 +143,7 @@ export function installConfigConfirmationOptionsModule(): GlobalDescriptors {
             out = setConfigOptionValue(out, ACTION_CARD_STATE_PRECISION_OPTION, rawPrecision);
             return out;
         }
-        var stateUnit: any = configOptionValue(options, ACTION_CARD_STATE_UNIT_OPTION);
+        var stateUnit: any = configOptionValue(options, ACTION_CARD_STATE_UNIT_OPTION).trim();
         if (!stateUnit && rawPrecision !== "0" && rawPrecision !== "1" && rawPrecision !== "2") {
             return copyLargeNumbersOption(out, options);
         }
@@ -163,15 +163,15 @@ export function installConfigConfirmationOptionsModule(): GlobalDescriptors {
         if (action !== "script.turn_on") {
             return out;
         }
-        var fields: any = configOptionValue(options, ACTION_SCRIPT_FIELDS_OPTION);
+        var fields: any = configOptionValue(options, ACTION_SCRIPT_FIELDS_OPTION).trim();
         if (fields)
             out = setConfigOptionValue(out, ACTION_SCRIPT_FIELDS_OPTION, fields);
         if (!configOptionEnabled(options, SWITCH_CONFIRM_ON_OPTION))
             return out;
         out = setConfigOption(out, SWITCH_CONFIRM_ON_OPTION, true);
-        var msg: any = configOptionValue(options, SWITCH_CONFIRM_MESSAGE_OPTION);
-        var yes: any = configOptionValue(options, SWITCH_CONFIRM_YES_OPTION);
-        var no: any = configOptionValue(options, SWITCH_CONFIRM_NO_OPTION);
+        var msg: any = configOptionValue(options, SWITCH_CONFIRM_MESSAGE_OPTION).trim();
+        var yes: any = configOptionValue(options, SWITCH_CONFIRM_YES_OPTION).trim();
+        var no: any = configOptionValue(options, SWITCH_CONFIRM_NO_OPTION).trim();
         if (msg && msg !== actionScriptConfirmationDefaultMessage()) {
             out = setConfigOptionValue(out, SWITCH_CONFIRM_MESSAGE_OPTION, msg);
         }
