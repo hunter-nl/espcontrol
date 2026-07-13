@@ -699,7 +699,7 @@ def gen_saved_config_shadow_ts(data):
         "    let stateInput = optionValue(source, \"state_input\"); let stateOutput = optionValue(source, \"state_output\");\n"
         "    if (!stateInput && optionValue(source, \"state_high_label\")) { stateInput = \"high\"; stateOutput = optionValue(source, \"state_high_label\"); }\n"
         "    else if (!stateInput && optionValue(source, \"state_low_label\")) { stateInput = \"low\"; stateOutput = optionValue(source, \"state_low_label\"); }\n"
-        "    for (const [name, value] of [[\"state_input\", stateInput], [\"state_output\", stateOutput], [\"state_input_2\", optionValue(source, \"state_input_2\")], [\"state_output_2\", optionValue(source, \"state_output_2\")]]) {\n"
+        "    for (const [name, value] of [[\"state_input\", stateInput], [\"state_output\", stateOutput], [\"state_input_2\", optionValue(source, \"state_input_2\")], [\"state_output_2\", optionValue(source, \"state_output_2\")]] as const) {\n"
         "      const trimmed = value.trim();\n"
         "      if (trimmed) out.push(name + \"=\" + encodeOptionValue(trimmed));\n"
         "    }\n"
