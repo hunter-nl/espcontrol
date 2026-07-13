@@ -1,4 +1,5 @@
 import { liveGlobal, staticGlobal, type GlobalDescriptors } from "../runtime/globals";
+import { normalizeSavedConfigVacuumOptions } from "../generated/saved_config_options";
 export function installConfigCodecModule(): GlobalDescriptors {
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
@@ -526,7 +527,10 @@ export function installConfigCodecModule(): GlobalDescriptors {
         else if (type === "calendar" || type === "clock" || type === "timezone") {
             options = normalizeDateTimeOptions(type, options, precision);
         }
-        else if (type === "vacuum" || type === "lawn_mower") {
+        else if (type === "vacuum") {
+            options = normalizeSavedConfigVacuumOptions(options);
+        }
+        else if (type === "lawn_mower") {
             options = "";
         }
         else if (type === "todo") {

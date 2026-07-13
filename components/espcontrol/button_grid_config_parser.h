@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "button_grid_card_runtime.h"
+#include "button_grid_saved_config_options_generated.h"
 
 constexpr const char *SENSOR_STATE_LABELS_OPTION = card_runtime_option_name_state_labels();
 constexpr const char *SENSOR_STATE_INPUT_OPTION = card_runtime_option_name_state_input();
@@ -1170,7 +1171,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.sensor = card_runtime_vacuum_mode(p.sensor);
     if (p.sensor != "clean_area") p.unit.clear();
     p.precision.clear();
-    p.options.clear();
+    p.options = normalize_saved_config_vacuum_options(p.options);
     p.icon_on = "Auto";
     if (p.icon.empty() || p.icon == "Auto") p.icon = card_runtime_vacuum_default_icon_name(p.sensor);
   }
