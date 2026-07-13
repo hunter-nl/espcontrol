@@ -701,7 +701,8 @@ def gen_saved_config_shadow_ts(data):
         "    if (!stateInput && optionValue(source, \"state_high_label\")) { stateInput = \"high\"; stateOutput = optionValue(source, \"state_high_label\"); }\n"
         "    else if (!stateInput && optionValue(source, \"state_low_label\")) { stateInput = \"low\"; stateOutput = optionValue(source, \"state_low_label\"); }\n"
         "    for (const [name, value] of [[\"state_input\", stateInput], [\"state_output\", stateOutput], [\"state_input_2\", optionValue(source, \"state_input_2\")], [\"state_output_2\", optionValue(source, \"state_output_2\")]]) {\n"
-        "      if (value) out.push(name + \"=\" + encodeOptionValue(value));\n"
+        "      const trimmed = value.trim();\n"
+        "      if (trimmed) out.push(name + \"=\" + encodeOptionValue(trimmed));\n"
         "    }\n"
         "  }\n"
         "  config.options = out.join(\",\"); return config;\n"
@@ -806,6 +807,11 @@ def gen_saved_config_shadow_h(data):
         "  out += name;\n",
         "  if (!value.empty()) out += \"=\" + encode_compact_field(value);\n",
         "}\n\n",
+        "inline std::string saved_config_shadow_trim(const std::string &value) {\n",
+        "  size_t begin = 0; while (begin < value.size() && (value[begin] == ' ' || value[begin] == '\\t' || value[begin] == '\\r' || value[begin] == '\\n')) ++begin;\n",
+        "  size_t end = value.size(); while (end > begin && (value[end - 1] == ' ' || value[end - 1] == '\\t' || value[end - 1] == '\\r' || value[end - 1] == '\\n')) --end;\n",
+        "  return value.substr(begin, end - begin);\n",
+        "}\n\n",
         "template<typename Config>\ninline bool normalize_saved_config_sensor_shadow(Config &config) {\n",
         "  if (config.type == \"text_sensor\") { config.type = \"sensor\"; config.precision = \"text\"; config.entity.clear(); config.label.clear(); config.unit.clear(); config.icon_on = \"Auto\"; if (config.icon.empty()) config.icon = \"Auto\"; }\n",
         "  if (config.type == \"local_sensor\") { config.type = \"sensor\"; config.sensor = \"local\"; config.icon_on = \"Auto\"; config.options.clear(); }\n",
@@ -819,11 +825,13 @@ def gen_saved_config_shadow_h(data):
         "    saved_config_shadow_append_option(out, \"state_labels\"); std::string input = cfg_option_value(source, \"state_input\"); std::string output = cfg_option_value(source, \"state_output\");\n",
         "    if (input.empty() && !cfg_option_value(source, \"state_high_label\").empty()) { input = \"high\"; output = cfg_option_value(source, \"state_high_label\"); }\n",
         "    else if (input.empty() && !cfg_option_value(source, \"state_low_label\").empty()) { input = \"low\"; output = cfg_option_value(source, \"state_low_label\"); }\n",
+        "    input = saved_config_shadow_trim(input); output = saved_config_shadow_trim(output);\n",
         "    if (!input.empty()) saved_config_shadow_append_option(out, \"state_input\", input);\n",
         "    if (!output.empty()) saved_config_shadow_append_option(out, \"state_output\", output);\n",
         "    const std::string input_2 = cfg_option_value(source, \"state_input_2\"); const std::string output_2 = cfg_option_value(source, \"state_output_2\");\n",
-        "    if (!input_2.empty()) saved_config_shadow_append_option(out, \"state_input_2\", input_2);\n",
-        "    if (!output_2.empty()) saved_config_shadow_append_option(out, \"state_output_2\", output_2);\n",
+        "    const std::string input_2_trimmed = saved_config_shadow_trim(input_2); const std::string output_2_trimmed = saved_config_shadow_trim(output_2);\n",
+        "    if (!input_2_trimmed.empty()) saved_config_shadow_append_option(out, \"state_input_2\", input_2_trimmed);\n",
+        "    if (!output_2_trimmed.empty()) saved_config_shadow_append_option(out, \"state_output_2\", output_2_trimmed);\n",
         "  }\n",
         "  config.options = out; return true;\n}\n\n",
         "template<typename Config>\ninline bool normalize_saved_config_action_shadow(Config &config) {\n",

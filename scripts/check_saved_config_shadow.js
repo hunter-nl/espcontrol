@@ -80,6 +80,13 @@ function shadowCases() {
       entity: "sensor.x", label: "", icon: "Auto", icon_on: "Auto", sensor: "sensor.x",
       unit: "", type: "sensor", precision: "1", options: "large_numbers",
     },
+  }, {
+    name: "text sensor trims padded state translations",
+    input: "sensor.x;State;Auto;Auto;sensor.x;;sensor;text;state_labels,state_input=%20on%20,state_output=%20On%20,state_input_2=%20off%20,state_output_2=%20Off%20",
+    expected: {
+      entity: "sensor.x", label: "State", icon: "Auto", icon_on: "Auto", sensor: "sensor.x",
+      unit: "", type: "sensor", precision: "text", options: "state_labels,state_input=on,state_output=On,state_input_2=off,state_output_2=Off",
+    },
   });
   const sensorAliases = JSON.parse(fs.readFileSync(path.join(ROOT, "common/config/baseline_card_normalization_fixtures.json"), "utf8"))
     .filter((fixture) => fixture.expected.type === "sensor");
