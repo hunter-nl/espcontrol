@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "button_grid_card_runtime.h"
+#include "button_grid_string.h"
 
 constexpr const char *SENSOR_STATE_LABELS_OPTION = card_runtime_option_name_state_labels();
 constexpr const char *SENSOR_STATE_INPUT_OPTION = card_runtime_option_name_state_input();
@@ -1435,12 +1436,6 @@ constexpr size_t HA_STATE_TEXT_MAX_LEN = 96;
 constexpr size_t HA_TEXT_SENSOR_STATE_MAX_LEN = 256;
 constexpr size_t HA_SHORT_STATE_MAX_LEN = 32;
 constexpr size_t HA_FRIENDLY_NAME_MAX_LEN = 64;
-
-inline std::string string_ref_limited(esphome::StringRef value, size_t max_len) {
-  size_t len = value.size();
-  if (len > max_len) len = max_len;
-  return std::string(value.c_str(), len);
-}
 
 inline std::string normalized_state_text(esphome::StringRef value,
                                          size_t max_len = HA_SHORT_STATE_MAX_LEN) {

@@ -83,6 +83,8 @@ TASKS = (
          domains=("firmware",),
          inputs=(
              "tests/firmware/**",
+             "components/espcontrol/button_grid_limits.h",
+             "components/espcontrol/button_grid_string.h",
              "components/espcontrol/button_grid_config_parser.h",
              "components/espcontrol/button_grid_subpages.h",
              "common/config/card_normalization_fixtures.json",

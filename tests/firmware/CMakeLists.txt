@@ -8,6 +8,15 @@ target_compile_features(foundation_test PRIVATE cxx_std_17)
 target_compile_options(foundation_test PRIVATE -Wall -Wextra -Werror)
 add_test(NAME foundation_test COMMAND foundation_test)
 
+add_executable(button_grid_foundations_test button_grid_foundations_test.cpp)
+target_compile_features(button_grid_foundations_test PRIVATE cxx_std_17)
+target_compile_options(button_grid_foundations_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(button_grid_foundations_test PRIVATE
+  stubs
+  ../../components/espcontrol
+)
+add_test(NAME button_grid_foundations_test COMMAND button_grid_foundations_test)
+
 add_executable(ha_read_coordinator_test ha_read_coordinator_test.cpp)
 target_compile_features(ha_read_coordinator_test PRIVATE cxx_std_17)
 target_compile_options(ha_read_coordinator_test PRIVATE -Wall -Wextra -Werror)

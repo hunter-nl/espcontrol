@@ -21,6 +21,9 @@ CARD_RUNTIME_HEADER = ROOT / "components" / "espcontrol" / "button_grid_card_run
 BACKLIGHT_HEADER = ROOT / "components" / "espcontrol" / "backlight.h"
 CLOCK_BAR_HEADER = ROOT / "components" / "espcontrol" / "clock_bar.h"
 LAYOUT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_layout.h"
+LIMITS_HEADER = ROOT / "components" / "espcontrol" / "button_grid_limits.h"
+STRING_HEADER = ROOT / "components" / "espcontrol" / "button_grid_string.h"
+BUTTON_GRID_FACADE = ROOT / "components" / "espcontrol" / "button_grid.h"
 CARD_NORMALIZATION_FIXTURES = ROOT / "common" / "config" / "card_normalization_fixtures.json"
 DEVICES_DIR = ROOT / "devices"
 IMAGE_CARD_NORMALIZATION_FIXTURES = ROOT / "common" / "config" / "image_card_normalization_fixtures.json"
@@ -665,7 +668,19 @@ def generated_card_normalization_assertions() -> str:
     return "".join(chunks)
 
 
+def check_button_grid_facade() -> None:
+    """Keep the YAML compatibility entry point free of behaviour code."""
+    for line_number, line in enumerate(BUTTON_GRID_FACADE.read_text(encoding="utf-8").splitlines(), 1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("//") or stripped.startswith("#"):
+            continue
+        raise RuntimeError(
+            f"{BUTTON_GRID_FACADE}:{line_number}: button_grid.h is an include-only compatibility facade"
+        )
+
+
 def main() -> int:
+    check_button_grid_facade()
     check_clock_bar_visual_gaps()
     cxx = compiler()
     if not cxx:
@@ -683,6 +698,8 @@ def main() -> int:
         shutil.copy2(CLOCK_BAR_HEADER, tmp_path / "clock_bar.h")
         shutil.copy2(BACKLIGHT_HEADER, tmp_path / "backlight.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
+        shutil.copy2(LIMITS_HEADER, tmp_path / "button_grid_limits.h")
+        shutil.copy2(STRING_HEADER, tmp_path / "button_grid_string.h")
         lvgl_stub = tmp_path / "esphome" / "components" / "lvgl" / "lvgl_esphome.h"
         lvgl_stub.parent.mkdir(parents=True, exist_ok=True)
         lvgl_stub.write_text("", encoding="utf-8")
@@ -694,6 +711,8 @@ def main() -> int:
         )
         defines_stub = tmp_path / "esphome" / "core" / "defines.h"
         defines_stub.write_text("", encoding="utf-8")
+        string_ref_stub = tmp_path / "esphome" / "core" / "string_ref.h"
+        string_ref_stub.write_text("", encoding="utf-8")
         log_stub = tmp_path / "esphome" / "core" / "log.h"
         log_stub.write_text("", encoding="utf-8")
         network_stub = tmp_path / "esphome" / "components" / "network" / "util.h"
