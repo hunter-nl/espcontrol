@@ -340,6 +340,10 @@ def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
             needles = (f'"{card_type}"',)
         for path in headers:
             text = path.read_text(errors="ignore")
+            for include in re.findall(r'#include\s+"(button_grid_saved_config_[^"/]*_generated\.h)"', text):
+                generated = path.parent / include
+                if generated.exists():
+                    text += "\n" + generated.read_text(errors="ignore")
             if any(needle in text for needle in needles):
                 out[card_type].append(rel(path))
         for extra in extra_by_type.get(card_type, []):

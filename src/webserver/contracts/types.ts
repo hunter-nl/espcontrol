@@ -11,6 +11,37 @@ export type SavedConfigField =
 
 export type CardConfig = Record<SavedConfigField, string>;
 
+export interface NormalizationCondition {
+  source: "field" | "option";
+  name: string;
+  operator: "equals" | "in" | "present";
+  value?: string | readonly string[];
+  negate?: boolean;
+}
+
+export type FieldNormalizationPolicy =
+  | { policy: "keep" | "clear" }
+  | { policy: "default"; value: string }
+  | { policy: "default_if_empty"; value: string }
+  | { policy: "allowed"; values: readonly string[]; aliases?: Readonly<Record<string, string>>; fallback: string }
+  | { policy: "alias"; aliases: Readonly<Record<string, string>> }
+  | { policy: "hook"; hook: string };
+
+export interface CardNormalizationSpec {
+  fields: Readonly<Record<SavedConfigField, FieldNormalizationPolicy>>;
+  unknownOptions: "drop";
+  canonicalOptionOrder: readonly string[];
+  optionHook?: string;
+  migrationActions?: readonly string[];
+  hookData?: Readonly<Record<string, unknown>>;
+}
+
+export interface MigrationActionSpec {
+  when: readonly NormalizationCondition[];
+  set: Partial<CardConfig>;
+  hook?: string;
+}
+
 export interface CardOptionSpec {
   name: string;
   label: string;
@@ -25,6 +56,11 @@ export interface CardOptionSpec {
   hidden?: boolean;
   docsHidden?: boolean;
   migration?: "drop";
+  omitDefault?: boolean;
+  storageField?: SavedConfigField;
+  aliases?: Readonly<Record<string, string>>;
+  applicability?: readonly NormalizationCondition[];
+  applicabilityHook?: string;
   supportedWhen?: {
     precision?: readonly string[];
     precisionNot?: readonly string[];
@@ -41,6 +77,7 @@ export interface CardTypeSpec {
   pickerKey?: string;
   hidden?: boolean;
   options?: readonly CardOptionSpec[];
+  normalization?: CardNormalizationSpec;
   behavior?: {
     lightTemperature?: {
       defaultRange: string;
