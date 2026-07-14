@@ -19,6 +19,7 @@
 #include "button_grid_saved_config_light_control_generated.h"
 #include "button_grid_saved_config_webhook_generated.h"
 #include "button_grid_saved_config_subpage_generated.h"
+#include "button_grid_saved_config_switch_generated.h"
 #include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
@@ -1246,9 +1247,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   }
   const bool normalized_saved_mower =
       normalize_saved_config_mower(p, normalize_saved_config_mower_fields);
-  if (p.type.empty()) {
-    p.options = switch_card_options_normalized(p.options);
-  }
+  normalize_saved_config_switch(p, switch_card_options_normalized);
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);

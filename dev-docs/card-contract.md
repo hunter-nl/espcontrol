@@ -399,3 +399,5 @@ Webhook also uses generated production routing, with only its named HTTP-method,
 request-body, empty-icon, and Headers option hooks kept by hand.
 Subpage also uses generated production routing, with only its named preset-field
 and supported state-display option hooks kept by hand.
+Basic Switch also uses generated production routing, with only its named
+confirmation, active-pattern, and Large Numbers option hook kept by hand.

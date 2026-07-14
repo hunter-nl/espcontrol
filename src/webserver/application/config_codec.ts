@@ -22,6 +22,7 @@ import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
 import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
 import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
 import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
+import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
 export function installConfigCodecModule(): GlobalDescriptors {
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
@@ -287,10 +288,8 @@ export function installConfigCodecModule(): GlobalDescriptors {
             normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
         var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
-        if (b && !normalizedSavedSensor && !b.type) {
-            b.options = normalizeSwitchConfirmationOptions(b.options);
-        }
-        else if (b && !normalizedSavedSensor && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
+        var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
+        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         return b;
