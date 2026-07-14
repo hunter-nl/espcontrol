@@ -10,7 +10,7 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_sensor_fields", "normalize_sensor_options", "normalize_vacuum_fields"] as const;
+export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_webhook_fields", "normalize_webhook_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_sensor_fields", "normalize_sensor_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
   "legacy_local_action": {
     "when": [
@@ -193,7 +193,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       {
         "name": "large_numbers",
         "label": "Large Active Display Numbers",
-        "kind": "flag"
+        "kind": "flag",
+        "omitDefault": true
       },
       {
         "name": "confirmation_mode",
@@ -206,6 +207,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "both"
         ],
         "defaultValue": "",
+        "omitDefault": true,
         "storage": [
           "confirm_off",
           "confirm_on"
@@ -219,13 +221,15 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "",
           "stripes"
         ],
-        "defaultValue": ""
+        "defaultValue": "",
+        "omitDefault": true
       },
       {
         "name": "confirm_message",
         "label": "Message",
         "kind": "text",
         "defaultValue": "Turn off this device?",
+        "omitDefault": true,
         "defaultValueByMode": {
           "off": "Turn off this device?",
           "on": "Turn on this device?",
@@ -236,15 +240,63 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "name": "confirm_yes",
         "label": "Confirm Button",
         "kind": "text",
-        "defaultValue": "Yes"
+        "defaultValue": "Yes",
+        "omitDefault": true
       },
       {
         "name": "confirm_no",
         "label": "Cancel Button",
         "kind": "text",
-        "defaultValue": "No"
+        "defaultValue": "No",
+        "omitDefault": true
       }
     ],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "keep"
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Auto"
+        },
+        "icon_on": {
+          "policy": "default_if_empty",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "keep"
+        },
+        "unit": {
+          "policy": "keep"
+        },
+        "type": {
+          "policy": "default",
+          "value": ""
+        },
+        "precision": {
+          "policy": "keep"
+        },
+        "options": {
+          "policy": "hook",
+          "hook": "normalize_switch_options"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": [
+        "large_numbers",
+        "on_pattern",
+        "confirm_off",
+        "confirm_on",
+        "confirm_message",
+        "confirm_yes",
+        "confirm_no"
+      ],
+      "optionHook": "normalize_switch_options"
+    },
     "default": {
       "entity": "",
       "label": "",
@@ -2335,9 +2387,48 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "temperature",
           "color"
         ],
-        "defaultValue": "power|brightness|temperature|color"
+        "defaultValue": "power|brightness|temperature|color",
+        "omitDefault": true
       }
     ],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "keep"
+        },
+        "icon": {
+          "policy": "keep"
+        },
+        "icon_on": {
+          "policy": "keep"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "light_control"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "hook",
+          "hook": "normalize_light_control_options"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": [
+        "light_tabs"
+      ],
+      "optionHook": "normalize_light_control_options"
+    },
     "default": {
       "entity": "",
       "label": "",
@@ -2839,9 +2930,52 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "name": "webhook_headers",
         "label": "Headers",
         "kind": "text",
-        "defaultValue": ""
+        "defaultValue": "",
+        "omitDefault": true
       }
     ],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "keep"
+        },
+        "icon": {
+          "policy": "hook",
+          "hook": "normalize_webhook_fields"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "hook",
+          "hook": "normalize_webhook_fields"
+        },
+        "unit": {
+          "policy": "hook",
+          "hook": "normalize_webhook_fields"
+        },
+        "type": {
+          "policy": "default",
+          "value": "webhook"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "hook",
+          "hook": "normalize_webhook_options"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": [
+        "webhook_headers"
+      ],
+      "optionHook": "normalize_webhook_options"
+    },
     "default": {
       "entity": "",
       "label": "",
@@ -3168,14 +3302,61 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "sensor",
           "image"
         ],
-        "defaultValue": ""
+        "defaultValue": "",
+        "omitDefault": true
       },
       {
         "name": "large_numbers",
         "label": "Large State Numbers",
-        "kind": "flag"
+        "kind": "flag",
+        "omitDefault": true
       }
     ],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "hook",
+          "hook": "normalize_subpage_fields"
+        },
+        "icon": {
+          "policy": "hook",
+          "hook": "normalize_subpage_fields"
+        },
+        "icon_on": {
+          "policy": "hook",
+          "hook": "normalize_subpage_fields"
+        },
+        "sensor": {
+          "policy": "hook",
+          "hook": "normalize_subpage_fields"
+        },
+        "unit": {
+          "policy": "hook",
+          "hook": "normalize_subpage_fields"
+        },
+        "type": {
+          "policy": "default",
+          "value": "subpage"
+        },
+        "precision": {
+          "policy": "hook",
+          "hook": "normalize_subpage_fields"
+        },
+        "options": {
+          "policy": "hook",
+          "hook": "normalize_subpage_options"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": [
+        "subpage_kind",
+        "large_numbers"
+      ],
+      "optionHook": "normalize_subpage_options"
+    },
     "default": {
       "entity": "",
       "label": "",

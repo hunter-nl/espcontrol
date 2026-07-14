@@ -23,6 +23,12 @@
     "normalize_image_options",
     "normalize_climate_fields",
     "normalize_climate_options",
+    "normalize_light_control_options",
+    "normalize_webhook_fields",
+    "normalize_webhook_options",
+    "normalize_subpage_fields",
+    "normalize_subpage_options",
+    "normalize_switch_options",
     "normalize_sensor_fields",
     "normalize_sensor_options",
     "normalize_vacuum_fields"
@@ -53,7 +59,8 @@
         {
           "name": "large_numbers",
           "label": "Large Active Display Numbers",
-          "kind": "flag"
+          "kind": "flag",
+          "omitDefault": true
         },
         {
           "name": "confirmation_mode",
@@ -61,6 +68,7 @@
           "kind": "choice",
           "values": ["", "off", "on", "both"],
           "defaultValue": "",
+          "omitDefault": true,
           "storage": ["confirm_off", "confirm_on"]
         },
         {
@@ -68,13 +76,15 @@
           "label": "On State Pattern",
           "kind": "choice",
           "values": ["", "stripes"],
-          "defaultValue": ""
+          "defaultValue": "",
+          "omitDefault": true
         },
         {
           "name": "confirm_message",
           "label": "Message",
           "kind": "text",
           "defaultValue": "Turn off this device?",
+          "omitDefault": true,
           "defaultValueByMode": {
             "off": "Turn off this device?",
             "on": "Turn on this device?",
@@ -85,15 +95,33 @@
           "name": "confirm_yes",
           "label": "Confirm Button",
           "kind": "text",
-          "defaultValue": "Yes"
+          "defaultValue": "Yes",
+          "omitDefault": true
         },
         {
           "name": "confirm_no",
           "label": "Cancel Button",
           "kind": "text",
-          "defaultValue": "No"
+          "defaultValue": "No",
+          "omitDefault": true
         }
       ],
+      "normalization": {
+        "fields": {
+          "entity": { "policy": "keep" },
+          "label": { "policy": "keep" },
+          "icon": { "policy": "default_if_empty", "value": "Auto" },
+          "icon_on": { "policy": "default_if_empty", "value": "Auto" },
+          "sensor": { "policy": "keep" },
+          "unit": { "policy": "keep" },
+          "type": { "policy": "default", "value": "" },
+          "precision": { "policy": "keep" },
+          "options": { "policy": "hook", "hook": "normalize_switch_options" }
+        },
+        "unknownOptions": "drop",
+        "canonicalOptionOrder": ["large_numbers", "on_pattern", "confirm_off", "confirm_on", "confirm_message", "confirm_yes", "confirm_no"],
+        "optionHook": "normalize_switch_options"
+      },
       "default": {
         "entity": "",
         "label": "",
@@ -1363,9 +1391,26 @@
           "label": "Visible Tabs",
           "kind": "text",
           "values": ["power", "brightness", "temperature", "color"],
-          "defaultValue": "power|brightness|temperature|color"
+          "defaultValue": "power|brightness|temperature|color",
+          "omitDefault": true
         }
       ],
+      "normalization": {
+        "fields": {
+          "entity": { "policy": "keep" },
+          "label": { "policy": "keep" },
+          "icon": { "policy": "keep" },
+          "icon_on": { "policy": "keep" },
+          "sensor": { "policy": "clear" },
+          "unit": { "policy": "clear" },
+          "type": { "policy": "default", "value": "light_control" },
+          "precision": { "policy": "clear" },
+          "options": { "policy": "hook", "hook": "normalize_light_control_options" }
+        },
+        "unknownOptions": "drop",
+        "canonicalOptionOrder": ["light_tabs"],
+        "optionHook": "normalize_light_control_options"
+      },
       "default": {
         "entity": "",
         "label": "",
@@ -1682,9 +1727,26 @@
           "name": "webhook_headers",
           "label": "Headers",
           "kind": "text",
-          "defaultValue": ""
+          "defaultValue": "",
+          "omitDefault": true
         }
       ],
+      "normalization": {
+        "fields": {
+          "entity": { "policy": "keep" },
+          "label": { "policy": "keep" },
+          "icon": { "policy": "hook", "hook": "normalize_webhook_fields" },
+          "icon_on": { "policy": "default", "value": "Auto" },
+          "sensor": { "policy": "hook", "hook": "normalize_webhook_fields" },
+          "unit": { "policy": "hook", "hook": "normalize_webhook_fields" },
+          "type": { "policy": "default", "value": "webhook" },
+          "precision": { "policy": "clear" },
+          "options": { "policy": "hook", "hook": "normalize_webhook_options" }
+        },
+        "unknownOptions": "drop",
+        "canonicalOptionOrder": ["webhook_headers"],
+        "optionHook": "normalize_webhook_options"
+      },
       "default": {
         "entity": "",
         "label": "",
@@ -1877,14 +1939,32 @@
           "label": "Subpage Type",
           "kind": "choice",
           "values": ["", "switch", "lights", "climate", "presence", "media", "alarm", "cover", "garage", "gate", "lock", "vacuum", "lawn_mower", "weather", "sensor", "image"],
-          "defaultValue": ""
+          "defaultValue": "",
+          "omitDefault": true
         },
         {
           "name": "large_numbers",
           "label": "Large State Numbers",
-          "kind": "flag"
+          "kind": "flag",
+          "omitDefault": true
         }
       ],
+      "normalization": {
+        "fields": {
+          "entity": { "policy": "keep" },
+          "label": { "policy": "hook", "hook": "normalize_subpage_fields" },
+          "icon": { "policy": "hook", "hook": "normalize_subpage_fields" },
+          "icon_on": { "policy": "hook", "hook": "normalize_subpage_fields" },
+          "sensor": { "policy": "hook", "hook": "normalize_subpage_fields" },
+          "unit": { "policy": "hook", "hook": "normalize_subpage_fields" },
+          "type": { "policy": "default", "value": "subpage" },
+          "precision": { "policy": "hook", "hook": "normalize_subpage_fields" },
+          "options": { "policy": "hook", "hook": "normalize_subpage_options" }
+        },
+        "unknownOptions": "drop",
+        "canonicalOptionOrder": ["subpage_kind", "large_numbers"],
+        "optionHook": "normalize_subpage_options"
+      },
       "default": {
         "entity": "",
         "label": "",
