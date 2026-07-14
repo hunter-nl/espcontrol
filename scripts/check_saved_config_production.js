@@ -28,6 +28,13 @@ function checkCompiledHelper() {
 #include "button_grid_saved_config_action_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
+#include "button_grid_saved_config_weather_generated.h"
+#include "button_grid_saved_config_image_generated.h"
+#include "button_grid_saved_config_climate_generated.h"
+#include "button_grid_saved_config_light_control_generated.h"
+#include "button_grid_saved_config_webhook_generated.h"
+#include "button_grid_saved_config_subpage_generated.h"
+#include "button_grid_saved_config_switch_generated.h"
 #include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
@@ -331,6 +338,168 @@ int main() {
     unrelated, [](Config &) {},
     [](const std::string &options, const Config &) { return options; }
   ));
+  Config legacy_weather{"weather_forecast", "stale", "unit", "2", "large_numbers,unknown=1", "Auto", "weather.home", "Weather", "Auto"};
+  assert(migrate_saved_config_weather_legacy(legacy_weather));
+  assert(legacy_weather.type == "weather" && legacy_weather.precision == "tomorrow");
+  bool weather_fields_called = false;
+  bool weather_options_called = false;
+  assert(normalize_saved_config_weather(
+    legacy_weather, true,
+    [&](Config &config, bool was_legacy) {
+      weather_fields_called = was_legacy;
+      config.label.clear();
+    },
+    [&](const std::string &, const Config &config) {
+      weather_options_called = config.sensor.empty() && config.precision == "tomorrow";
+      return std::string("large_numbers");
+    }
+  ));
+  assert(weather_fields_called && weather_options_called);
+  assert(legacy_weather.entity == "weather.home" && legacy_weather.label.empty());
+  assert(legacy_weather.sensor.empty() && legacy_weather.unit == "unit");
+  assert(legacy_weather.precision == "tomorrow" && legacy_weather.options == "large_numbers");
+  assert(!migrate_saved_config_weather_legacy(unrelated));
+  assert(!normalize_saved_config_weather(
+    unrelated, false, [](Config &, bool) {},
+    [](const std::string &options, const Config &) { return options; }
+  ));
+  Config image{"image", "stale", "unit", "2", "image_label,image_icon,image_modal_mode=fit,unknown=1", "Custom", "camera.front", "Front", "Auto"};
+  bool image_fields_called = false;
+  bool image_options_called = false;
+  assert(normalize_saved_config_image(
+    image,
+    [&](Config &config) {
+      image_fields_called = true;
+      config.icon = "Camera";
+    },
+    [&](const std::string &, const Config &config) {
+      image_options_called = config.type == "image" && config.label == "Front";
+      return std::string("image_label,image_icon,image_modal_mode=fit");
+    }
+  ));
+  assert(image_fields_called && image_options_called);
+  assert(image.entity == "camera.front" && image.label == "Front" && image.icon == "Camera");
+  assert(image.icon_on == "Auto" && image.sensor.empty() && image.unit.empty());
+  assert(image.precision.empty() && image.options == "image_label,image_icon,image_modal_mode=fit");
+  assert(!normalize_saved_config_image(
+    unrelated, [](Config &) {},
+    [](const std::string &options, const Config &) { return options; }
+  ));
+  Config climate{"climate", "stale", "unit", "bad", "label_display=status,number_display=actual,unknown=1", "Radiator", "climate.hall", "Hall", ""};
+  bool climate_fields_called = false;
+  bool climate_options_called = false;
+  assert(normalize_saved_config_climate(
+    climate,
+    [&](Config &config) {
+      climate_fields_called = true;
+      config.icon = "Thermostat";
+      config.precision.clear();
+    },
+    [&](const std::string &, const Config &config) {
+      climate_options_called = config.type == "climate_control" && config.sensor.empty();
+      return std::string("label_display=status,number_display=actual");
+    }
+  ));
+  assert(climate_fields_called && climate_options_called);
+  assert(climate.type == "climate_control" && climate.entity == "climate.hall");
+  assert(climate.label == "Hall" && climate.icon == "Thermostat" && climate.icon_on == "Radiator");
+  assert(climate.sensor.empty() && climate.unit.empty() && climate.precision.empty());
+  assert(climate.options == "label_display=status,number_display=actual");
+  assert(!normalize_saved_config_climate(
+    unrelated, [](Config &) {},
+    [](const std::string &options, const Config &) { return options; }
+  ));
+  Config light_control{"light_control", "stale", "unit", "2", "light_tabs=brightness%7Cpower,unknown=1", "Lightbulb", "light.kitchen", "Kitchen", "Lightbulb Outline"};
+  bool light_control_options_called = false;
+  assert(normalize_saved_config_light_control(
+    light_control,
+    [&](const std::string &, const Config &config) {
+      light_control_options_called = config.type == "light_control" && config.sensor.empty();
+      return std::string("light_tabs=brightness%7Cpower");
+    }
+  ));
+  assert(light_control_options_called);
+  assert(light_control.entity == "light.kitchen" && light_control.label == "Kitchen");
+  assert(light_control.icon == "Lightbulb Outline" && light_control.icon_on == "Lightbulb");
+  assert(light_control.sensor.empty() && light_control.unit.empty() && light_control.precision.empty());
+  assert(light_control.options == "light_tabs=brightness%7Cpower");
+  assert(!normalize_saved_config_light_control(
+    unrelated, [](const std::string &options, const Config &) { return options; }
+  ));
+  Config webhook{"webhook", " post ", "payload", "stale", "webhook_headers=Content-Type%3A%20application%2Fjson,unknown=1", "Custom", "http://example.local/hook", "Gate", ""};
+  bool webhook_fields_called = false;
+  bool webhook_options_called = false;
+  assert(normalize_saved_config_webhook(
+    webhook,
+    [&](Config &config) {
+      webhook_fields_called = true;
+      config.sensor = "POST";
+      config.icon = "Auto";
+    },
+    [&](const std::string &, const Config &config) {
+      webhook_options_called = config.sensor == "POST" && config.precision.empty();
+      return std::string("webhook_headers=Content-Type%3A%20application%2Fjson");
+    }
+  ));
+  assert(webhook_fields_called && webhook_options_called);
+  assert(webhook.entity == "http://example.local/hook" && webhook.label == "Gate");
+  assert(webhook.icon == "Auto" && webhook.icon_on == "Auto");
+  assert(webhook.sensor == "POST" && webhook.unit == "payload" && webhook.precision.empty());
+  assert(webhook.options == "webhook_headers=Content-Type%3A%20application%2Fjson");
+  assert(!normalize_saved_config_webhook(
+    unrelated, [](Config &) {},
+    [](const std::string &options, const Config &) { return options; }
+  ));
+  Config subpage{"subpage", "sensor.temperature", "C", "2", "subpage_kind=climate,large_numbers,unknown=1", "Custom", "", "", "Auto"};
+  bool subpage_fields_called = false;
+  bool subpage_options_called = false;
+  assert(normalize_saved_config_subpage(
+    subpage,
+    [&](Config &config) {
+      subpage_fields_called = true;
+      config.label = "Climate";
+      config.icon = "Thermostat";
+      config.icon_on = "Auto";
+      config.sensor = "indicator";
+      config.unit.clear();
+      config.precision.clear();
+    },
+    [&](const std::string &, const Config &config) {
+      subpage_options_called = config.sensor == "indicator" && config.precision.empty();
+      return std::string("subpage_kind=climate");
+    }
+  ));
+  assert(subpage_fields_called && subpage_options_called);
+  assert(subpage.label == "Climate" && subpage.icon == "Thermostat");
+  assert(subpage.icon_on == "Auto" && subpage.sensor == "indicator");
+  assert(subpage.unit.empty() && subpage.precision.empty());
+  assert(subpage.options == "subpage_kind=climate");
+  assert(!normalize_saved_config_subpage(
+    unrelated, [](Config &) {},
+    [](const std::string &options, const Config &) { return options; }
+  ));
+  Config switch_card{"", "sensor.power", "W", "1", "large_numbers,confirm_off,ignored=1", "Power", "switch.printer", "Printer", "Printer 3D"};
+  bool switch_options_called = false;
+  assert(normalize_saved_config_switch(
+    switch_card,
+    [&](const std::string &) {
+      switch_options_called = true;
+      return std::string("large_numbers,confirm_off");
+    }
+  ));
+  assert(switch_options_called);
+  assert(switch_card.entity == "switch.printer" && switch_card.label == "Printer");
+  assert(switch_card.icon == "Printer 3D" && switch_card.icon_on == "Power");
+  assert(switch_card.sensor == "sensor.power" && switch_card.unit == "W" && switch_card.precision == "1");
+  assert(switch_card.options == "large_numbers,confirm_off");
+  Config empty_switch{"", "", "", "", "", "", "", "", ""};
+  assert(normalize_saved_config_switch(
+    empty_switch, [](const std::string &options) { return options; }
+  ));
+  assert(empty_switch.icon == "Auto" && empty_switch.icon_on == "Auto");
+  assert(!normalize_saved_config_switch(
+    unrelated, [](const std::string &options) { return options; }
+  ));
 }
 `);
     childProcess.execFileSync(compiler(), [
@@ -561,6 +730,98 @@ function main() {
   assert.deepStrictEqual(alarmAction, { type: "alarm_action", entity: "alarm_control_panel.home", label: "Arm Away", icon: "Shield Lock", icon_on: "Auto", sensor: "away", unit: "", precision: "", options: "pin_arm=0" });
   assert.strictEqual(generatedSecurity.normalizeSavedConfigSecurity({ type: "sensor", options: "keep" }, () => {}, (options) => options), false);
 
+  const generatedWeather = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_weather.ts"));
+  const legacyWeather = { type: "weather_forecast", entity: "weather.home", label: "Weather", icon: "Auto", icon_on: "Auto", sensor: "stale", unit: "unit", precision: "bad", options: "large_numbers,unknown=1" };
+  assert.strictEqual(generatedWeather.migrateSavedConfigWeatherLegacy(legacyWeather), true);
+  let weatherFieldsCalled = false;
+  let weatherOptionsCalled = false;
+  assert.strictEqual(generatedWeather.normalizeSavedConfigWeather(
+    legacyWeather, true,
+    (config, wasLegacy) => { weatherFieldsCalled = wasLegacy; config.label = ""; },
+    (_options, config) => { weatherOptionsCalled = config.sensor === "" && config.precision === "tomorrow"; return "large_numbers"; },
+  ), true);
+  assert(weatherFieldsCalled && weatherOptionsCalled);
+  assert.deepStrictEqual(legacyWeather, { type: "weather", entity: "weather.home", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "unit", precision: "tomorrow", options: "large_numbers" });
+  assert.strictEqual(generatedWeather.migrateSavedConfigWeatherLegacy({ type: "sensor" }), false);
+  assert.strictEqual(generatedWeather.normalizeSavedConfigWeather({ type: "sensor" }, false, () => {}, (options) => options), false);
+
+  const generatedImage = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_image.ts"));
+  const imageCard = { type: "image", entity: "camera.front", label: "Front", icon: "Auto", icon_on: "Custom", sensor: "stale", unit: "unit", precision: "2", options: "image_label,image_icon,image_modal_mode=fit,unknown=1" };
+  let imageFieldsCalled = false;
+  let imageOptionsCalled = false;
+  assert.strictEqual(generatedImage.normalizeSavedConfigImage(
+    imageCard,
+    (config) => { imageFieldsCalled = true; config.icon = "Camera"; },
+    (_options, config) => { imageOptionsCalled = config.type === "image" && config.label === "Front"; return "image_label,image_icon,image_modal_mode=fit"; },
+  ), true);
+  assert(imageFieldsCalled && imageOptionsCalled);
+  assert.deepStrictEqual(imageCard, { type: "image", entity: "camera.front", label: "Front", icon: "Camera", icon_on: "Auto", sensor: "", unit: "", precision: "", options: "image_label,image_icon,image_modal_mode=fit" });
+  assert.strictEqual(generatedImage.normalizeSavedConfigImage({ type: "sensor" }, () => {}, (options) => options), false);
+
+  const generatedClimate = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_climate.ts"));
+  const climateCard = { type: "climate", entity: "climate.hall", label: "Hall", icon: "", icon_on: "Radiator", sensor: "stale", unit: "unit", precision: "bad", options: "label_display=status,number_display=actual,unknown=1" };
+  let climateFieldsCalled = false;
+  let climateOptionsCalled = false;
+  assert.strictEqual(generatedClimate.normalizeSavedConfigClimate(
+    climateCard,
+    (config) => { climateFieldsCalled = true; config.icon = "Thermostat"; config.precision = ""; },
+    (_options, config) => { climateOptionsCalled = config.type === "climate_control" && config.sensor === ""; return "label_display=status,number_display=actual"; },
+  ), true);
+  assert(climateFieldsCalled && climateOptionsCalled);
+  assert.deepStrictEqual(climateCard, { type: "climate_control", entity: "climate.hall", label: "Hall", icon: "Thermostat", icon_on: "Radiator", sensor: "", unit: "", precision: "", options: "label_display=status,number_display=actual" });
+  assert.strictEqual(generatedClimate.normalizeSavedConfigClimate({ type: "sensor" }, () => {}, (options) => options), false);
+
+  const generatedLightControl = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_light_control.ts"));
+  const lightControlCard = { type: "light_control", entity: "light.kitchen", label: "Kitchen", icon: "Lightbulb Outline", icon_on: "Lightbulb", sensor: "stale", unit: "unit", precision: "2", options: "light_tabs=brightness%7Cpower,unknown=1" };
+  let lightControlOptionsCalled = false;
+  assert.strictEqual(generatedLightControl.normalizeSavedConfigLightControl(
+    lightControlCard,
+    (_options, config) => { lightControlOptionsCalled = config.type === "light_control" && config.sensor === ""; return "light_tabs=brightness%7Cpower"; },
+  ), true);
+  assert(lightControlOptionsCalled);
+  assert.deepStrictEqual(lightControlCard, { type: "light_control", entity: "light.kitchen", label: "Kitchen", icon: "Lightbulb Outline", icon_on: "Lightbulb", sensor: "", unit: "", precision: "", options: "light_tabs=brightness%7Cpower" });
+  assert.strictEqual(generatedLightControl.normalizeSavedConfigLightControl({ type: "sensor" }, (options) => options), false);
+
+  const generatedWebhook = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_webhook.ts"));
+  const webhookCard = { type: "webhook", entity: "http://example.local/hook", label: "Gate", icon: "", icon_on: "Custom", sensor: " post ", unit: "payload", precision: "stale", options: "webhook_headers=Content-Type%3A%20application%2Fjson,unknown=1" };
+  let webhookFieldsCalled = false;
+  let webhookOptionsCalled = false;
+  assert.strictEqual(generatedWebhook.normalizeSavedConfigWebhook(
+    webhookCard,
+    (config) => { webhookFieldsCalled = true; config.sensor = "POST"; config.icon = "Auto"; },
+    (_options, config) => { webhookOptionsCalled = config.sensor === "POST" && config.precision === ""; return "webhook_headers=Content-Type%3A%20application%2Fjson"; },
+  ), true);
+  assert(webhookFieldsCalled && webhookOptionsCalled);
+  assert.deepStrictEqual(webhookCard, { type: "webhook", entity: "http://example.local/hook", label: "Gate", icon: "Auto", icon_on: "Auto", sensor: "POST", unit: "payload", precision: "", options: "webhook_headers=Content-Type%3A%20application%2Fjson" });
+  assert.strictEqual(generatedWebhook.normalizeSavedConfigWebhook({ type: "sensor" }, () => {}, (options) => options), false);
+
+  const generatedSubpage = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_subpage.ts"));
+  const subpageCard = { type: "subpage", entity: "", label: "", icon: "Auto", icon_on: "Custom", sensor: "sensor.temperature", unit: "C", precision: "2", options: "subpage_kind=climate,large_numbers,unknown=1" };
+  let subpageFieldsCalled = false;
+  let subpageOptionsCalled = false;
+  assert.strictEqual(generatedSubpage.normalizeSavedConfigSubpage(
+    subpageCard,
+    (config) => { subpageFieldsCalled = true; config.label = "Climate"; config.icon = "Thermostat"; config.icon_on = "Auto"; config.sensor = "indicator"; config.unit = ""; config.precision = ""; },
+    (_options, config) => { subpageOptionsCalled = config.sensor === "indicator" && config.precision === ""; return "subpage_kind=climate"; },
+  ), true);
+  assert(subpageFieldsCalled && subpageOptionsCalled);
+  assert.deepStrictEqual(subpageCard, { type: "subpage", entity: "", label: "Climate", icon: "Thermostat", icon_on: "Auto", sensor: "indicator", unit: "", precision: "", options: "subpage_kind=climate" });
+  assert.strictEqual(generatedSubpage.normalizeSavedConfigSubpage({ type: "sensor" }, () => {}, (options) => options), false);
+
+  const generatedSwitch = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_switch.ts"));
+  const switchCard = { type: "", entity: "switch.printer", label: "Printer", icon: "Printer 3D", icon_on: "Power", sensor: "sensor.power", unit: "W", precision: "1", options: "large_numbers,confirm_off,ignored=1" };
+  let switchOptionsCalled = false;
+  assert.strictEqual(generatedSwitch.normalizeSavedConfigSwitch(
+    switchCard,
+    () => { switchOptionsCalled = true; return "large_numbers,confirm_off"; },
+  ), true);
+  assert(switchOptionsCalled);
+  assert.deepStrictEqual(switchCard, { type: "", entity: "switch.printer", label: "Printer", icon: "Printer 3D", icon_on: "Power", sensor: "sensor.power", unit: "W", precision: "1", options: "large_numbers,confirm_off" });
+  const emptySwitch = { type: "", icon: "", icon_on: "", options: "" };
+  assert.strictEqual(generatedSwitch.normalizeSavedConfigSwitch(emptySwitch, (options) => options), true);
+  assert.deepStrictEqual(emptySwitch, { type: "", icon: "Auto", icon_on: "Auto", options: "" });
+  assert.strictEqual(generatedSwitch.normalizeSavedConfigSwitch({ type: "sensor" }, (options) => options), false);
+
   const browser = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_codec.ts"), "utf8");
   assert.match(browser, /from "\.\.\/generated\/saved_config_vacuum";/);
   assert.match(browser, /migrateSavedConfigVacuumLegacy\(b\)/);
@@ -616,6 +877,29 @@ function main() {
   assert.match(browser, /normalizeSavedConfigSecurity\(b, normalizeSavedConfigSecurityFields, normalizeSavedConfigSecurityOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "alarm"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "alarm_action"\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_weather";/);
+  assert.match(browser, /migrateSavedConfigWeatherLegacy\(b\)/);
+  assert.match(browser, /normalizeSavedConfigWeather\(b, wasLegacyWeatherForecast,/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "weather_forecast"\)/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "weather"\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_image";/);
+  assert.match(browser, /normalizeSavedConfigImage\(b, normalizeSavedConfigImageFields, normalizeSavedConfigImageOptions\)/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "image"\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_climate";/);
+  assert.match(browser, /normalizeSavedConfigClimate\(b, normalizeSavedConfigClimateFields, normalizeSavedConfigClimateOptions\)/);
+  assert.doesNotMatch(browser, /if \(b && isClimateCardType\(b\.type\)\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_light_control";/);
+  assert.match(browser, /normalizeSavedConfigLightControl\(b, normalizeSavedConfigLightControlOptions\)/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "light_control"\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_webhook";/);
+  assert.match(browser, /normalizeSavedConfigWebhook\(b, normalizeSavedConfigWebhookFields, normalizeSavedConfigWebhookOptions\)/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "webhook"\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_subpage";/);
+  assert.match(browser, /normalizeSavedConfigSubpage\(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions\)/);
+  assert.doesNotMatch(browser, /if \(b && b\.type === "subpage"\)/);
+  assert.match(browser, /from "\.\.\/generated\/saved_config_switch";/);
+  assert.match(browser, /normalizeSavedConfigSwitch\(b, normalizeSwitchConfirmationOptions\)/);
+  assert.doesNotMatch(browser, /if \(b && !normalizedSavedSensor && !b\.type\)/);
 
   const vacuumCard = fs.readFileSync(path.join(ROOT, "src/webserver/cards/vacuum.ts"), "utf8");
   assert.match(vacuumCard, /normalizeSavedConfigVacuumSensor\(String\(b\.sensor \|\| ""\)\)/);
@@ -627,7 +911,7 @@ function main() {
   const firmware = fs.readFileSync(path.join(ROOT, "components/espcontrol/button_grid_config_parser.h"), "utf8");
   assert.match(firmware, /#include "button_grid_saved_config_vacuum_generated\.h"/);
   const vacuumStart = firmware.indexOf('if (p.type == "vacuum")');
-  const vacuumEnd = firmware.indexOf('if (p.type.empty())', vacuumStart);
+  const vacuumEnd = firmware.indexOf('const bool normalized_saved_mower', vacuumStart);
   assert(vacuumStart >= 0 && vacuumEnd > vacuumStart, "Vacuum production normalization block not found");
   const vacuumBlock = firmware.slice(vacuumStart, vacuumEnd);
   assert.match(firmware, /migrate_saved_config_vacuum_legacy\(p\)/);
@@ -682,9 +966,32 @@ function main() {
   assert.match(firmware, /normalize_saved_config_security\(\s*p, normalize_saved_config_security_fields,/);
   assert.doesNotMatch(normalizeParser, /if \(p\.type == "alarm"\) \{\s*p\.sensor\.clear\(\);/);
   assert.doesNotMatch(normalizeParser, /if \(p\.type == "alarm_action"\) \{\s*if \(!alarm_action_mode_valid/);
+  assert.match(firmware, /#include "button_grid_saved_config_weather_generated\.h"/);
+  assert.match(firmware, /migrate_saved_config_weather_legacy\(p\)/);
+  assert.match(firmware, /normalize_saved_config_weather\(\s*p, was_legacy_weather_forecast,/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "weather_forecast"\)/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "weather"\)/);
+  assert.match(firmware, /#include "button_grid_saved_config_image_generated\.h"/);
+  assert.match(firmware, /normalize_saved_config_image\(\s*p, normalize_saved_config_image_fields,/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "image"\)/);
+  assert.match(firmware, /#include "button_grid_saved_config_climate_generated\.h"/);
+  assert.match(firmware, /normalize_saved_config_climate\(\s*p, normalize_saved_config_climate_fields,/);
+  assert.doesNotMatch(normalizeParser, /if \(climate_card_type\(p\.type\)\)/);
+  assert.match(firmware, /#include "button_grid_saved_config_light_control_generated\.h"/);
+  assert.match(firmware, /normalize_saved_config_light_control\(p, normalize_saved_config_light_control_options\)/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "light_control"\)/);
+  assert.match(firmware, /#include "button_grid_saved_config_webhook_generated\.h"/);
+  assert.match(firmware, /normalize_saved_config_webhook\(\s*p, normalize_saved_config_webhook_fields, normalize_saved_config_webhook_options\)/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "webhook"\)/);
+  assert.match(firmware, /#include "button_grid_saved_config_subpage_generated\.h"/);
+  assert.match(firmware, /normalize_saved_config_subpage\(\s*p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options\)/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type == "subpage"\)/);
+  assert.match(firmware, /#include "button_grid_saved_config_switch_generated\.h"/);
+  assert.match(firmware, /normalize_saved_config_switch\(p, switch_card_options_normalized\)/);
+  assert.doesNotMatch(normalizeParser, /if \(p\.type\.empty\(\)\) \{\s*p\.options = switch_card_options_normalized/);
 
   checkCompiledHelper();
-  console.log("Saved-config production check passed: Access, Action, Date/Time, Fan, Lawn Mower, Media, Occupancy, Security, Sensor, Vacuum, and static card normalization use generated browser and compiled firmware helpers.");
+  console.log("Saved-config production check passed: Access, Action, Climate, Date/Time, Fan, Image, Lawn Mower, Light Control, Media, Occupancy, Security, Sensor, Subpage, Switch, Vacuum, Weather, Webhook, and static card normalization use generated browser and compiled firmware helpers.");
 }
 
 main();

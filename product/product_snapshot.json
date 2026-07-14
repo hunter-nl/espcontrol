@@ -1139,6 +1139,18 @@
       "normalize_access_options",
       "normalize_security_fields",
       "normalize_security_options",
+      "normalize_weather_fields",
+      "normalize_weather_options",
+      "normalize_image_fields",
+      "normalize_image_options",
+      "normalize_climate_fields",
+      "normalize_climate_options",
+      "normalize_light_control_options",
+      "normalize_webhook_fields",
+      "normalize_webhook_options",
+      "normalize_subpage_fields",
+      "normalize_subpage_options",
+      "normalize_switch_options",
       "normalize_sensor_fields",
       "normalize_sensor_options",
       "normalize_vacuum_fields"
@@ -1174,7 +1186,8 @@
           {
             "name": "large_numbers",
             "label": "Large Active Display Numbers",
-            "kind": "flag"
+            "kind": "flag",
+            "omitDefault": true
           },
           {
             "name": "confirmation_mode",
@@ -1187,6 +1200,7 @@
               "both"
             ],
             "defaultValue": "",
+            "omitDefault": true,
             "storage": [
               "confirm_off",
               "confirm_on"
@@ -1200,13 +1214,15 @@
               "",
               "stripes"
             ],
-            "defaultValue": ""
+            "defaultValue": "",
+            "omitDefault": true
           },
           {
             "name": "confirm_message",
             "label": "Message",
             "kind": "text",
             "defaultValue": "Turn off this device?",
+            "omitDefault": true,
             "defaultValueByMode": {
               "off": "Turn off this device?",
               "on": "Turn on this device?",
@@ -1217,15 +1233,63 @@
             "name": "confirm_yes",
             "label": "Confirm Button",
             "kind": "text",
-            "defaultValue": "Yes"
+            "defaultValue": "Yes",
+            "omitDefault": true
           },
           {
             "name": "confirm_no",
             "label": "Cancel Button",
             "kind": "text",
-            "defaultValue": "No"
+            "defaultValue": "No",
+            "omitDefault": true
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "keep"
+            },
+            "icon": {
+              "policy": "default_if_empty",
+              "value": "Auto"
+            },
+            "icon_on": {
+              "policy": "default_if_empty",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "keep"
+            },
+            "unit": {
+              "policy": "keep"
+            },
+            "type": {
+              "policy": "default",
+              "value": ""
+            },
+            "precision": {
+              "policy": "keep"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_switch_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "large_numbers",
+            "on_pattern",
+            "confirm_off",
+            "confirm_on",
+            "confirm_message",
+            "confirm_yes",
+            "confirm_no"
+          ],
+          "optionHook": "normalize_switch_options"
+        },
         "default": {
           "entity": "",
           "label": "",
@@ -2074,7 +2138,8 @@
               "actual",
               "target"
             ],
-            "defaultValue": "label"
+            "defaultValue": "label",
+            "omitDefault": true
           },
           {
             "name": "number_display",
@@ -2085,7 +2150,8 @@
               "actual",
               "target"
             ],
-            "defaultValue": "target"
+            "defaultValue": "target",
+            "omitDefault": true
           },
           {
             "name": "temperature_step",
@@ -2095,14 +2161,62 @@
               "1",
               "0.5"
             ],
-            "defaultValue": "1"
+            "defaultValue": "1",
+            "omitDefault": true
           },
           {
             "name": "large_numbers",
             "label": "Large Temperature Numbers",
-            "kind": "flag"
+            "kind": "flag",
+            "omitDefault": true
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "keep"
+            },
+            "icon": {
+              "policy": "hook",
+              "hook": "normalize_climate_fields"
+            },
+            "icon_on": {
+              "policy": "hook",
+              "hook": "normalize_climate_fields"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "alias",
+              "aliases": {
+                "climate": "climate_control"
+              }
+            },
+            "precision": {
+              "policy": "hook",
+              "hook": "normalize_climate_fields"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_climate_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "label_display",
+            "number_display",
+            "temperature_step",
+            "large_numbers"
+          ],
+          "optionHook": "normalize_climate_options"
+        },
         "behavior": {
           "climate": {
             "defaultLabelDisplay": "label",
@@ -2147,7 +2261,8 @@
               "actual",
               "target"
             ],
-            "defaultValue": "label"
+            "defaultValue": "label",
+            "omitDefault": true
           },
           {
             "name": "number_display",
@@ -2158,7 +2273,8 @@
               "actual",
               "target"
             ],
-            "defaultValue": "target"
+            "defaultValue": "target",
+            "omitDefault": true
           },
           {
             "name": "temperature_step",
@@ -2168,20 +2284,70 @@
               "1",
               "0.5"
             ],
-            "defaultValue": "1"
+            "defaultValue": "1",
+            "omitDefault": true
           },
           {
             "name": "large_numbers",
             "label": "Large Temperature Numbers",
-            "kind": "flag"
+            "kind": "flag",
+            "omitDefault": true
           },
           {
             "name": "climate_tabs",
             "label": "Visible Tabs",
             "kind": "text",
-            "defaultValue": "temperature|mode|preset|fan|swing"
+            "defaultValue": "temperature|mode|preset|fan|swing",
+            "omitDefault": true
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "keep"
+            },
+            "icon": {
+              "policy": "hook",
+              "hook": "normalize_climate_fields"
+            },
+            "icon_on": {
+              "policy": "hook",
+              "hook": "normalize_climate_fields"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "alias",
+              "aliases": {
+                "climate": "climate_control"
+              }
+            },
+            "precision": {
+              "policy": "hook",
+              "hook": "normalize_climate_fields"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_climate_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "label_display",
+            "number_display",
+            "temperature_step",
+            "large_numbers",
+            "climate_tabs"
+          ],
+          "optionHook": "normalize_climate_options"
+        },
         "behavior": {
           "climate": {
             "defaultLabelDisplay": "label",
@@ -3228,9 +3394,48 @@
               "temperature",
               "color"
             ],
-            "defaultValue": "power|brightness|temperature|color"
+            "defaultValue": "power|brightness|temperature|color",
+            "omitDefault": true
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "keep"
+            },
+            "icon": {
+              "policy": "keep"
+            },
+            "icon_on": {
+              "policy": "keep"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "light_control"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_light_control_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "light_tabs"
+          ],
+          "optionHook": "normalize_light_control_options"
+        },
         "default": {
           "entity": "",
           "label": "",
@@ -3732,9 +3937,52 @@
             "name": "webhook_headers",
             "label": "Headers",
             "kind": "text",
-            "defaultValue": ""
+            "defaultValue": "",
+            "omitDefault": true
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "keep"
+            },
+            "icon": {
+              "policy": "hook",
+              "hook": "normalize_webhook_fields"
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "hook",
+              "hook": "normalize_webhook_fields"
+            },
+            "unit": {
+              "policy": "hook",
+              "hook": "normalize_webhook_fields"
+            },
+            "type": {
+              "policy": "default",
+              "value": "webhook"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_webhook_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "webhook_headers"
+          ],
+          "optionHook": "normalize_webhook_options"
+        },
         "default": {
           "entity": "",
           "label": "",
@@ -4061,14 +4309,61 @@
               "sensor",
               "image"
             ],
-            "defaultValue": ""
+            "defaultValue": "",
+            "omitDefault": true
           },
           {
             "name": "large_numbers",
             "label": "Large State Numbers",
-            "kind": "flag"
+            "kind": "flag",
+            "omitDefault": true
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "hook",
+              "hook": "normalize_subpage_fields"
+            },
+            "icon": {
+              "policy": "hook",
+              "hook": "normalize_subpage_fields"
+            },
+            "icon_on": {
+              "policy": "hook",
+              "hook": "normalize_subpage_fields"
+            },
+            "sensor": {
+              "policy": "hook",
+              "hook": "normalize_subpage_fields"
+            },
+            "unit": {
+              "policy": "hook",
+              "hook": "normalize_subpage_fields"
+            },
+            "type": {
+              "policy": "default",
+              "value": "subpage"
+            },
+            "precision": {
+              "policy": "hook",
+              "hook": "normalize_subpage_fields"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_subpage_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "subpage_kind",
+            "large_numbers"
+          ],
+          "optionHook": "normalize_subpage_options"
+        },
         "default": {
           "entity": "",
           "label": "",
@@ -4177,12 +4472,15 @@
               "today",
               "tomorrow"
             ],
-            "defaultValue": ""
+            "defaultValue": "",
+            "storageField": "precision",
+            "omitDefault": true
           },
           {
             "name": "large_numbers",
             "label": "Large Temperature Numbers",
             "kind": "flag",
+            "omitDefault": true,
             "supportedWhen": {
               "precision": [
                 "today",
@@ -4191,6 +4489,49 @@
             }
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "hook",
+              "hook": "normalize_weather_fields"
+            },
+            "icon": {
+              "policy": "keep"
+            },
+            "icon_on": {
+              "policy": "keep"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "keep"
+            },
+            "type": {
+              "policy": "default",
+              "value": "weather"
+            },
+            "precision": {
+              "policy": "hook",
+              "hook": "normalize_weather_fields"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_weather_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "large_numbers"
+          ],
+          "migrationActions": [
+            "legacy_weather_forecast"
+          ],
+          "optionHook": "normalize_weather_options"
+        },
         "default": {
           "entity": "",
           "label": "",
@@ -4214,12 +4555,14 @@
           {
             "name": "image_label",
             "label": "Show Label",
-            "kind": "flag"
+            "kind": "flag",
+            "omitDefault": true
           },
           {
             "name": "image_icon",
             "label": "Show Icon",
-            "kind": "flag"
+            "kind": "flag",
+            "omitDefault": true
           },
           {
             "name": "image_modal_mode",
@@ -4229,9 +4572,53 @@
               "fill",
               "fit"
             ],
-            "defaultValue": "fill"
+            "defaultValue": "fill",
+            "omitDefault": true
           }
         ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "keep"
+            },
+            "label": {
+              "policy": "hook",
+              "hook": "normalize_image_fields"
+            },
+            "icon": {
+              "policy": "hook",
+              "hook": "normalize_image_fields"
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "image"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_image_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "image_label",
+            "image_icon",
+            "image_modal_mode"
+          ],
+          "optionHook": "normalize_image_options"
+        },
         "default": {
           "entity": "",
           "label": "",
@@ -4388,6 +4775,20 @@
           "icon_on": "Auto"
         },
         "hook": "normalize_sensor_fields"
+      },
+      "legacy_weather_forecast": {
+        "when": [
+          {
+            "source": "field",
+            "name": "type",
+            "operator": "equals",
+            "value": "weather_forecast"
+          }
+        ],
+        "set": {
+          "type": "weather",
+          "precision": "tomorrow"
+        }
       },
       "legacy_sensor_state_high_label": {
         "when": [

@@ -16,6 +16,13 @@ import { normalizeSavedConfigMower } from "../generated/saved_config_mower";
 import { normalizeSavedConfigOccupancy } from "../generated/saved_config_occupancy";
 import { normalizeSavedConfigAccess } from "../generated/saved_config_access";
 import { normalizeSavedConfigSecurity } from "../generated/saved_config_security";
+import { migrateSavedConfigWeatherLegacy, normalizeSavedConfigWeather } from "../generated/saved_config_weather";
+import { normalizeSavedConfigImage } from "../generated/saved_config_image";
+import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
+import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
+import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
+import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
+import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
 export function installConfigCodecModule(): GlobalDescriptors {
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
@@ -178,6 +185,60 @@ export function installConfigCodecModule(): GlobalDescriptors {
     function normalizeSavedConfigSecurityOptions(this: any, options?: any, _b?: any) {
         return normalizeAlarmOptions(options || "");
     }
+    function normalizeSavedConfigWeatherFields(this: any, b?: any, wasLegacyForecast?: any) {
+        if (!b)
+            return;
+        if (wasLegacyForecast && b.label === "Weather")
+            b.label = "";
+        b.precision = normalizeWeatherCardMode(b.precision);
+    }
+    function normalizeSavedConfigWeatherOptions(this: any, options?: any, b?: any) {
+        return b && cardLargeNumbersSupported(b) ? copyLargeNumbersOption("", options || "") : "";
+    }
+    function normalizeSavedConfigImageFields(this: any, b?: any) {
+        if (!b)
+            return;
+        b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
+        if (!imageLabelEnabled(b))
+            b.label = "";
+    }
+    function normalizeSavedConfigImageOptions(this: any, options?: any, _b?: any) {
+        return normalizeImageOptions(options || "");
+    }
+    function normalizeSavedConfigClimateFields(this: any, b?: any) {
+        if (!b)
+            return;
+        if (!b.icon)
+            b.icon = "Thermostat";
+        if (!b.icon_on)
+            b.icon_on = "Auto";
+        b.precision = normalizeClimatePrecisionConfig(b.precision);
+    }
+    function normalizeSavedConfigClimateOptions(this: any, options?: any, _b?: any) {
+        return normalizeClimateOptions(options || "", true);
+    }
+    function normalizeSavedConfigLightControlOptions(this: any, options?: any, _b?: any) {
+        return normalizeLightControlOptions(options || "");
+    }
+    function normalizeSavedConfigWebhookFields(this: any, b?: any) {
+        if (!b)
+            return;
+        b.sensor = webhookMethod(b.sensor);
+        if (b.sensor === "GET" || b.sensor === "DELETE")
+            b.unit = "";
+        if (!b.icon)
+            b.icon = "Auto";
+    }
+    function normalizeSavedConfigWebhookOptions(this: any, options?: any, _b?: any) {
+        var headers: any = configOptionValue(options || "", "webhook_headers");
+        return headers ? setConfigOptionValue("", "webhook_headers", headers) : "";
+    }
+    function normalizeSavedConfigSubpageFields(this: any, b?: any) {
+        applySubpagePresetConfig(b);
+    }
+    function normalizeSavedConfigSubpageOptions(this: any, options?: any, b?: any) {
+        return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
+    }
     function normalizeButtonConfig(this: any, b?: any) {
         if (b)
             b.options = b.options || "";
@@ -192,38 +253,18 @@ export function installConfigCodecModule(): GlobalDescriptors {
         }
         var normalizedSavedFan: any = !!(b && normalizeSavedConfigFan(b, normalizeSavedConfigFanFields, normalizeFanControlOptions));
         var normalizedSavedMower: any = !!(b && normalizeSavedConfigMower(b, normalizeSavedConfigMowerFields));
-        if (b && b.type === "weather_forecast") {
-            var weatherAlias: any = cardContractMigrationAlias(b.type);
-            b.type = weatherAlias && weatherAlias.type || "weather";
-            b.precision = weatherAlias && weatherAlias.precision || "tomorrow";
-            if (b.label === "Weather")
-                b.label = "";
-        }
-        if (b && b.type === "weather") {
-            b.sensor = "";
-            b.precision = normalizeWeatherCardMode(b.precision);
-            b.options = cardLargeNumbersSupported(b) ? copyLargeNumbersOption("", b.options) : "";
-        }
+        var wasLegacyWeatherForecast: any = !!(b && migrateSavedConfigWeatherLegacy(b));
+        if (b)
+            normalizeSavedConfigWeather(b, wasLegacyWeatherForecast, normalizeSavedConfigWeatherFields, normalizeSavedConfigWeatherOptions);
         if (b)
             normalizeSavedConfigMedia(b, normalizeSavedConfigMediaFields, normalizeMediaOptions);
-        if (b && isClimateCardType(b.type)) {
-            b.type = "climate_control";
-            b.sensor = "";
-            b.unit = "";
-            if (!b.icon)
-                b.icon = "Thermostat";
-            if (!b.icon_on)
-                b.icon_on = "Auto";
-            b.precision = normalizeClimatePrecisionConfig(b.precision);
-            b.options = normalizeClimateOptions(b.options, true);
-        }
+        if (b)
+            normalizeSavedConfigClimate(b, normalizeSavedConfigClimateFields, normalizeSavedConfigClimateOptions);
         var normalizedSavedAccess: any = !!(b && normalizeSavedConfigAccess(b, normalizeSavedConfigAccessFields, normalizeSavedConfigAccessOptions));
         if (b)
             normalizeSavedConfigSecurity(b, normalizeSavedConfigSecurityFields, normalizeSavedConfigSecurityOptions);
-        if (b && b.type === "webhook") {
-            if (typeof normalizeWebhookConfig === "function")
-                normalizeWebhookConfig(b);
-        }
+        if (b)
+            normalizeSavedConfigWebhook(b, normalizeSavedConfigWebhookFields, normalizeSavedConfigWebhookOptions);
         normalizeWithRegisteredCardType(b);
         var normalizedSavedStatic: any = !!(b && normalizeSavedConfigStatic(b));
         if (b)
@@ -237,34 +278,18 @@ export function installConfigCodecModule(): GlobalDescriptors {
                 b.icon = "Check";
             b.options = normalizeTodoOptions(b.options);
         }
-        if (b && b.type === "image") {
-            b.icon_on = "Auto";
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "";
-            b.options = normalizeImageOptions(b.options);
-            b.icon = imageIconEnabled(b) ? (b.icon && b.icon !== "Auto" ? b.icon : "Camera") : "Auto";
-            if (!imageLabelEnabled(b))
-                b.label = "";
-        }
-        if (b && b.type === "light_control") {
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "";
-            b.options = normalizeLightControlOptions(b.options);
-        }
-        if (b && b.type === "subpage") {
-            applySubpagePresetConfig(b);
-            b.options = normalizeSubpageOptions(b.options, b.sensor, b.precision);
-        }
+        if (b)
+            normalizeSavedConfigImage(b, normalizeSavedConfigImageFields, normalizeSavedConfigImageOptions);
+        if (b)
+            normalizeSavedConfigLightControl(b, normalizeSavedConfigLightControlOptions);
+        if (b)
+            normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
         if (b)
             normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
         var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
-        if (b && !normalizedSavedSensor && !b.type) {
-            b.options = normalizeSwitchConfirmationOptions(b.options);
-        }
-        else if (b && !normalizedSavedSensor && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
+        var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
+        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         return b;

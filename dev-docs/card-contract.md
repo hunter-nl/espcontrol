@@ -386,3 +386,18 @@ Cover, Garage, Gate, and Lock also use generated production routing, with only
 their named mode-sensitive field and option hooks kept by hand.
 Alarm and Alarm Action also use generated production routing, with only their
 named action/default-icon and option hooks kept by hand.
+Weather and its legacy Weather Forecast alias also use generated production
+routing, with only their named supported-mode and Large Numbers hooks kept by hand.
+Image also uses generated production routing, with only its named label/icon
+visibility and modal-option hooks kept by hand.
+Climate and Climate Control also use generated production routing, with only
+their named icon/precision and climate-option hooks kept by hand; the legacy
+`climate` saved type remains compatible and normalizes to `climate_control`.
+Light Control also uses generated production routing, with only its named
+visible-tab option hook kept by hand.
+Webhook also uses generated production routing, with only its named HTTP-method,
+request-body, empty-icon, and Headers option hooks kept by hand.
+Subpage also uses generated production routing, with only its named preset-field
+and supported state-display option hooks kept by hand.
+Basic Switch also uses generated production routing, with only its named
+confirmation, active-pattern, and Large Numbers option hook kept by hand.
