@@ -949,6 +949,10 @@ def firmware_cover_art_lifecycle_controller_errors(
     effect = yaml_script_body(cover_art_text, "display_mode_effect_cover_art") or ""
     hide_effect = yaml_script_body(cover_art_text, "cover_art_hide_effect") or ""
     hide_adapter = yaml_script_body(cover_art_text, "hide_cover_art_view") or ""
+    disable = yaml_script_body(cover_art_text, "cover_art_disable") or ""
+    playback_restore = yaml_script_body(
+        cover_art_text, "cover_art_return_home_after_playback"
+    ) or ""
 
     adapter_markers = (
         "target_mode == static_cast<int>(espcontrol::DisplayMode::COVER_ART)",
@@ -967,12 +971,16 @@ def firmware_cover_art_lifecycle_controller_errors(
         "DisplayRequestSource::MEDIA_PLAYBACK" not in request
         or "DisplayMode::COVER_ART" not in request
         or "script.execute: display_mode_reconcile" not in request
+        or "script.wait: display_mode_reconcile" not in request
+        or "script.wait: display_mode_apply_transition" not in request
     ):
         errors.append(f"{backlight_rel}: create cover art through a controller media request")
     if (
         "DisplayRequestSource::MEDIA_PLAYBACK" not in clear
         or ".clear(" not in clear
         or "script.execute: display_mode_reconcile" not in clear
+        or "script.wait: display_mode_reconcile" not in clear
+        or "script.wait: display_mode_apply_transition" not in clear
     ):
         errors.append(f"{backlight_rel}: dismiss cover art by clearing its controller media request")
     if (
@@ -982,6 +990,10 @@ def firmware_cover_art_lifecycle_controller_errors(
         errors.append(
             f"{cover_art_rel}: keep hide_cover_art_view synchronous for compatibility callers"
         )
+    if "script.wait: display_mode_clear_cover_art" not in disable:
+        errors.append(f"{cover_art_rel}: wait for controller dismissal before releasing cover art resources")
+    if "script.wait: display_mode_clear_cover_art" not in playback_restore:
+        errors.append(f"{cover_art_rel}: wait for controller dismissal before restoring playback UI")
     if "DisplayRequestSource::MEDIA_PLAYBACK" in reconcile:
         errors.append(f"{backlight_rel}: do not rebuild media requests from the compatibility cover art flag")
     if (
@@ -1032,6 +1044,7 @@ def firmware_cover_art_lifecycle_controller_errors(
         "id: cover_art_media_playing" not in stopped_body
         or "id: cover_art_delay_interrupted_by_transition" not in stopped_body
         or "script.execute: display_mode_clear_cover_art" not in stopped_body
+        or "script.wait: display_mode_clear_cover_art" not in stopped_body
     ):
         errors.append(
             f"{cover_art_rel}: retire stopped playback state before clearing an obsolete cover art request"
@@ -4059,10 +4072,14 @@ def run_self_test() -> int:
         "    then:\n"
         "      - lambda: 'id(display_mode_controller).request(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK, espcontrol::DisplayMode::COVER_ART);'\n"
         "      - script.execute: display_mode_reconcile\n"
+        "      - script.wait: display_mode_reconcile\n"
+        "      - script.wait: display_mode_apply_transition\n"
         "  - id: display_mode_clear_cover_art\n"
         "    then:\n"
         "      - lambda: 'id(display_mode_controller).clear(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK);'\n"
         "      - script.execute: display_mode_reconcile\n"
+        "      - script.wait: display_mode_reconcile\n"
+        "      - script.wait: display_mode_apply_transition\n"
         "  - id: display_mode_reconcile\n"
         "    then:\n"
         "      - lambda: 'auto transition = controller.resolve(); bool transition_required = controller.transition_required(transition); if (!transition_required) { auto previous_cover_generation = id(cover_art_transition_generation); id(cover_art_transition_generation) = transition.generation; if (id(cover_art_download_generation) == previous_cover_generation) id(cover_art_download_generation) = transition.generation; }'\n"
@@ -4081,6 +4098,12 @@ def run_self_test() -> int:
         "  - id: hide_cover_art_view\n"
         "    then:\n"
         "      - script.execute: display_mode_clear_cover_art\n"
+        "      - script.wait: display_mode_clear_cover_art\n"
+        "  - id: cover_art_disable\n"
+        "    then:\n"
+        "      - script.wait: display_mode_clear_cover_art\n"
+        "  - id: cover_art_return_home_after_playback\n"
+        "    then:\n"
         "      - script.wait: display_mode_clear_cover_art\n"
         "  - id: cover_art_delay_timer\n"
         "    then:\n"
@@ -4103,6 +4126,7 @@ def run_self_test() -> int:
         "      - globals.set: { id: cover_art_delay_interrupted_by_transition, value: 'false' }\n"
         "      - globals.set: { id: cover_art_media_playing, value: 'false' }\n"
         "      - script.execute: display_mode_clear_cover_art\n"
+        "      - script.wait: display_mode_clear_cover_art\n"
     )
     expect_cover_art_lifecycle_controller_errors(
         "controller-owned cover art lifecycle",

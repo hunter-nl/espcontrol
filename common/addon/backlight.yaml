@@ -540,6 +540,7 @@ script:
               espcontrol::DisplayRequestSource::MEDIA_PLAYBACK,
               espcontrol::DisplayMode::COVER_ART);
       - script.execute: display_mode_reconcile
+      - script.wait: display_mode_reconcile
       - script.wait: display_mode_apply_transition
 
   - id: display_mode_clear_cover_art
@@ -549,6 +550,7 @@ script:
           id(display_mode_controller).clear(
               espcontrol::DisplayRequestSource::MEDIA_PLAYBACK);
       - script.execute: display_mode_reconcile
+      - script.wait: display_mode_reconcile
       - script.wait: display_mode_apply_transition
 
   - id: display_mode_request_automatic
@@ -1204,8 +1206,7 @@ script:
                 id: backlight_force_next_write
                 value: 'true'
             - script.execute: display_mode_clear_cover_art
-            - script.execute: display_mode_reconcile
-            - script.wait: display_mode_apply_transition
+            - script.wait: display_mode_clear_cover_art
       - script.execute: screensaver_idle_check
       - script.execute: home_screen_idle_check
       - if:
