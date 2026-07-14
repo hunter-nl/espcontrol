@@ -44,12 +44,22 @@ Generated consumers include:
 - `src/webserver/generated/saved_config_action.ts`
 - `src/webserver/generated/saved_config_media.ts`
 - `src/webserver/generated/saved_config_static.ts`
+- `src/webserver/generated/saved_config_fan.ts`
+- `src/webserver/generated/saved_config_date_time.ts`
+- `src/webserver/generated/saved_config_mower.ts`
+- `src/webserver/generated/saved_config_occupancy.ts`
+- `src/webserver/generated/saved_config_access.ts`
 - `components/espcontrol/button_grid_contract_generated.h`
 - `components/espcontrol/button_grid_saved_config_vacuum_generated.h`
 - `components/espcontrol/button_grid_saved_config_sensor_generated.h`
 - `components/espcontrol/button_grid_saved_config_action_generated.h`
 - `components/espcontrol/button_grid_saved_config_media_generated.h`
 - `components/espcontrol/button_grid_saved_config_static_generated.h`
+- `components/espcontrol/button_grid_saved_config_fan_generated.h`
+- `components/espcontrol/button_grid_saved_config_date_time_generated.h`
+- `components/espcontrol/button_grid_saved_config_mower_generated.h`
+- `components/espcontrol/button_grid_saved_config_occupancy_generated.h`
+- `components/espcontrol/button_grid_saved_config_access_generated.h`
 - `docs/generated/cards/capabilities.md`
 
 Vacuum's routine saved-field policies and legacy migration actions are
@@ -75,6 +85,29 @@ Trigger, Internal, Screen Lock, basic Light Switch, Slider, Light Brightness,
 and Light Temperature cards use the shared static-card generator. Their rules
 are entirely declarative, so these families need no custom normalization hooks
 in either browser or firmware.
+
+All six Fan card types use generated routing for routine field cleanup and
+option handling. The reviewed `normalize_fan_fields` hook retains only default
+icon decisions, while `normalize_fan_options` keeps Fan Control tab handling in
+its established option helper.
+
+Calendar, Clock, and Timezone cards use generated routing for routine field
+cleanup and option handling. Their reviewed field hook only supplies the
+established default entities for Calendar and Timezone, while the named option
+hook preserves the existing Large Numbers behaviour.
+
+Lawn Mower uses generated routing for routine cleanup. Its reviewed field hook
+only normalizes the mower mode and selects the established mode-specific
+default icon.
+
+Door/Window and Presence cards use generated occupancy routing for routine
+cleanup. Their reviewed field hook retains subtype-aware and presence default
+icons, while the named option hook preserves only the Active Color flag.
+
+Cover, Garage, Gate, and Lock cards use generated access routing for routine
+cleanup. Their reviewed field hook retains mode-sensitive unit and active-icon
+decisions, while the named option hook preserves the established modal-tab and
+status-label settings.
 
 An `allowed` field policy may declare `aliases` whose targets are in its
 allowed-value list. This preserves renamed legacy values before applying the
@@ -341,3 +374,30 @@ retained for their genuinely card-specific decisions. Trigger, Internal,
 Screen Lock, basic Light Switch, Slider, Light Brightness, and Light Temperature
 form the fully declarative static group; the remaining card families stay on
 their established production paths until their focused migration steps.
+The six Fan types also use generated production routing, with only their named
+icon and Fan Control option hooks kept by hand.
+Calendar, Clock, and Timezone now use generated production routing too, with
+only their named default-entity and Large Numbers option hooks kept by hand.
+Lawn Mower also uses generated production routing, with only its named mode and
+default-icon hook kept by hand.
+Door/Window and Presence also use generated production routing, with only their
+named default-icon and Active Color option hooks kept by hand.
+Cover, Garage, Gate, and Lock also use generated production routing, with only
+their named mode-sensitive field and option hooks kept by hand.
+Alarm and Alarm Action also use generated production routing, with only their
+named action/default-icon and option hooks kept by hand.
+Weather and its legacy Weather Forecast alias also use generated production
+routing, with only their named supported-mode and Large Numbers hooks kept by hand.
+Image also uses generated production routing, with only its named label/icon
+visibility and modal-option hooks kept by hand.
+Climate and Climate Control also use generated production routing, with only
+their named icon/precision and climate-option hooks kept by hand; the legacy
+`climate` saved type remains compatible and normalizes to `climate_control`.
+Light Control also uses generated production routing, with only its named
+visible-tab option hook kept by hand.
+Webhook also uses generated production routing, with only its named HTTP-method,
+request-body, empty-icon, and Headers option hooks kept by hand.
+Subpage also uses generated production routing, with only its named preset-field
+and supported state-display option hooks kept by hand.
+Basic Switch also uses generated production routing, with only its named
+confirmation, active-pattern, and Large Numbers option hook kept by hand.
