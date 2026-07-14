@@ -16,16 +16,40 @@ int main() {
   const auto media = card_runtime_registration("media");
   if (media.version != 1 || !media.known || !media.allow_in_subpage ||
       media.family != Family::MEDIA) return EXIT_FAILURE;
-  if (espcontrol::cards::family_for_type("climate_control") != Family::CLIMATE ||
-      espcontrol::cards::family_for_type("light_brightness") != Family::SLIDER ||
-      espcontrol::cards::family_for_type("fan_speed") != Family::FAN ||
-      espcontrol::cards::family_for_type("not_a_card") != Family::UNKNOWN) {
+  if (card_runtime_context("climate_control").family != Family::CLIMATE ||
+      card_runtime_context("light_brightness").family != Family::SLIDER ||
+      card_runtime_context("fan_speed").family != Family::FAN ||
+      card_runtime_context("not_a_card").family != Family::UNKNOWN) {
     return EXIT_FAILURE;
   }
-  if (!espcontrol::cards::uses_slider_visual("light_brightness") ||
-      !espcontrol::cards::uses_slider_visual("cover") ||
-      !espcontrol::cards::uses_slider_visual("fan_speed") ||
-      espcontrol::cards::uses_slider_visual("fan_switch")) {
+  if (!card_runtime_uses_slider_visual(card_runtime_context("light_brightness")) ||
+      !card_runtime_uses_slider_visual(card_runtime_context("cover")) ||
+      !card_runtime_uses_slider_visual(card_runtime_context("fan_speed")) ||
+      card_runtime_uses_slider_visual(card_runtime_context("fan_switch"))) {
+    return EXIT_FAILURE;
+  }
+  const auto door = card_runtime_context("door_window");
+  const auto image = card_runtime_context("image");
+  if (!card_runtime_information_only(door) || !card_runtime_passive(door) ||
+      !card_runtime_information_only(image) || card_runtime_passive(image)) {
+    return EXIT_FAILURE;
+  }
+  struct TestConfig {
+    std::string type;
+    std::string sensor;
+  };
+  const auto cover = card_runtime_context(
+      TestConfig{"cover", "tilt"}, espcontrol::cards::Surface::SUBPAGE);
+  if (cover.runtime.type != espcontrol::card_runtime::CardTypeId::COVER ||
+      cover.runtime.driver != espcontrol::card_runtime::CardDriverId::COVER_TILT ||
+      cover.surface != espcontrol::cards::Surface::SUBPAGE ||
+      !cover.allow_in_subpage) {
+    return EXIT_FAILURE;
+  }
+  const auto todo = card_runtime_context("todo");
+  if (!todo.known || todo.family != Family::TODO || !todo.allow_in_subpage ||
+      !card_runtime_has_capability(
+          todo, espcontrol::card_runtime::CAPABILITY_ACTIONS)) {
     return EXIT_FAILURE;
   }
   const char *contract_card_types[] = {

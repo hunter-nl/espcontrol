@@ -825,13 +825,14 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
   (void) btn_obj;
   if (media_fast_press_consume(slot_num)) return;
   ParsedCfg p = parse_cfg(cfg);
+  const auto context = card_runtime_context(p);
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",
            slot_num, p.type.c_str(), p.entity.c_str(), p.sensor.c_str(), p.label.c_str());
-  if (p.type == "sensor" || p.type == "text_sensor" || p.type == "local_sensor" ||
-      p.type == "door_window" ||
-      p.type == "presence" ||
-      p.type == "calendar" || p.type == "clock" || p.type == "timezone" ||
-      p.type == "weather_forecast") return;
+  if (card_runtime_passive(context)) return;
+  if (context.legacy_dispatch) {
+    ESP_LOGD("card_runtime", "Legacy action fallback: type=%s driver=%u",
+             p.type.c_str(), static_cast<unsigned>(context.runtime.driver));
+  }
   if (p.type == "screen_lock") {
     screen_lock_toggle();
   } else if (p.type == "push") {

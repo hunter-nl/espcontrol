@@ -212,14 +212,8 @@ inline void reset_card_slot_dynamic_children(BtnSlot &s) {
   }
 }
 
-inline bool info_only_hidden_card_type(const ParsedCfg &p) {
-  if (p.type == "sensor" || p.type == "text_sensor" ||
-      p.type == "door_window" || p.type == "presence" ||
-      p.type == "calendar" || p.type == "clock" || p.type == "timezone" ||
-      p.type == "weather" || p.type == "weather_forecast" || p.type == "image") {
-    return false;
-  }
-  return true;
+inline bool info_only_hidden_card_type(const espcontrol::cards::Context &context) {
+  return !card_runtime_information_only(context);
 }
 
 inline void media_cover_art_refresh_geometry(MediaNowPlayingCtx *ctx) {
@@ -354,12 +348,18 @@ inline void subscribe_media_cover_art(MediaNowPlayingCtx *ctx,
 }
 
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
+                              const espcontrol::cards::Context &context,
                               const GridConfig &cfg,
                               const CardPalette &palette,
                               int row_span = 1,
                               int col_span = 1) {
   const DisplayProfile display = display_profile_from_grid_config(cfg);
-  const auto family = card_runtime_family(p.type);
+  const auto family = context.family;
+  if (context.legacy_dispatch) {
+    ESP_LOGD("card_runtime", "Legacy setup fallback: surface=%s type=%s driver=%u",
+             context.surface == espcontrol::cards::Surface::SUBPAGE ? "subpage" : "main",
+             p.type.c_str(), static_cast<unsigned>(context.runtime.driver));
+  }
   reset_card_slot_dynamic_children(s);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
@@ -378,7 +378,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     cfg.subpage_chevron_x, cfg.subpage_chevron_y,
     cfg.subpage_chevron_text_width_percent);
 
-  if (cfg.info_only && info_only_hidden_card_type(p)) {
+  if (cfg.info_only && info_only_hidden_card_type(context)) {
     lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
     return;
@@ -597,7 +597,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     setup_light_control_card(s, p);
     return;
   }
-  if (espcontrol::cards::uses_slider_visual(p.type)) {
+  if (card_runtime_uses_slider_visual(context)) {
     setup_slider_visual(s, p, palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR);
     return;
   }
@@ -1006,9 +1006,10 @@ inline void grid_phase1(
     }
 
     ParsedCfg p = parse_cfg(scfg);
+    const auto context = card_runtime_context(p);
     display_apply_main_width(s.icon_lbl, display);
     display_apply_slot_text_width(s, display);
-    setup_card_visual(s, p, cfg, palette, row_span, col_span);
+    setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
     refresh_card_layout(s, p, cfg, row_span);
   }
   screen_lock_apply();
@@ -1341,11 +1342,12 @@ inline void grid_phase2(
     std::string scfg = s.config->state;
 
     ParsedCfg p = parse_cfg(scfg);
-    const auto family = card_runtime_family(p.type);
+    const auto context = card_runtime_context(p);
+    const auto family = context.family;
     int row_span = order.row_span[idx - 1] > 0 ? order.row_span[idx - 1] : 1;
     int col_span = order.col_span[idx - 1] > 0 ? order.col_span[idx - 1] : 1;
     bool is_1x1_card = card_span_is_single(row_span, col_span);
-    if (cfg.info_only && info_only_hidden_card_type(p)) continue;
+    if (cfg.info_only && info_only_hidden_card_type(context)) continue;
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
     if (family == espcontrol::cards::Family::PUSH) continue;
     if (bind_image_card(s, p, cfg)) continue;
@@ -2006,7 +2008,9 @@ inline void grid_phase2(
       if (bn < 1 || bn > (int)sp_btns.size()) continue;
       auto &sb = sp_btns[bn - 1];
       ParsedCfg sb_cfg = parsed_cfg_from_subpage_btn(sb);
-      const auto family = card_runtime_family(sb_cfg.type);
+      const auto context = card_runtime_context(
+          sb_cfg, espcontrol::cards::Surface::SUBPAGE);
+      const auto family = context.family;
       int col, row;
       if (sp_ord.has_back_token) { col = gp % COLS; row = gp / COLS; }
       else { int op = gp + 1; col = op % COLS; row = op / COLS; }
@@ -2021,7 +2025,7 @@ inline void grid_phase2(
         cfg.subpage_chevron_font);
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
-      setup_card_visual(sub_slot, sb_cfg, cfg, palette, rs, cs);
+      setup_card_visual(sub_slot, sb_cfg, context, cfg, palette, rs, cs);
 
       if (family == espcontrol::cards::Family::SCREEN_LOCK) {
         lv_obj_add_event_cb(sb_btn, [](lv_event_t *) {

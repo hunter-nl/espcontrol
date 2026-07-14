@@ -13,7 +13,8 @@ const CONTRACT_PATH = path.join(ROOT, "common", "config", "card_contract.json");
 const NORMALIZATION_PATH = path.join(ROOT, "common", "config", "card_runtime_baseline_card_normalization_fixtures.json");
 const SURFACE_PATH = path.join(ROOT, "compatibility", "fixtures", "card_runtime_surface_baseline.json");
 const REPORT_PATH = path.join(ROOT, "docs", "generated", "cards", "runtime-coverage.md");
-const REGISTRY_PATH = path.join(ROOT, "components", "espcontrol", "button_grid_card_registry.h");
+const RUNTIME_PATH = path.join(ROOT, "components", "espcontrol", "button_grid_card_runtime.h");
+const GENERATED_RUNTIME_PATH = path.join(ROOT, "components", "espcontrol", "button_grid_contract_generated.h");
 const CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"];
 const CLASSIFICATIONS = new Set(["canonical", "accepted_legacy_input", "obsolete_implementation_residue"]);
 
@@ -77,19 +78,30 @@ function webParserTypes() {
 }
 
 function firmwareRegistrations() {
-  const source = fs.readFileSync(REGISTRY_PATH, "utf8");
-  const start = source.indexOf("inline Family family_for_type");
-  const end = source.indexOf("inline Registration registration_for_type", start);
-  if (start < 0 || end < 0) throw new Error("could not locate firmware family registry");
+  const source = fs.readFileSync(RUNTIME_PATH, "utf8");
+  const generated = fs.readFileSync(GENERATED_RUNTIME_PATH, "utf8");
+  const typeNames = new Map();
+  typeNames.set("SWITCH", "");
+  for (const match of generated.matchAll(/if \(type == "([^"]+)"\) return CardTypeId::([A-Z_]+);/g)) {
+    typeNames.set(match[2], match[1]);
+  }
+
+  const start = source.indexOf("inline Family family_for_runtime_type");
+  const end = source.indexOf("inline Context context_for", start);
+  if (start < 0 || end < 0) throw new Error("could not locate firmware runtime family mapping");
   const body = source.slice(start, end);
   const registrations = new Map();
-  for (const match of body.matchAll(/if\s*\(([\s\S]*?)\)\s*return Family::([A-Z_]+);/g)) {
-    const condition = match[1];
+  for (const match of body.matchAll(/((?:\s*case Type::[A-Z_]+:)+)\s*return Family::([A-Z_]+);/g)) {
     const family = match[2];
-    if (/\btype\.empty\(\)/.test(condition)) registrations.set("", family);
-    for (const typeMatch of condition.matchAll(/\btype\s*==\s*"([^"]*)"/g)) {
-      registrations.set(typeMatch[1], family);
+    for (const typeMatch of match[1].matchAll(/case Type::([A-Z_]+):/g)) {
+      const type = typeNames.get(typeMatch[1]);
+      if (type === undefined) throw new Error(`missing generated card type name for ${typeMatch[1]}`);
+      registrations.set(type, family);
     }
+  }
+  const legacyBody = source.slice(end, source.indexOf("return context;", end));
+  for (const match of legacyBody.matchAll(/type == "([^"]+)"\)[\s\S]*?context\.family = Family::([A-Z_]+);/g)) {
+    registrations.set(match[1], match[2]);
   }
   return registrations;
 }

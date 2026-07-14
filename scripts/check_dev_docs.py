@@ -342,6 +342,7 @@ def web_registration_map() -> dict[str, str]:
 
 def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
     out = {card_type: [] for card_type in card_types}
+    runtime_boundary = "components/espcontrol/button_grid_card_runtime.h"
     extra_by_type = {
         "weather": ["components/espcontrol/button_grid_weather_forecast.h"],
     }
@@ -362,6 +363,8 @@ def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
                     text += "\n" + generated.read_text(errors="ignore")
             if any(needle in text for needle in needles):
                 out[card_type].append(rel(path))
+        if runtime_boundary not in out[card_type]:
+            out[card_type].append(runtime_boundary)
         for extra in extra_by_type.get(card_type, []):
             if extra not in out[card_type]:
                 out[card_type].append(extra)
