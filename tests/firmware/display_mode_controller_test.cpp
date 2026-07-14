@@ -39,6 +39,7 @@ static DisplayMode expected_mode_for_priority(int priority) {
 int main() {
   DisplayModeController controller;
   CHECK(decision_is(controller, DisplayMode::ACTIVE));
+  CHECK(!controller.transition_required(controller.resolve()));
 
   // Every higher-priority policy beats every lower-priority policy.
   for (int higher = 1; higher <= 8; ++higher) {
@@ -51,6 +52,7 @@ int main() {
   }
 
   CHECK(controller.request(DisplayRequestSource::SETUP_TIMEOUT, DisplayMode::SETUP_DIMMED));
+  CHECK(controller.transition_required(controller.resolve()));
   CHECK(decision_is(controller, DisplayMode::SETUP_DIMMED,
                     DisplayRequestSource::SETUP_TIMEOUT));
   CHECK(controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::CLOCK));
@@ -146,11 +148,25 @@ int main() {
   DisplayModeController rapid;
   CHECK(rapid.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::DISPLAY_OFF));
   const auto off_generation = rapid.resolve();
+  CHECK(rapid.transition_is_current(off_generation.generation, DisplayMode::DISPLAY_OFF));
   CHECK(rapid.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::CLOCK));
   const auto clock_generation = rapid.resolve();
   CHECK(clock_generation.generation > off_generation.generation);
+  CHECK(!rapid.transition_is_current(off_generation.generation, DisplayMode::DISPLAY_OFF));
+  CHECK(rapid.transition_is_current(clock_generation.generation, DisplayMode::CLOCK));
   CHECK(!rapid.complete_transition(off_generation));
-  CHECK(rapid.complete_transition(clock_generation));
+  CHECK(rapid.complete_transition(clock_generation.generation, DisplayMode::CLOCK));
+  CHECK(!rapid.transition_required(rapid.resolve()));
+
+  // A source change at the same visible mode still needs the adapter so it can
+  // select the winning source's brightness and compatibility state.
+  CHECK(rapid.clear(DisplayRequestSource::SCREEN_SCHEDULE));
+  CHECK(rapid.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::CLOCK));
+  const auto idle_clock_generation = rapid.resolve();
+  CHECK(rapid.transition_required(idle_clock_generation));
+  CHECK(rapid.complete_transition(idle_clock_generation));
+  CHECK(rapid.current_source() == DisplayRequestSource::IDLE_TIMER);
+  CHECK(!rapid.current_takeover().has_value());
 
   // Nested takeovers only finish when every owner has ended its takeover.
   CHECK(controller.begin_takeover(DisplayTakeoverKind::INTERACTIVE));

@@ -143,7 +143,25 @@ class DisplayModeController {
       return false;
     }
     current_mode_ = transition.target_mode;
+    current_source_ = transition.winning_source;
+    current_takeover_ = transition.winning_takeover;
     return true;
+  }
+
+  bool transition_is_current(uint32_t generation, DisplayMode target_mode) const {
+    if (!generation_is_current(generation)) return false;
+    return resolve().target_mode == target_mode;
+  }
+
+  bool complete_transition(uint32_t generation, DisplayMode target_mode) {
+    if (!transition_is_current(generation, target_mode)) return false;
+    return complete_transition(resolve());
+  }
+
+  bool transition_required(const DisplayTransition &transition) const {
+    return transition.target_mode != current_mode_ ||
+           transition.winning_source != current_source_ ||
+           transition.winning_takeover != current_takeover_;
   }
 
   bool generation_is_current(uint32_t generation) const {
@@ -152,6 +170,12 @@ class DisplayModeController {
 
   uint32_t generation() const { return generation_; }
   DisplayMode current_mode() const { return current_mode_; }
+  const std::optional<DisplayRequestSource> &current_source() const {
+    return current_source_;
+  }
+  const std::optional<DisplayTakeoverKind> &current_takeover() const {
+    return current_takeover_;
+  }
 
   static bool request_is_valid(DisplayRequestSource source, DisplayMode mode) {
     switch (source) {
@@ -221,6 +245,8 @@ class DisplayModeController {
   uint32_t sequence_{0};
   uint32_t generation_{1};
   DisplayMode current_mode_{DisplayMode::ACTIVE};
+  std::optional<DisplayRequestSource> current_source_;
+  std::optional<DisplayTakeoverKind> current_takeover_;
 };
 
 struct LegacyDisplayState {
