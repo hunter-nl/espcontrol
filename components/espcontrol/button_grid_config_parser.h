@@ -17,6 +17,9 @@
 #include "button_grid_saved_config_image_generated.h"
 #include "button_grid_saved_config_climate_generated.h"
 #include "button_grid_saved_config_light_control_generated.h"
+#include "button_grid_saved_config_webhook_generated.h"
+#include "button_grid_saved_config_subpage_generated.h"
+#include "button_grid_saved_config_switch_generated.h"
 #include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
@@ -1128,6 +1131,71 @@ inline std::string normalize_saved_config_light_control_options(
   return light_control_card_options_normalized(options);
 }
 
+inline void normalize_saved_config_webhook_fields(ParsedCfg &p) {
+  p.sensor = normalize_webhook_method(p.sensor);
+  if (p.sensor == "GET" || p.sensor == "DELETE") p.unit.clear();
+  if (p.icon.empty()) p.icon = "Auto";
+}
+
+inline std::string normalize_saved_config_webhook_options(
+    const std::string &options, const ParsedCfg &) {
+  return webhook_card_options_normalized(options);
+}
+
+inline const char *saved_config_subpage_default_label(const std::string &kind) {
+  if (kind == "switch") return "Switch";
+  if (kind == "lights") return "Lighting";
+  if (kind == "climate") return "Climate";
+  if (kind == "presence") return "Presence";
+  if (kind == "media") return "Media";
+  if (kind == "alarm") return "Alarm";
+  if (kind == "cover") return "Cover";
+  if (kind == "garage") return "Garage";
+  if (kind == "gate") return "Gate";
+  if (kind == "lock") return "Lock";
+  if (kind == "vacuum") return "Vacuum";
+  if (kind == "lawn_mower") return "Lawn Mower";
+  if (kind == "weather") return "Weather";
+  if (kind == "sensor") return "Sensor";
+  if (kind == "image") return "Camera";
+  return "";
+}
+
+inline const char *saved_config_subpage_default_icon(const std::string &kind) {
+  if (kind == "switch") return "Power Plug";
+  if (kind == "lights") return "Lightbulb";
+  if (kind == "climate") return "Thermostat";
+  if (kind == "presence") return "Account";
+  if (kind == "media") return "Speaker";
+  if (kind == "alarm") return "Security";
+  if (kind == "cover") return "Blinds";
+  if (kind == "garage") return "Garage";
+  if (kind == "gate") return "Gate";
+  if (kind == "lock") return "Lock";
+  if (kind == "vacuum") return "Robot Vacuum";
+  if (kind == "lawn_mower") return "Robot Mower";
+  if (kind == "weather") return "Weather Partly Cloudy";
+  if (kind == "sensor") return "Gauge";
+  if (kind == "image") return "Camera";
+  return "";
+}
+
+inline void normalize_saved_config_subpage_fields(ParsedCfg &p) {
+  const std::string kind = normalize_subpage_kind(cfg_option_value(p.options, "subpage_kind"));
+  if (kind.empty()) return;
+  if (p.label.empty()) p.label = saved_config_subpage_default_label(kind);
+  if (p.icon.empty() || p.icon == "Auto") p.icon = saved_config_subpage_default_icon(kind);
+  p.icon_on = "Auto";
+  p.sensor = "indicator";
+  p.unit.clear();
+  p.precision.clear();
+}
+
+inline std::string normalize_saved_config_subpage_options(
+    const std::string &options, const ParsedCfg &p) {
+  return subpage_card_options_normalized(options, p.sensor, p.precision);
+}
+
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   migrate_saved_config_action_legacy(p);
   const bool was_legacy_text_sensor = p.type == "text_sensor";
@@ -1146,14 +1214,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
       p, normalize_saved_config_access_fields, normalize_saved_config_access_options);
   normalize_saved_config_security(
       p, normalize_saved_config_security_fields, normalize_saved_config_security_options);
-  if (p.type == "webhook") {
-    p.sensor = normalize_webhook_method(p.sensor);
-    if (p.sensor == "GET" || p.sensor == "DELETE") p.unit.clear();
-    p.precision.clear();
-    p.icon_on = "Auto";
-    if (p.icon.empty()) p.icon = "Auto";
-    p.options = webhook_card_options_normalized(p.options);
-  }
+  normalize_saved_config_webhook(
+      p, normalize_saved_config_webhook_fields, normalize_saved_config_webhook_options);
   normalize_saved_config_image(
       p, normalize_saved_config_image_fields, normalize_saved_config_image_options);
   const bool normalized_saved_static = normalize_saved_config_static(p);
@@ -1168,9 +1230,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.options = todo_card_options_normalized(p.options);
   }
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
-  if (p.type == "subpage") {
-    p.options = subpage_card_options_normalized(p.options, p.sensor, p.precision);
-  }
+  normalize_saved_config_subpage(
+      p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);
   normalize_saved_config_action(p, normalize_saved_config_action_fields,
                                 action_card_options_normalized);
   if (migrate_saved_config_vacuum_legacy(p)) {
@@ -1186,9 +1247,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   }
   const bool normalized_saved_mower =
       normalize_saved_config_mower(p, normalize_saved_config_mower_fields);
-  if (p.type.empty()) {
-    p.options = switch_card_options_normalized(p.options);
-  }
+  normalize_saved_config_switch(p, switch_card_options_normalized);
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);

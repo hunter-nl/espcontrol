@@ -20,6 +20,9 @@ import { migrateSavedConfigWeatherLegacy, normalizeSavedConfigWeather } from "..
 import { normalizeSavedConfigImage } from "../generated/saved_config_image";
 import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
 import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
+import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
+import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
+import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
 export function installConfigCodecModule(): GlobalDescriptors {
     // ── Subpage helpers ────────────────────────────────────────────────────
     function normalizeWithRegisteredCardType(this: any, b?: any) {
@@ -217,6 +220,25 @@ export function installConfigCodecModule(): GlobalDescriptors {
     function normalizeSavedConfigLightControlOptions(this: any, options?: any, _b?: any) {
         return normalizeLightControlOptions(options || "");
     }
+    function normalizeSavedConfigWebhookFields(this: any, b?: any) {
+        if (!b)
+            return;
+        b.sensor = webhookMethod(b.sensor);
+        if (b.sensor === "GET" || b.sensor === "DELETE")
+            b.unit = "";
+        if (!b.icon)
+            b.icon = "Auto";
+    }
+    function normalizeSavedConfigWebhookOptions(this: any, options?: any, _b?: any) {
+        var headers: any = configOptionValue(options || "", "webhook_headers");
+        return headers ? setConfigOptionValue("", "webhook_headers", headers) : "";
+    }
+    function normalizeSavedConfigSubpageFields(this: any, b?: any) {
+        applySubpagePresetConfig(b);
+    }
+    function normalizeSavedConfigSubpageOptions(this: any, options?: any, b?: any) {
+        return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
+    }
     function normalizeButtonConfig(this: any, b?: any) {
         if (b)
             b.options = b.options || "";
@@ -241,10 +263,8 @@ export function installConfigCodecModule(): GlobalDescriptors {
         var normalizedSavedAccess: any = !!(b && normalizeSavedConfigAccess(b, normalizeSavedConfigAccessFields, normalizeSavedConfigAccessOptions));
         if (b)
             normalizeSavedConfigSecurity(b, normalizeSavedConfigSecurityFields, normalizeSavedConfigSecurityOptions);
-        if (b && b.type === "webhook") {
-            if (typeof normalizeWebhookConfig === "function")
-                normalizeWebhookConfig(b);
-        }
+        if (b)
+            normalizeSavedConfigWebhook(b, normalizeSavedConfigWebhookFields, normalizeSavedConfigWebhookOptions);
         normalizeWithRegisteredCardType(b);
         var normalizedSavedStatic: any = !!(b && normalizeSavedConfigStatic(b));
         if (b)
@@ -262,18 +282,14 @@ export function installConfigCodecModule(): GlobalDescriptors {
             normalizeSavedConfigImage(b, normalizeSavedConfigImageFields, normalizeSavedConfigImageOptions);
         if (b)
             normalizeSavedConfigLightControl(b, normalizeSavedConfigLightControlOptions);
-        if (b && b.type === "subpage") {
-            applySubpagePresetConfig(b);
-            b.options = normalizeSubpageOptions(b.options, b.sensor, b.precision);
-        }
+        if (b)
+            normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
         if (b)
             normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
         var normalizedSavedSensor: any = !!(b && normalizeSavedConfigSensor(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions));
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
-        if (b && !normalizedSavedSensor && !b.type) {
-            b.options = normalizeSwitchConfirmationOptions(b.options);
-        }
-        else if (b && !normalizedSavedSensor && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
+        var normalizedSavedSwitch: any = !!(b && !normalizedSavedSensor && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
+        if (b && !normalizedSavedSensor && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "todo" && b.type !== "media" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         return b;
