@@ -272,11 +272,17 @@ int JpegDecoder::decode_hardware_(uint8_t *buffer, size_t size) {
                                  workspace.scaled_capacity);
   }
   if (ppa_scaled) {
-    if (!this->set_size(target_width, target_height)) return DECODE_ERROR_OUT_OF_MEMORY;
+    if (!this->set_size(target_width, target_height)) {
+      p4_release_jpeg_workspace();
+      return DECODE_ERROR_OUT_OF_MEMORY;
+    }
     this->draw_rgb565_frame(target_width, target_height,
                             static_cast<size_t>(target_width) * 2, workspace.scaled);
   } else {
-    if (!this->set_size(info.width, info.height)) return DECODE_ERROR_OUT_OF_MEMORY;
+    if (!this->set_size(info.width, info.height)) {
+      p4_release_jpeg_workspace();
+      return DECODE_ERROR_OUT_OF_MEMORY;
+    }
     this->draw_rgb565_frame(info.width, info.height,
                             static_cast<size_t>(padded_width) * 2, workspace.output);
   }

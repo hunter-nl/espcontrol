@@ -89,6 +89,20 @@ for required in (
 if "std::make_shared<P4PipelineJob>" in downloader:
     raise SystemExit("P4 artwork jobs must fail cleanly instead of throwing during allocation")
 
+jpeg_decoder = (ROOT / "components" / "artwork_image" / "jpeg_image.cpp").read_text(encoding="utf-8")
+for required in (
+    """if (!this->set_size(target_width, target_height)) {
+      p4_release_jpeg_workspace();
+      return DECODE_ERROR_OUT_OF_MEMORY;
+    }""",
+    """if (!this->set_size(info.width, info.height)) {
+      p4_release_jpeg_workspace();
+      return DECODE_ERROR_OUT_OF_MEMORY;
+    }""",
+):
+    if required not in jpeg_decoder:
+        raise SystemExit("P4 JPEG workspace must be released after image buffer allocation failure")
+
 image_cards = (ROOT / "components" / "espcontrol" / "button_grid_image.h").read_text(encoding="utf-8")
 for required in (
     "image_card_uses_background_pipeline(next->image, next->source_url)",
