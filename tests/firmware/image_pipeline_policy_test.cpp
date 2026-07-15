@@ -4,7 +4,7 @@
 
 using esphome::artwork_image::p4_pipeline_candidate_precedes;
 using esphome::artwork_image::p4_pipeline_result_is_current;
-using esphome::artwork_image::image_pipeline_should_requeue_preempted_tile;
+using esphome::artwork_image::image_pipeline_should_requeue_interrupted_tile;
 using esphome::artwork_image::p4_jpeg_hardware_target_supported;
 
 int main() {
@@ -21,11 +21,12 @@ int main() {
   assert(!p4_pipeline_result_is_current(4, 3, false));
   assert(!p4_pipeline_result_is_current(4, 4, true));
 
-  // Preemption must requeue the selected card's own first tile, not only tiles
-  // belonging to other cards. Inactive or source-less work stays discarded.
-  assert(image_pipeline_should_requeue_preempted_tile(true, true));
-  assert(!image_pipeline_should_requeue_preempted_tile(false, true));
-  assert(!image_pipeline_should_requeue_preempted_tile(true, false));
+  // Preemption must requeue both active tiles and the selected card when it was
+  // waiting in the tile queue. Inactive, source-less, or idle work is discarded.
+  assert(image_pipeline_should_requeue_interrupted_tile(true, true, true));
+  assert(!image_pipeline_should_requeue_interrupted_tile(false, true, true));
+  assert(!image_pipeline_should_requeue_interrupted_tile(true, false, true));
+  assert(!image_pipeline_should_requeue_interrupted_tile(true, true, false));
 
   // Packed RGB565 output is safe only for RGB565 image targets. Every other
   // configured type must fall back to the format-aware software decoder.

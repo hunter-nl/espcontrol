@@ -23,12 +23,13 @@ constexpr bool p4_pipeline_result_is_current(uint32_t expected_generation,
   return !cancelled && expected_generation == result_generation;
 }
 
-// Modal work may cancel an in-flight tile to become responsive. The cancelled
-// tile still needs another turn, including when it belongs to the card that
-// opened the modal, or that card can remain blank after the modal closes.
-constexpr bool image_pipeline_should_requeue_preempted_tile(bool context_active,
-                                                            bool has_source_url) {
-  return context_active && has_source_url;
+// Modal work may cancel an active or queued tile to become responsive. The
+// interrupted tile still needs another turn or its card can remain blank after
+// the modal closes.
+constexpr bool image_pipeline_should_requeue_interrupted_tile(bool was_active_or_queued,
+                                                              bool context_active,
+                                                              bool has_source_url) {
+  return was_active_or_queued && context_active && has_source_url;
 }
 
 // The P4 decoder emits packed RGB565 pixels. Other configured target formats

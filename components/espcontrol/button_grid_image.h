@@ -133,8 +133,8 @@ inline void image_card_prioritize_modal_download(ImageCardCtx *ctx) {
   ImageCardCtx *active = image_card_active_download_context();
   if (active && active->image) {
     bool requeue_preempted_tile =
-      esphome::artwork_image::image_pipeline_should_requeue_preempted_tile(
-        active->active, !active->source_url.empty());
+      esphome::artwork_image::image_pipeline_should_requeue_interrupted_tile(
+        true, active->active, !active->source_url.empty());
     active->image->cancel_update();
     image_card_release_download_slot(active, false);
     if (requeue_preempted_tile) {
@@ -144,8 +144,16 @@ inline void image_card_prioritize_modal_download(ImageCardCtx *ctx) {
     }
   }
   if (ctx && ctx != active) {
+    bool requeue_selected_tile =
+      esphome::artwork_image::image_pipeline_should_requeue_interrupted_tile(
+        ctx->download_queued, ctx->active, !ctx->source_url.empty());
     if (ctx->image) ctx->image->cancel_update();
     image_card_release_download_slot(ctx, false);
+    if (requeue_selected_tile) {
+      ctx->download_queued = true;
+      ctx->next_download_retry_ms =
+          esphome::millis() + IMAGE_CARD_MODAL_REFRESH_DELAY_MS;
+    }
   }
 }
 

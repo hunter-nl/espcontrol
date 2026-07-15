@@ -329,9 +329,15 @@ class P4ImagePipeline {
 
   P4PipelineResult *perform_(const std::shared_ptr<P4PipelineJob> &job) {
     if (!job || job->cancelled.load()) return nullptr;
+    auto *result = new (std::nothrow) P4PipelineResult();
+    if (!result) return nullptr;
+    result->owner = job->owner;
+    result->generation = job->generation;
+
     P4PipelineTransfer transfer;
     transfer.job = job;
     transfer.request_started_ms = millis();
+    result->request_started_ms = transfer.request_started_ms;
 
     if (!this->client_) {
       esp_http_client_config_t config{};
@@ -351,7 +357,14 @@ class P4ImagePipeline {
       esp_http_client_set_user_data(this->client_, &transfer);
       esp_http_client_set_method(this->client_, HTTP_METHOD_GET);
     }
-    if (!this->client_) return nullptr;
+    if (!this->client_) {
+      uint32_t completed_at = millis();
+      result->error = ESP_ERR_NO_MEM;
+      result->response_ready_ms = completed_at;
+      result->first_byte_ms = completed_at;
+      result->transfer_complete_ms = completed_at;
+      return result;
+    }
 
     for (const auto &name : this->header_names_) {
       esp_http_client_delete_header(this->client_, name.c_str());
@@ -366,17 +379,11 @@ class P4ImagePipeline {
     uint32_t completed_at = millis();
     if (job->cancelled.load()) {
       heap_caps_free(transfer.data);
+      delete result;
       this->reset_client_();
       return nullptr;
     }
 
-    auto *result = new (std::nothrow) P4PipelineResult();
-    if (!result) {
-      heap_caps_free(transfer.data);
-      return nullptr;
-    }
-    result->owner = job->owner;
-    result->generation = job->generation;
     result->status = esp_http_client_get_status_code(this->client_);
     result->error = transfer.allocation_failed ? ESP_ERR_NO_MEM : error;
     result->data = transfer.data;
