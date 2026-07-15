@@ -229,11 +229,7 @@ int JpegDecoder::decode_hardware_(uint8_t *buffer, size_t size) {
 
   jpeg_decode_cfg_t decode_config{};
   decode_config.output_format = JPEG_DECODE_OUT_FORMAT_RGB565;
-  // ESP-IDF's RGB565 order names describe byte order here: its driver labels
-  // BGR as little-endian output and RGB as big-endian output. Match the image
-  // buffer byte order because draw_rgb565_frame() copies these packed pixels.
-  decode_config.rgb_order = this->image_->is_big_endian() ? JPEG_DEC_RGB_ELEMENT_ORDER_RGB
-                                                           : JPEG_DEC_RGB_ELEMENT_ORDER_BGR;
+  decode_config.rgb_order = JPEG_DEC_RGB_ELEMENT_ORDER_RGB;
   decode_config.conv_std = JPEG_YUV_RGB_CONV_STD_BT601;
 
   uint32_t output_size = 0;
