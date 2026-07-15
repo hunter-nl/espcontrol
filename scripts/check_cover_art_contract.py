@@ -80,9 +80,22 @@ for required in (
     "peak_download_buffer_size_",
     "Artwork download exceeded transfer limit",
     "shrink_to(this->download_buffer_initial_size_)",
+    "new (std::nothrow) P4PipelineJob()",
+    "P4_PIPELINE_PENDING_SLOTS",
+    "can_use_p4_pipeline(this->url_)",
 ):
     if required not in downloader:
         raise SystemExit(f"Artwork downloader memory contract missing: {required}")
+if "std::make_shared<P4PipelineJob>" in downloader:
+    raise SystemExit("P4 artwork jobs must fail cleanly instead of throwing during allocation")
+
+image_cards = (ROOT / "components" / "espcontrol" / "button_grid_image.h").read_text(encoding="utf-8")
+for required in (
+    "image_card_uses_background_pipeline(next->image, next->source_url)",
+    "image_card_uses_background_pipeline(ctx->modal_image, ctx->source_url)",
+):
+    if required not in image_cards:
+        raise SystemExit(f"Image card background-pipeline contract missing: {required}")
 
 cover_art = (ROOT / "common" / "device" / "screen_cover_art.yaml").read_text(encoding="utf-8")
 resubscribe_start = cover_art.find("  - id: cover_art_resubscribe")

@@ -98,6 +98,7 @@ class ArtworkImage : public PollingComponent,
   void set_p4_pipeline_priority(P4PipelinePriority priority) {
     this->p4_pipeline_priority_ = priority;
   }
+  bool can_use_p4_pipeline(const std::string &url) const;
 
   /** Add the request header */
   template<typename V> void add_request_header(const std::string &header, V value) {

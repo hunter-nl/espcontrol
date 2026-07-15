@@ -166,7 +166,7 @@ struct P4PipelineResult {
 };
 
 struct P4PipelineTransfer {
-  std::shared_ptr<P4PipelineJob> job;
+  P4PipelineJob *job{nullptr};
   uint8_t *data{nullptr};
   size_t size{0};
   size_t capacity{0};
@@ -182,6 +182,7 @@ struct P4PipelineAllocationFailure {
 };
 
 static constexpr size_t P4_PIPELINE_ALLOCATION_FAILURE_SLOTS = 16;
+static constexpr size_t P4_PIPELINE_PENDING_SLOTS = 16;
 
 class P4ImagePipeline {
  public:
@@ -193,7 +194,7 @@ class P4ImagePipeline {
   bool submit(ArtworkImage *owner, uint32_t generation, uint8_t priority,
               const std::string &url, const std::vector<http_request::Header> &headers) {
     if (!this->ready_ || !owner || url.empty()) return false;
-    auto job = std::make_shared<P4PipelineJob>();
+    auto *job = new (std::nothrow) P4PipelineJob();
     if (!job) return false;
     job->owner = owner;
     job->generation = generation;
@@ -203,8 +204,13 @@ class P4ImagePipeline {
 
     this->lock_();
     this->cancel_locked_(owner);
+    if (this->pending_count_ >= P4_PIPELINE_PENDING_SLOTS) {
+      this->unlock_();
+      delete job;
+      return false;
+    }
     job->sequence = this->next_sequence_++;
-    this->pending_.push_back(job);
+    this->pending_[this->pending_count_++] = job;
     this->unlock_();
     xTaskNotifyGive(this->task_);
     return true;
@@ -266,11 +272,11 @@ class P4ImagePipeline {
     while (true) {
       ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
       while (true) {
-        std::shared_ptr<P4PipelineJob> job = this->next_job_();
+        P4PipelineJob *job = this->next_job_();
         if (!job) break;
         P4PipelineResult *result = this->perform_(job);
         this->lock_();
-        this->active_.reset();
+        this->active_ = nullptr;
         if (result) {
           auto it = this->completed_.begin();
           while (it != this->completed_.end()) {
@@ -283,34 +289,42 @@ class P4ImagePipeline {
           }
           this->completed_.push_back(result);
         } else if (!job->cancelled.load()) {
-          this->record_allocation_failure_locked_(job.get());
+          this->record_allocation_failure_locked_(job);
         }
         this->unlock_();
+        delete job;
       }
     }
   }
 
-  std::shared_ptr<P4PipelineJob> next_job_() {
+  P4PipelineJob *next_job_() {
     this->lock_();
-    auto best = this->pending_.end();
-    for (auto it = this->pending_.begin(); it != this->pending_.end();) {
-      if ((*it)->cancelled.load()) {
-        it = this->pending_.erase(it);
+    size_t best = P4_PIPELINE_PENDING_SLOTS;
+    for (size_t i = 0; i < this->pending_count_;) {
+      if (this->pending_[i]->cancelled.load()) {
+        delete this->pending_[i];
+        for (size_t next = i + 1; next < this->pending_count_; next++) {
+          this->pending_[next - 1] = this->pending_[next];
+        }
+        this->pending_[--this->pending_count_] = nullptr;
         continue;
       }
-      if (best == this->pending_.end() ||
-          p4_pipeline_candidate_precedes((*it)->priority, (*it)->sequence,
-                                         (*best)->priority, (*best)->sequence)) {
-        best = it;
+      if (best == P4_PIPELINE_PENDING_SLOTS ||
+          p4_pipeline_candidate_precedes(this->pending_[i]->priority, this->pending_[i]->sequence,
+                                         this->pending_[best]->priority, this->pending_[best]->sequence)) {
+        best = i;
       }
-      ++it;
+      i++;
     }
-    if (best == this->pending_.end()) {
+    if (best == P4_PIPELINE_PENDING_SLOTS) {
       this->unlock_();
       return nullptr;
     }
-    std::shared_ptr<P4PipelineJob> job = *best;
-    this->pending_.erase(best);
+    P4PipelineJob *job = this->pending_[best];
+    for (size_t next = best + 1; next < this->pending_count_; next++) {
+      this->pending_[next - 1] = this->pending_[next];
+    }
+    this->pending_[--this->pending_count_] = nullptr;
     this->active_ = job;
     this->unlock_();
     return job;
@@ -351,7 +365,7 @@ class P4ImagePipeline {
     return ESP_OK;
   }
 
-  P4PipelineResult *perform_(const std::shared_ptr<P4PipelineJob> &job) {
+  P4PipelineResult *perform_(P4PipelineJob *job) {
     if (!job || job->cancelled.load()) return nullptr;
     auto *result = new (std::nothrow) P4PipelineResult();
     if (!result) return nullptr;
@@ -421,8 +435,16 @@ class P4ImagePipeline {
   }
 
   void cancel_locked_(ArtworkImage *owner) {
-    for (auto &job : this->pending_) {
-      if (job->owner == owner) job->cancelled.store(true);
+    for (size_t i = 0; i < this->pending_count_;) {
+      if (this->pending_[i]->owner != owner) {
+        i++;
+        continue;
+      }
+      delete this->pending_[i];
+      for (size_t next = i + 1; next < this->pending_count_; next++) {
+        this->pending_[next - 1] = this->pending_[next];
+      }
+      this->pending_[--this->pending_count_] = nullptr;
     }
     if (this->active_ && this->active_->owner == owner) {
       this->active_->cancelled.store(true);
@@ -466,8 +488,9 @@ class P4ImagePipeline {
   SemaphoreHandle_t mutex_{nullptr};
   TaskHandle_t task_{nullptr};
   bool ready_{false};
-  std::vector<std::shared_ptr<P4PipelineJob>> pending_;
-  std::shared_ptr<P4PipelineJob> active_;
+  P4PipelineJob *pending_[P4_PIPELINE_PENDING_SLOTS]{};
+  size_t pending_count_{0};
+  P4PipelineJob *active_{nullptr};
   std::vector<P4PipelineResult *> completed_;
   P4PipelineAllocationFailure allocation_failures_[P4_PIPELINE_ALLOCATION_FAILURE_SLOTS]{};
   uint64_t next_sequence_{0};
@@ -680,8 +703,7 @@ void ArtworkImage::update() {
   }
 
 #if defined(USE_ESP_IDF) && defined(CONFIG_IDF_TARGET_ESP32P4)
-  if (this->p4_pipeline_priority_ != P4_PIPELINE_DISABLED &&
-      this->should_use_local_idf_url_(this->url_)) {
+  if (this->can_use_p4_pipeline(this->url_)) {
     if (this->start_p4_pipeline_(headers)) {
       ESP_LOGD(TAG, "Queued local artwork on ESP32-P4 image pipeline");
       return;
@@ -752,6 +774,16 @@ void ArtworkImage::update() {
   this->start_time_ = ::time(nullptr);
   this->last_data_millis_ = millis();
   this->enable_loop();
+}
+
+bool ArtworkImage::can_use_p4_pipeline(const std::string &url) const {
+#if defined(USE_ESP_IDF) && defined(CONFIG_IDF_TARGET_ESP32P4)
+  return this->p4_pipeline_priority_ != P4_PIPELINE_DISABLED &&
+         this->should_use_local_idf_url_(url);
+#else
+  (void) url;
+  return false;
+#endif
 }
 
 bool ArtworkImage::should_use_local_idf_url_(const std::string &url) const {
