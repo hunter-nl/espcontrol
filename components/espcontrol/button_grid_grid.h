@@ -23,6 +23,7 @@ struct GridConfig {
   int width_compensation_percent = 100;
   int volume_width_compensation_percent = 100;
   int media_artwork_width_compensation_percent = 100;
+  DisplayModalProfile modal_profile;
   int label_lines = 0;
   int label_lines_tall = 0;
   int color_correction_red_percent = COLOR_CORRECTION_RED_PERCENT;
@@ -93,6 +94,7 @@ inline DisplayProfile display_profile_from_grid_config(const GridConfig &cfg) {
   profile.color.red_percent = cfg.color_correction_red_percent;
   profile.color.green_percent = cfg.color_correction_green_percent;
   profile.color.blue_percent = cfg.color_correction_blue_percent;
+  profile.modal = cfg.modal_profile;
   return profile;
 }
 
@@ -123,6 +125,8 @@ struct CardPalette {
   uint32_t off_val = SECONDARY_GREY;
   uint32_t sensor_val = TERTIARY_GREY;
 };
+
+#include "button_grid_status_entity_driver.h"
 
 inline lv_coord_t large_sensor_unit_offset_px(const lv_font_t *large_font, int percent) {
   if (!large_font || large_font->line_height <= 0) return 0;
@@ -360,6 +364,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
              context.surface == espcontrol::cards::Surface::SUBPAGE ? "subpage" : "main",
              p.type.c_str(), static_cast<unsigned>(context.runtime.driver));
   }
+  espcontrol::cards::status_entity_driver_cleanup(s, p, context);
   reset_card_slot_dynamic_children(s);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
@@ -415,14 +420,11 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     }
     return;
   }
-  if (p.type == "door_window") {
-    if (p.sensor.empty()) return;
-    setup_door_window_card(s, p, palette.has_sensor_color, palette.sensor_val);
-    return;
-  }
-  if (p.type == "presence") {
-    if (p.sensor.empty()) return;
-    setup_presence_card(s, p, palette.has_sensor_color, palette.sensor_val);
+  if (espcontrol::cards::status_entity_driver_setup_visual(
+        s, p, context, palette)) {
+    espcontrol::cards::status_entity_driver_attach_interaction(s, p, context);
+    espcontrol::cards::status_entity_driver_refresh_layout(
+      s, p, context, row_span, col_span);
     return;
   }
   if (p.type == "calendar") {
@@ -614,8 +616,11 @@ inline T *grid_track_runtime_allocation(lv_obj_t *owner, T *ptr);
 template<typename T>
 inline T *grid_delete_with_owner(lv_obj_t *owner, T *ptr);
 
-inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p,
-                                   const CardPalette &palette) {
+inline bool bind_basic_sensor_card(
+    BtnSlot &s, const ParsedCfg &p,
+    const espcontrol::cards::Context &context, const CardPalette &palette) {
+  if (espcontrol::cards::status_entity_driver_bind_data(
+        s, p, context, palette)) return true;
   if (sensor_card_local_sensor(p)) return false;
   if (is_text_sensor_card(p)) {
     if (!p.sensor.empty())
@@ -640,26 +645,6 @@ inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p,
           s.unit_lbl, p.unit, s.btn,
           sensor_active_color_enabled(p), palette.on_val, palette.sensor_val);
       }
-      if (p.label.empty())
-        subscribe_friendly_name(s.text_lbl, p.sensor);
-    }
-    return true;
-  }
-  if (p.type == "door_window") {
-    if (!p.sensor.empty()) {
-      subscribe_door_window_state(s.btn, s.icon_lbl, p.sensor,
-        door_window_closed_icon(p), door_window_open_icon(p),
-        door_window_active_color_enabled(p), palette.on_val, palette.sensor_val);
-      if (p.label.empty())
-        subscribe_friendly_name(s.text_lbl, p.sensor);
-    }
-    return true;
-  }
-  if (p.type == "presence") {
-    if (!p.sensor.empty()) {
-      subscribe_presence_state(s.btn, s.icon_lbl, p.sensor,
-        presence_clear_icon(p), presence_detected_icon(p),
-        presence_active_color_enabled(p), palette.on_val, palette.sensor_val);
       if (p.label.empty())
         subscribe_friendly_name(s.text_lbl, p.sensor);
     }
@@ -883,7 +868,7 @@ inline void grid_refresh_layout(
   ESP_LOGI("sensors", "Grid refresh: layout start (%lu ms)", esphome::millis());
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
-  display_set_width_axis(display);
+  display_activate_profile(display);
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   // When the grid shape changes, LVGL can otherwise lay out children that
@@ -948,7 +933,7 @@ inline void grid_phase1(
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
-  display_set_width_axis(display);
+  display_activate_profile(display);
   // Clear image references before visual setup removes their old LVGL widgets.
   reset_image_card_pool(cfg);
   int NS = bounded_grid_slots(cfg.num_slots);
@@ -1284,7 +1269,7 @@ inline void grid_phase2(
   grid_log_memory("start");
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
-  display_set_width_axis(display);
+  display_activate_profile(display);
   set_switch_confirmation_message_font(display_switch_confirmation_message_font(display));
   set_switch_confirmation_icon_font(display_icon_font(display));
   int NS = bounded_grid_slots(cfg.num_slots);
@@ -1366,7 +1351,7 @@ inline void grid_phase2(
     if (family == espcontrol::cards::Family::PUSH) continue;
     if (bind_image_card(s, p, cfg)) continue;
     if (family == espcontrol::cards::Family::LOCAL_SENSOR || sensor_card_local_sensor(p)) continue;
-    if (bind_basic_sensor_card(s, p, palette)) continue;
+    if (bind_basic_sensor_card(s, p, context, palette)) continue;
     if (bind_passive_card_sources(s, p)) continue;
     if (p.type == "garage") {
       if (!garage_command_mode(p.sensor) || garage_card_show_status(p)) {
@@ -2048,7 +2033,7 @@ inline void grid_phase2(
       }
       if (bind_image_card(sub_slot, sb_cfg, cfg, true)) continue;
       if (family == espcontrol::cards::Family::LOCAL_SENSOR || sensor_card_local_sensor(sb_cfg)) continue;
-      if (bind_basic_sensor_card(sub_slot, sb_cfg, palette)) continue;
+      if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)) continue;
       if (bind_passive_card_sources(sub_slot, sb_cfg)) continue;
       if (sb_cfg.type == "cover" && cover_modal_mode(sb_cfg.sensor)) {
         if (!sb_cfg.entity.empty()) {

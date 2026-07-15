@@ -1585,7 +1585,7 @@ def firmware_image_card_quality_errors(firmware_dir: Path, root: Path) -> list[s
         errors.append(f"{rel}: keep modal-quality image refresh enabled on the 4.3-inch P4 screen")
     if (
         "image_card_tile_prefetches_modal_quality" not in text
-        or "!control_modal_current_is_jc4880p443_size()" not in text
+        or "!control_modal_current_uses_compact_portrait_tuning()" not in text
     ):
         errors.append(f"{rel}: keep 4.3-inch P4 tile downloads sized to the tile before modal open")
     if "Closing image modal" not in text:
@@ -3828,25 +3828,25 @@ def run_self_test() -> int:
     )
     expect_local_sensor_binding_order_errors(
         "local sensor subtype reaches HA binding",
-        "inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p, const CardPalette &palette) {\n"
+        "inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p, const Context &context, const CardPalette &palette) {\n"
         "  if (p.type == \"sensor\") return true;\n"
         "}\n"
         "if (bind_image_card(s, p, cfg)) continue;\n"
-        "if (bind_basic_sensor_card(s, p, palette)) continue;\n",
+        "if (bind_basic_sensor_card(s, p, context, palette)) continue;\n",
         ("keep local sensor subtypes out of bind_basic_sensor_card", "skip local sensor subtypes"),
     )
     expect_local_sensor_binding_order_errors(
         "local sensor subtype skipped before HA binding",
-        "inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p, const CardPalette &palette) {\n"
+        "inline bool bind_basic_sensor_card(BtnSlot &s, const ParsedCfg &p, const Context &context, const CardPalette &palette) {\n"
         "  if (sensor_card_local_sensor(p)) return false;\n"
         "  if (p.type == \"sensor\") return true;\n"
         "}\n"
         "if (bind_image_card(s, p, cfg)) continue;\n"
         "if (p.type == \"local_sensor\" || sensor_card_local_sensor(p)) continue;\n"
-        "if (bind_basic_sensor_card(s, p, palette)) continue;\n"
+        "if (bind_basic_sensor_card(s, p, context, palette)) continue;\n"
         "if (bind_image_card(sub_slot, sb_cfg, cfg, true)) continue;\n"
         "if (sb_cfg.type == \"local_sensor\" || sensor_card_local_sensor(sb_cfg)) continue;\n"
-        "if (bind_basic_sensor_card(sub_slot, sb_cfg, palette)) continue;\n",
+        "if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)) continue;\n",
         (),
     )
     expect_time_reconnect_errors(
@@ -5042,7 +5042,7 @@ def run_self_test() -> int:
         "}\n"
         "inline bool image_card_tile_prefetches_modal_quality() {\n"
         "  return image_card_modal_refresh_supported() &&\n"
-        "         !control_modal_current_is_jc4880p443_size();\n"
+        "         !control_modal_current_uses_compact_portrait_tuning();\n"
         "}\n"
         "inline void image_card_limit_target_size(lv_coord_t source_width, lv_coord_t source_height,\n"
         "                                         int *target_width, int *target_height) {}\n"
