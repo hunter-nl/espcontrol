@@ -48,6 +48,78 @@ constexpr bool image_pipeline_should_cancel_modal_cleanup(bool has_separate_moda
   return has_separate_modal_image && !shared_modal_in_use;
 }
 
+struct P4CoverScalePlan {
+  bool valid{false};
+  uint32_t crop_width{0};
+  uint32_t crop_height{0};
+  uint32_t crop_x{0};
+  uint32_t crop_y{0};
+  uint32_t scale_units{0};
+};
+
+// PPA represents the fractional part of its scale in fixed-size steps and
+// truncates arbitrary floating-point ratios. Choose a centred crop that maps
+// to the exact target dimensions after that quantisation, so no unwritten
+// pixels remain along the right or bottom edge of a cover image.
+constexpr P4CoverScalePlan p4_cover_scale_plan(uint32_t source_width,
+                                               uint32_t source_height,
+                                               uint32_t target_width,
+                                               uint32_t target_height,
+                                               uint32_t fractional_steps,
+                                               uint32_t max_scale_units) {
+  P4CoverScalePlan plan{};
+  if (source_width == 0 || source_height == 0 || target_width == 0 ||
+      target_height == 0 || fractional_steps == 0 || max_scale_units == 0) {
+    return plan;
+  }
+
+  uint32_t cover_width = source_width;
+  uint32_t cover_height = source_height;
+  if (static_cast<uint64_t>(source_width) * target_height >
+      static_cast<uint64_t>(source_height) * target_width) {
+    cover_width = static_cast<uint32_t>(
+        static_cast<uint64_t>(source_height) * target_width / target_height);
+    if (cover_width == 0) cover_width = 1;
+  } else {
+    cover_height = static_cast<uint32_t>(
+        static_cast<uint64_t>(source_width) * target_height / target_width);
+    if (cover_height == 0) cover_height = 1;
+  }
+
+  auto ceil_div = [](uint64_t numerator, uint64_t denominator) constexpr -> uint32_t {
+    return static_cast<uint32_t>((numerator + denominator - 1) / denominator);
+  };
+  uint32_t min_scale_x = ceil_div(
+      static_cast<uint64_t>(target_width) * fractional_steps, cover_width);
+  uint32_t min_scale_y = ceil_div(
+      static_cast<uint64_t>(target_height) * fractional_steps, cover_height);
+  uint32_t first_scale = min_scale_x > min_scale_y ? min_scale_x : min_scale_y;
+  if (first_scale == 0) first_scale = 1;
+
+  for (uint32_t scale_units = first_scale; scale_units <= max_scale_units;
+       scale_units++) {
+    uint32_t crop_width = ceil_div(
+        static_cast<uint64_t>(target_width) * fractional_steps, scale_units);
+    uint32_t crop_height = ceil_div(
+        static_cast<uint64_t>(target_height) * fractional_steps, scale_units);
+    if (crop_width > cover_width || crop_height > cover_height) continue;
+    if (static_cast<uint64_t>(crop_width) * scale_units / fractional_steps !=
+            target_width ||
+        static_cast<uint64_t>(crop_height) * scale_units / fractional_steps !=
+            target_height) {
+      continue;
+    }
+    plan.valid = true;
+    plan.crop_width = crop_width;
+    plan.crop_height = crop_height;
+    plan.crop_x = (source_width - crop_width) / 2;
+    plan.crop_y = (source_height - crop_height) / 2;
+    plan.scale_units = scale_units;
+    return plan;
+  }
+  return plan;
+}
+
 // The P4 decoder emits packed RGB565 pixels. Other configured target formats
 // must stay on the software path, which performs the required conversion.
 constexpr bool p4_jpeg_hardware_target_supported(bool target_is_rgb565) {

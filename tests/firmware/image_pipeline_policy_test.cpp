@@ -7,6 +7,7 @@ using esphome::artwork_image::p4_pipeline_result_is_current;
 using esphome::artwork_image::image_pipeline_should_requeue_interrupted_tile;
 using esphome::artwork_image::image_pipeline_modal_cache_matches;
 using esphome::artwork_image::image_pipeline_should_cancel_modal_cleanup;
+using esphome::artwork_image::p4_cover_scale_plan;
 using esphome::artwork_image::p4_jpeg_hardware_target_supported;
 
 int main() {
@@ -41,6 +42,22 @@ int main() {
   assert(image_pipeline_should_cancel_modal_cleanup(true, false));
   assert(!image_pipeline_should_cancel_modal_cleanup(true, true));
   assert(!image_pipeline_should_cancel_modal_cleanup(false, false));
+
+  // PPA stores scale in sixteenth-step units. The old arbitrary ratio was
+  // truncated (for example 0.672 to 0.625), leaving noisy right/bottom strips.
+  // The adjusted centred crop must produce every target pixel exactly.
+  const auto landscape_plan = p4_cover_scale_plan(1024, 768, 688, 504, 16, 4095);
+  assert(landscape_plan.valid);
+  assert(landscape_plan.crop_width * landscape_plan.scale_units / 16 == 688);
+  assert(landscape_plan.crop_height * landscape_plan.scale_units / 16 == 504);
+  assert(landscape_plan.crop_x == (1024 - landscape_plan.crop_width) / 2);
+  assert(landscape_plan.crop_y == (768 - landscape_plan.crop_height) / 2);
+
+  const auto portrait_plan = p4_cover_scale_plan(720, 1280, 688, 504, 16, 4095);
+  assert(portrait_plan.valid);
+  assert(portrait_plan.crop_width * portrait_plan.scale_units / 16 == 688);
+  assert(portrait_plan.crop_height * portrait_plan.scale_units / 16 == 504);
+  assert(!p4_cover_scale_plan(0, 768, 688, 504, 16, 4095).valid);
 
   // Packed RGB565 output is safe only for RGB565 image targets. Every other
   // configured type must fall back to the format-aware software decoder.

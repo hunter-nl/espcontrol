@@ -114,27 +114,25 @@ static bool p4_scale_rgb565(const uint8_t *source, uint32_t source_stride_pixels
   }
   if (scaled == nullptr) return false;
 
-  uint32_t crop_width = source_width;
-  uint32_t crop_height = source_height;
-  if (static_cast<uint64_t>(source_width) * target_height >
-      static_cast<uint64_t>(source_height) * target_width) {
-    crop_width = std::max<uint32_t>(
-        1, static_cast<uint64_t>(source_height) * target_width / target_height);
-  } else {
-    crop_height = std::max<uint32_t>(
-        1, static_cast<uint64_t>(source_width) * target_height / target_width);
+  static constexpr uint32_t PPA_SCALE_FRACTIONAL_STEPS = 16;
+  static constexpr uint32_t PPA_MAX_SCALE_UNITS = 4095;
+  P4CoverScalePlan plan = p4_cover_scale_plan(
+      source_width, source_height, target_width, target_height,
+      PPA_SCALE_FRACTIONAL_STEPS, PPA_MAX_SCALE_UNITS);
+  if (!plan.valid) {
+    ESP_LOGW(TAG, "ESP32-P4 PPA could not represent exact cover scale; using CPU scaling");
+    return false;
   }
-  uint32_t crop_x = (source_width - crop_width) / 2;
-  uint32_t crop_y = (source_height - crop_height) / 2;
+  memset(scaled, 0, target_size);
 
   ppa_srm_oper_config_t config{};
   config.in.buffer = source;
   config.in.pic_w = source_stride_pixels;
   config.in.pic_h = source_height;
-  config.in.block_w = crop_width;
-  config.in.block_h = crop_height;
-  config.in.block_offset_x = crop_x;
-  config.in.block_offset_y = crop_y;
+  config.in.block_w = plan.crop_width;
+  config.in.block_h = plan.crop_height;
+  config.in.block_offset_x = plan.crop_x;
+  config.in.block_offset_y = plan.crop_y;
   config.in.srm_cm = PPA_SRM_COLOR_MODE_RGB565;
   config.out.buffer = scaled;
   config.out.buffer_size = scaled_capacity;
@@ -144,8 +142,8 @@ static bool p4_scale_rgb565(const uint8_t *source, uint32_t source_stride_pixels
   config.out.block_offset_y = 0;
   config.out.srm_cm = PPA_SRM_COLOR_MODE_RGB565;
   config.rotation_angle = PPA_SRM_ROTATION_ANGLE_0;
-  config.scale_x = static_cast<float>(target_width) / crop_width;
-  config.scale_y = static_cast<float>(target_height) / crop_height;
+  config.scale_x = static_cast<float>(plan.scale_units) / PPA_SCALE_FRACTIONAL_STEPS;
+  config.scale_y = config.scale_x;
   config.mode = PPA_TRANS_MODE_BLOCKING;
   esp_err_t err = ppa_do_scale_rotate_mirror(client, &config);
   if (err != ESP_OK) {
