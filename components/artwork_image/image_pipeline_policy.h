@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace esphome {
@@ -77,6 +78,30 @@ constexpr bool image_pipeline_should_preempt_stale_modal(bool switching_context,
 // so rendering can progress between image requests.
 constexpr bool image_pipeline_can_start_followup_inline(bool background_pipeline) {
   return background_pipeline;
+}
+
+// Reserve a known HTTP response in one allocation. Chunked responses and
+// inaccurate Content-Length values retain bounded geometric growth.
+constexpr size_t p4_pipeline_transfer_capacity(size_t current_capacity,
+                                               size_t required_capacity,
+                                               size_t reported_content_length,
+                                               size_t initial_capacity,
+                                               size_t maximum_capacity) {
+  if (required_capacity > maximum_capacity || initial_capacity == 0) return 0;
+  size_t next_capacity = current_capacity;
+  if (next_capacity == 0) {
+    if (reported_content_length > maximum_capacity) return 0;
+    next_capacity = reported_content_length >= required_capacity &&
+                            reported_content_length <= maximum_capacity
+                        ? reported_content_length
+                        : initial_capacity;
+  }
+  while (next_capacity < required_capacity && next_capacity < maximum_capacity) {
+    next_capacity = next_capacity > maximum_capacity / 2
+                        ? maximum_capacity
+                        : next_capacity * 2;
+  }
+  return next_capacity >= required_capacity ? next_capacity : 0;
 }
 
 // A cached tile remains a useful immediate preview after a grid rebuild, but a

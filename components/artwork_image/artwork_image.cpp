@@ -347,9 +347,22 @@ class P4ImagePipeline {
     }
     size_t required = transfer->size + incoming;
     if (required > transfer->capacity) {
-      size_t next_capacity = transfer->capacity == 0 ? 16384 : transfer->capacity;
-      while (next_capacity < required && next_capacity < ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE) {
-        next_capacity = std::min(next_capacity * 2, ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE);
+      size_t reported_content_length = 0;
+      if (transfer->capacity == 0 && evt->client != nullptr) {
+        int64_t content_length = esp_http_client_get_content_length(evt->client);
+        if (content_length > 0) {
+          reported_content_length = static_cast<uint64_t>(content_length) >
+                                            ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE
+                                        ? ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE + 1
+                                        : static_cast<size_t>(content_length);
+        }
+      }
+      size_t next_capacity = p4_pipeline_transfer_capacity(
+          transfer->capacity, required, reported_content_length, 16384,
+          ABSOLUTE_MAX_DOWNLOAD_BUFFER_SIZE);
+      if (next_capacity == 0) {
+        transfer->allocation_failed = true;
+        return ESP_FAIL;
       }
       uint8_t *resized = static_cast<uint8_t *>(heap_caps_realloc(
           transfer->data, next_capacity, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));

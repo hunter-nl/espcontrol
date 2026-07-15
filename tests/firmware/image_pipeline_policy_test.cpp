@@ -12,6 +12,7 @@ using esphome::artwork_image::image_pipeline_can_start_followup_inline;
 using esphome::artwork_image::image_pipeline_cached_target_changed;
 using esphome::artwork_image::image_pipeline_should_cancel_modal_cleanup;
 using esphome::artwork_image::image_pipeline_should_preempt_stale_modal;
+using esphome::artwork_image::p4_pipeline_transfer_capacity;
 using esphome::artwork_image::p4_cover_scale_plan;
 using esphome::artwork_image::p4_jpeg_hardware_target_supported;
 
@@ -72,6 +73,17 @@ int main() {
   // Loop-based targets retain their UI-friendly scheduling delay.
   assert(image_pipeline_can_start_followup_inline(true));
   assert(!image_pipeline_can_start_followup_inline(false));
+
+  // Known-length responses reserve once instead of repeatedly copying through
+  // 16, 32, 64, and larger KiB transfer buffers. Unknown or inaccurate lengths
+  // retain bounded geometric growth.
+  assert(p4_pipeline_transfer_capacity(0, 4096, 250000, 16384, 2 * 1024 * 1024) == 250000);
+  assert(p4_pipeline_transfer_capacity(0, 4096, 0, 16384, 2 * 1024 * 1024) == 16384);
+  assert(p4_pipeline_transfer_capacity(16384, 20000, 0, 16384, 2 * 1024 * 1024) == 32768);
+  assert(p4_pipeline_transfer_capacity(0, 4096, 3 * 1024 * 1024, 16384,
+                                       2 * 1024 * 1024) == 0);
+  assert(p4_pipeline_transfer_capacity(1024 * 1024, 3 * 1024 * 1024, 0, 16384,
+                                       2 * 1024 * 1024) == 0);
 
   // Reusing a ready tile at a different card size keeps the preview but must
   // force a correctly sized refresh. Stable or not-yet-ready targets do not.
