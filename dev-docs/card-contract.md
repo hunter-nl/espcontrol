@@ -140,8 +140,13 @@ Cover All Controls uses the shared `COVER_MODAL` lifecycle boundary for
 main-grid and subpage visual setup, runtime binding, modal click dispatch,
 parent indicators, popup dismissal, and allocation cleanup while retaining its
 specialised position, tilt, preset, supported-feature, Home Assistant, and
-modal implementation. Media remains on the existing `Family` dispatch until
-its reviewed migration PR switches it.
+modal implementation. All Media modes use one shared lifecycle boundary for
+main-grid and subpage visual setup, runtime binding, click dispatch, parent
+indicators, playback-consumer detachment, modal dismissal, timer cancellation,
+and allocation cleanup while retaining their specialised playback, artwork,
+playlist, progress, volume, Home Assistant, and modal implementations. This
+completes the reviewed rich-card migrations; narrow legacy fallback retirement
+remains a separate final stage.
 
 The pre-driver-migration runtime baseline is authored in
 `common/config/card_runtime_inventory.json`. It classifies contract and

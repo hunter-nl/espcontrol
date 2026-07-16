@@ -55,6 +55,7 @@ NUMERIC_SELECTABLE_HEADER = "button_grid_numeric_selectable_driver.h"
 CLEANING_HEADER = "button_grid_cleaning_driver.h"
 ACCESS_COVER_HEADER = "button_grid_access_cover_driver.h"
 COVER_MODAL_DRIVER_HEADER = "button_grid_cover_modal_driver.h"
+MEDIA_DRIVER_HEADER = "button_grid_media_driver.h"
 NAVIGATION_DRIVER_HEADER = "button_grid_navigation_driver.h"
 IMAGE_DRIVER_HEADER = "button_grid_image_driver.h"
 LIGHT_CONTROL_DRIVER_HEADER = "button_grid_light_control_driver.h"
@@ -171,6 +172,9 @@ def check_root(root: Path) -> list[str]:
             or "cover_modal_driver_setup_visual(s, p, context)" not in compact_grid
             or "cover_modal_driver_bind_main( s, p, context, cover_modal_environment)" not in compact_grid
             or "cover_modal_driver_bind_subpage( sub_slot, sb_cfg, context, cover_modal_environment)" not in compact_grid
+            or "media_driver_setup_visual( s, p, context, palette, display, row_span, col_span)" not in compact_grid
+            or "media_driver_bind_main( s, p, context, media_environment)" not in compact_grid
+            or "media_driver_bind_subpage( sub_slot, sb_cfg, context, media_environment)" not in compact_grid
             or "navigation_driver_setup_visual( s, p, context, cfg, display)" not in compact_grid
             or "navigation_driver_bind_main( s, p, context, navigation_state)" not in compact_grid
             or "navigation_driver_own_subpage( slots[si], p, parent_context, si + 1, display_order, sub_scr)" not in compact_grid
@@ -238,6 +242,8 @@ def check_root(root: Path) -> list[str]:
             'p.type == "fan_control"', 'sb_cfg.type == "fan_control"',
             'family == espcontrol::cards::Family::CLIMATE',
             'family == espcontrol::cards::Family::ALARM',
+            'family == espcontrol::cards::Family::MEDIA',
+            'p.type == "media"', 'sb_cfg.type == "media"',
         ):
             if direct_branch in text:
                 failures.append(
@@ -289,6 +295,7 @@ def check_root(root: Path) -> list[str]:
             or "fan_control_driver_handle_main_click(" not in click_body
             or "climate_control_driver_handle_main_click(" not in click_body
             or "alarm_driver_handle_main_click(" not in click_body
+            or "media_driver_handle_main_click(" not in click_body
         ):
             failures.append(
                 f"components/espcontrol/{ACTION_HEADER}: route passive checks through the shared card context"
@@ -308,6 +315,7 @@ def check_root(root: Path) -> list[str]:
                 'p.type == "fan_control"',
                 'climate_card_type(p.type)',
                 'p.type == "alarm"',
+                'p.type == "media"',
             ):
                 if direct_branch in click_body:
                     failures.append(
@@ -577,6 +585,39 @@ def check_root(root: Path) -> list[str]:
     elif grid_header.exists():
         failures.append(
             f"components/espcontrol/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal driver"
+        )
+    media_driver_header = root / "components" / "espcontrol" / MEDIA_DRIVER_HEADER
+    if media_driver_header.exists():
+        text = media_driver_header.read_text(encoding="utf-8")
+        required = (
+            "media_driver_setup_visual",
+            "media_driver_bind_main",
+            "media_driver_bind_subpage",
+            "media_driver_attach_interaction",
+            "media_driver_refresh_layout",
+            "media_driver_cleanup",
+            "media_driver_handle_main_click",
+            "create_media_control_context",
+            "create_media_volume_context",
+            "create_media_playlist_context",
+            "subscribe_media_control_state",
+            "subscribe_media_volume_state",
+            "subscribe_media_now_playing_state",
+            "subscribe_media_cover_art",
+            "subscribe_media_playlist_state",
+            "subscribe_media_slider_state",
+            "grid_track_media_control_runtime",
+            "grid_delete_media_control_with_owner",
+            '"media"',
+        )
+        for needle in required:
+            if needle not in text:
+                failures.append(
+                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: missing shared media lifecycle guard {needle}"
+                )
+    elif grid_header.exists():
+        failures.append(
+            f"components/espcontrol/{MEDIA_DRIVER_HEADER}: missing shared media driver"
         )
     navigation_driver_header = root / "components" / "espcontrol" / NAVIGATION_DRIVER_HEADER
     if navigation_driver_header.exists():

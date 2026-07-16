@@ -152,6 +152,36 @@ inline CoverControlCtx *grid_delete_cover_control_with_owner(
     lv_obj_t *owner, CoverControlCtx *ctx);
 inline CoverControlCtx *grid_track_cover_control_runtime(
     lv_obj_t *owner, CoverControlCtx *ctx);
+inline MediaControlCtx *grid_delete_media_control_with_owner(
+    lv_obj_t *owner, MediaControlCtx *ctx);
+inline MediaControlCtx *grid_track_media_control_runtime(
+    lv_obj_t *owner, MediaControlCtx *ctx);
+inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner);
+inline MediaVolumeCtx *grid_delete_media_volume_with_owner(
+    lv_obj_t *owner, MediaVolumeCtx *ctx);
+inline MediaVolumeCtx *grid_track_media_volume_runtime(
+    lv_obj_t *owner, MediaVolumeCtx *ctx);
+inline MediaPlaylistCtx *grid_delete_media_playlist_with_owner(
+    lv_obj_t *owner, MediaPlaylistCtx *ctx);
+inline MediaPlaylistCtx *grid_track_media_playlist_runtime(
+    lv_obj_t *owner, MediaPlaylistCtx *ctx);
+inline MediaNowPlayingCtx *grid_delete_media_now_playing_with_owner(
+    lv_obj_t *owner, MediaNowPlayingCtx *ctx);
+inline MediaNowPlayingCtx *grid_track_media_now_playing_runtime(
+    lv_obj_t *owner, MediaNowPlayingCtx *ctx);
+inline SliderCtx *grid_delete_media_slider_with_owner(
+    lv_obj_t *owner, SliderCtx *ctx);
+inline SliderCtx *grid_track_media_slider_runtime(
+    lv_obj_t *owner, SliderCtx *ctx);
+inline void grid_prepare_media_runtime_for_visual_reset(lv_obj_t *owner);
+inline void clear_media_cover_art(MediaNowPlayingCtx *ctx);
+inline void setup_media_cover_art(
+    BtnSlot &slot, const ParsedCfg &config, const GridConfig &grid_config);
+inline void refresh_media_card_layout(
+    BtnSlot &slot, const ParsedCfg &config, const GridConfig &grid_config,
+    int row_span);
+inline void subscribe_media_cover_art(MediaNowPlayingCtx *ctx,
+                                      const std::string &entity_id);
 inline void refresh_slider_card_layout(BtnSlot &slot);
 inline bool bind_garage_status_card(
     BtnSlot &slot, const ParsedCfg &config,
@@ -219,6 +249,7 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
 #include "button_grid_fan_control_driver.h"
 #include "button_grid_climate_control_driver.h"
 #include "button_grid_alarm_driver.h"
+#include "button_grid_media_driver.h"
 
 inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
                                         int row_span = 1) {
@@ -420,6 +451,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   espcontrol::cards::fan_control_driver_cleanup(s, p, context);
   espcontrol::cards::climate_control_driver_cleanup(s, p, context);
   espcontrol::cards::alarm_driver_cleanup(s, p, context);
+  espcontrol::cards::media_driver_cleanup(s, p, context);
   reset_card_slot_dynamic_children(s);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
@@ -475,6 +507,13 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espcontrol::cards::cover_modal_driver_setup_visual(s, p, context)) {
     espcontrol::cards::cover_modal_driver_attach_interaction(s, p, context);
     espcontrol::cards::cover_modal_driver_refresh_layout(s, p, context);
+    return;
+  }
+  if (espcontrol::cards::media_driver_setup_visual(
+        s, p, context, palette, display, row_span, col_span)) {
+    espcontrol::cards::media_driver_attach_interaction(s, p, context);
+    espcontrol::cards::media_driver_refresh_layout(
+      s, p, context, cfg, row_span);
     return;
   }
   if (espcontrol::cards::sensor_driver_setup_visual(
@@ -546,17 +585,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       apply_large_sensor_number_style(
         s, display_large_sensor_font(display), display_large_sensor_unit_offset_percent(display));
     }
-    return;
-  }
-  if (family == espcontrol::cards::Family::MEDIA) {
-    setup_media_card(s, p,
-      palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR,
-      palette.off_val,
-      palette.sensor_val,
-      display_sensor_font(display),
-      display_media_title_font(display),
-      display_main_width_percent(display),
-      row_span, col_span);
     return;
   }
   if (card_runtime_uses_slider_visual(context)) {
@@ -745,8 +773,9 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
   } else if (espcontrol::cards::light_control_driver_refresh_layout(
                s, p, context)) {
     return;
-  } else if (p.type == "media") {
-    refresh_media_card_layout(s, p, cfg, row_span);
+  } else if (espcontrol::cards::media_driver_refresh_layout(
+               s, p, context, cfg, row_span)) {
+    return;
   } else {
     espcontrol::cards::access_cover_driver_refresh_layout(
       s, p, card_runtime_context(p));
@@ -1071,6 +1100,63 @@ inline void grid_delete_media_control_runtime_ptr(void *ptr) {
   delete_media_control_context(static_cast<MediaControlCtx *>(ptr));
 }
 
+inline void grid_delete_media_volume_runtime_ptr(void *ptr) {
+  delete_media_volume_context(static_cast<MediaVolumeCtx *>(ptr));
+}
+
+inline void grid_delete_media_playlist_runtime_ptr(void *ptr) {
+  delete_media_playlist_context(static_cast<MediaPlaylistCtx *>(ptr));
+}
+
+inline void grid_delete_media_now_playing_runtime_ptr(void *ptr) {
+  MediaNowPlayingCtx *ctx = static_cast<MediaNowPlayingCtx *>(ptr);
+  delete_media_now_playing_context(ctx);
+}
+
+inline void grid_delete_media_slider_runtime_ptr(void *ptr) {
+  delete_media_slider_context(static_cast<SliderCtx *>(ptr));
+}
+
+inline void grid_prepare_media_runtime_for_visual_reset(lv_obj_t *owner) {
+  if (!owner) return;
+  media_playback_detach_button(owner);
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.owner != owner || !allocation.ptr) continue;
+    if (allocation.deleter == grid_delete_media_control_runtime_ptr) {
+      MediaControlCtx *ctx = static_cast<MediaControlCtx *>(allocation.ptr);
+      if (media_control_modal_ui().active == ctx) media_control_hide_modal();
+      media_playback_detach_control(ctx);
+    } else if (allocation.deleter == grid_delete_media_volume_runtime_ptr) {
+      MediaVolumeCtx *ctx = static_cast<MediaVolumeCtx *>(allocation.ptr);
+      if (media_volume_modal_ui().active == ctx) media_volume_hide_modal();
+      media_playback_detach_volume(ctx);
+    } else if (allocation.deleter == grid_delete_media_playlist_runtime_ptr) {
+      media_playback_detach_playlist(
+        static_cast<MediaPlaylistCtx *>(allocation.ptr));
+    } else if (allocation.deleter == grid_delete_media_now_playing_runtime_ptr) {
+      MediaNowPlayingCtx *ctx = static_cast<MediaNowPlayingCtx *>(allocation.ptr);
+      clear_media_cover_art(ctx);
+      media_playback_detach_now_playing(ctx);
+      ctx->title_lbl = nullptr;
+      ctx->artist_lbl = nullptr;
+      ctx->progress_slider = nullptr;
+      ctx->btn = nullptr;
+    } else if (allocation.deleter == grid_delete_media_slider_runtime_ptr) {
+      SliderCtx *ctx = static_cast<SliderCtx *>(allocation.ptr);
+      media_playback_detach_slider(ctx);
+      if (ctx->media_timer) {
+        lv_timer_del(ctx->media_timer);
+        ctx->media_timer = nullptr;
+      }
+      ctx->media_slider = nullptr;
+      ctx->fill = nullptr;
+      ctx->media_track_bg = nullptr;
+      ctx->media_value_lbl = nullptr;
+      ctx->media_status_lbl = nullptr;
+    }
+  }
+}
+
 inline void grid_release_runtime_allocations(lv_obj_t *owner) {
   if (owner == nullptr) return;
   std::vector<GridRuntimeAllocation> &allocations = grid_runtime_allocations();
@@ -1126,6 +1212,46 @@ inline MediaControlCtx *grid_track_media_control_runtime(lv_obj_t *owner,
   return ctx;
 }
 
+inline MediaVolumeCtx *grid_track_media_volume_runtime(
+    lv_obj_t *owner, MediaVolumeCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    grid_runtime_allocations().push_back({
+      owner, ctx, grid_delete_media_volume_runtime_ptr,
+    });
+  }
+  return ctx;
+}
+
+inline MediaPlaylistCtx *grid_track_media_playlist_runtime(
+    lv_obj_t *owner, MediaPlaylistCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    grid_runtime_allocations().push_back({
+      owner, ctx, grid_delete_media_playlist_runtime_ptr,
+    });
+  }
+  return ctx;
+}
+
+inline MediaNowPlayingCtx *grid_track_media_now_playing_runtime(
+    lv_obj_t *owner, MediaNowPlayingCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    grid_runtime_allocations().push_back({
+      owner, ctx, grid_delete_media_now_playing_runtime_ptr,
+    });
+  }
+  return ctx;
+}
+
+inline SliderCtx *grid_track_media_slider_runtime(
+    lv_obj_t *owner, SliderCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    grid_runtime_allocations().push_back({
+      owner, ctx, grid_delete_media_slider_runtime_ptr,
+    });
+  }
+  return ctx;
+}
+
 inline MediaControlCtx *grid_media_control_runtime_for_owner(lv_obj_t *owner) {
   if (owner == nullptr) return nullptr;
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
@@ -1142,6 +1268,52 @@ inline MediaControlCtx *grid_delete_media_control_with_owner(lv_obj_t *owner,
   if (owner != nullptr && ctx != nullptr) {
     lv_obj_add_event_cb(owner, [](lv_event_t *e) {
       delete_media_control_context(static_cast<MediaControlCtx *>(lv_event_get_user_data(e)));
+    }, LV_EVENT_DELETE, ctx);
+  }
+  return ctx;
+}
+
+inline MediaVolumeCtx *grid_delete_media_volume_with_owner(
+    lv_obj_t *owner, MediaVolumeCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
+      delete_media_volume_context(static_cast<MediaVolumeCtx *>(
+        lv_event_get_user_data(event)));
+    }, LV_EVENT_DELETE, ctx);
+  }
+  return ctx;
+}
+
+inline MediaPlaylistCtx *grid_delete_media_playlist_with_owner(
+    lv_obj_t *owner, MediaPlaylistCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
+      delete_media_playlist_context(static_cast<MediaPlaylistCtx *>(
+        lv_event_get_user_data(event)));
+    }, LV_EVENT_DELETE, ctx);
+  }
+  return ctx;
+}
+
+inline MediaNowPlayingCtx *grid_delete_media_now_playing_with_owner(
+    lv_obj_t *owner, MediaNowPlayingCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
+      MediaNowPlayingCtx *context = static_cast<MediaNowPlayingCtx *>(
+        lv_event_get_user_data(event));
+      clear_media_cover_art(context);
+      delete_media_now_playing_context(context);
+    }, LV_EVENT_DELETE, ctx);
+  }
+  return ctx;
+}
+
+inline SliderCtx *grid_delete_media_slider_with_owner(
+    lv_obj_t *owner, SliderCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
+      delete_media_slider_context(static_cast<SliderCtx *>(
+        lv_event_get_user_data(event)));
     }, LV_EVENT_DELETE, ctx);
   }
   return ctx;
@@ -1367,6 +1539,10 @@ inline void grid_phase2(
         palette, display, s);
     if (espcontrol::cards::cover_modal_driver_bind_main(
           s, p, context, cover_modal_environment)) continue;
+    auto media_environment = espcontrol::cards::media_driver_environment(
+      palette, display, s, cfg);
+    if (espcontrol::cards::media_driver_bind_main(
+          s, p, context, media_environment)) continue;
     if (bind_basic_sensor_card(s, p, context, palette)) continue;
     espcontrol::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
@@ -1410,80 +1586,6 @@ inline void grid_phase2(
         grid_track_runtime_allocation(s.btn, ctx);
         subscribe_todo_state(ctx);
         subscribe_todo_friendly_name(ctx);
-      }
-      continue;
-    }
-    if (family == espcontrol::cards::Family::MEDIA) {
-      if (!p.entity.empty()) {
-        std::string mode = media_card_mode(p.sensor);
-        if (mode == "play_pause") {
-          subscribe_media_state(s.btn, media_play_pause_show_state(p) ? s.text_lbl : nullptr, p.entity);
-        } else if (mode == "playlist") {
-          MediaPlaylistCtx *ctx = grid_track_runtime_allocation(
-            s.btn, create_media_playlist_context(s.btn, p));
-          subscribe_media_playlist_state(ctx);
-        } else if (media_playback_button_mode(mode)) {
-          // Previous/next are momentary actions and do not reflect player state.
-        } else if (mode == "control_modal") {
-          MediaControlCtx *ctx = grid_track_media_control_runtime(s.btn, create_media_control_context(
-            s, p,
-            has_on ? on_val : DEFAULT_SLIDER_COLOR,
-            palette.has_off ? palette.off_val : SECONDARY_GREY,
-            palette.has_sensor_color ? palette.sensor_val : TERTIARY_GREY,
-            display_media_control_title_font(display),
-            display_media_control_artist_font(
-              display, display_volume_label_font(
-                display, lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN))),
-            display_volume_number_font(display),
-            display_icon_font(display),
-            display_volume_width_percent(display)));
-          subscribe_media_control_state(ctx);
-        } else if (mode == "volume") {
-          MediaVolumeCtx *ctx = create_media_volume_context(
-            s.btn, s.text_lbl, p, has_on ? on_val : DEFAULT_SLIDER_COLOR,
-            off_val,
-            sensor_val,
-            display_sensor_font(display),
-            display_volume_number_font(display),
-            display_volume_label_font(display)
-              ? display_volume_label_font(display)
-              : lv_obj_get_style_text_font(s.unit_lbl, LV_PART_MAIN),
-            display_volume_label_font(display)
-              ? display_volume_label_font(display)
-              : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-            display_icon_font(display),
-            display_volume_width_percent(display),
-            s.sensor_lbl, s.unit_lbl);
-          grid_track_runtime_allocation(s.btn, ctx);
-          subscribe_media_volume_state(ctx);
-          if (p.label.empty()) subscribe_friendly_name(s.text_lbl, p.entity);
-        } else if (mode == "now_playing" || mode == "cover_art") {
-          MediaNowPlayingCtx *ctx = (MediaNowPlayingCtx *)lv_obj_get_user_data(s.sensor_container);
-          setup_media_cover_art(s, p, cfg);
-          if (mode == "now_playing") subscribe_media_now_playing_state(ctx, p.entity);
-          subscribe_media_cover_art(ctx, p.entity);
-          if (mode == "cover_art" && media_cover_art_press_action(p) == "control_modal") {
-            MediaControlCtx *control_ctx = grid_track_media_control_runtime(s.btn, create_media_control_context(
-              s, p,
-              has_on ? on_val : DEFAULT_SLIDER_COLOR,
-              palette.has_off ? palette.off_val : SECONDARY_GREY,
-              palette.has_sensor_color ? palette.sensor_val : TERTIARY_GREY,
-              display_media_control_title_font(display),
-              display_media_control_artist_font(
-                display, display_volume_label_font(
-                  display, lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN))),
-              display_volume_number_font(display),
-              display_icon_font(display),
-              display_volume_width_percent(display)));
-            subscribe_media_control_state(control_ctx);
-            if (ctx && ctx->cover_art) lv_obj_set_user_data(s.btn, ctx->cover_art);
-          }
-        } else {
-          lv_obj_t *slider = (lv_obj_t *)lv_obj_get_user_data(s.sensor_container);
-          if (slider) subscribe_media_slider_state(s.btn, slider, p.entity);
-          if (p.label.empty() && mode != "position")
-            subscribe_friendly_name(s.text_lbl, p.entity);
-        }
       }
       continue;
     }
@@ -1719,6 +1821,12 @@ inline void grid_phase2(
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espcontrol::cards::cover_modal_driver_bind_subpage(
             sub_slot, sb_cfg, context, cover_modal_environment)) continue;
+      auto media_environment = espcontrol::cards::media_driver_environment(
+        palette, display, sub_slot, cfg);
+      media_environment.add_parent_indicator =
+        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
+      if (espcontrol::cards::media_driver_bind_subpage(
+            sub_slot, sb_cfg, context, media_environment)) continue;
       if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)) continue;
       espcontrol::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
@@ -1804,116 +1912,6 @@ inline void grid_phase2(
             TodoCardCtx *ctx = (TodoCardCtx *)lv_event_get_user_data(e);
             if (todo_card_context_valid(ctx)) todo_card_open_modal(ctx);
           }, LV_EVENT_CLICKED, ctx);
-        }
-        continue;
-      }
-      if (family == espcontrol::cards::Family::MEDIA) {
-        std::string mode = media_card_mode(sb_cfg.sensor);
-        if (!sb_cfg.entity.empty()) {
-          if (mode == "playlist") {
-            ParsedCfg *ctx = grid_delete_with_owner(sb_btn, new ParsedCfg(sb_cfg));
-            MediaPlaylistCtx *playlist_ctx = grid_delete_with_owner(
-              sb_btn, create_media_playlist_context(sub_slot.btn, sb_cfg));
-            subscribe_media_playlist_state(playlist_ctx);
-            lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-              ParsedCfg *c = (ParsedCfg *)lv_event_get_user_data(e);
-              if (c) {
-                ESP_LOGI("button", "Subpage playlist clicked: entity=%s label=%s mode=%s options=%s",
-                         c->entity.c_str(), c->label.c_str(), c->sensor.c_str(), c->options.c_str());
-                send_media_playlist_action(*c);
-              }
-            }, LV_EVENT_CLICKED, ctx);
-          } else if (media_playback_button_mode(mode)) {
-            ParsedCfg *ctx = grid_delete_with_owner(sb_btn, new ParsedCfg(sb_cfg));
-            ctx->sensor = mode;
-            lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-              ParsedCfg *c = (ParsedCfg *)lv_event_get_user_data(e);
-              if (c) send_media_playback_action(c->entity, media_card_mode(c->sensor));
-            }, media_fast_press_mode(mode) ? LV_EVENT_PRESSED : LV_EVENT_CLICKED, ctx);
-            if (mode == "play_pause")
-              subscribe_media_state(sub_slot.btn,
-                media_play_pause_show_state(sb_cfg) ? sub_slot.text_lbl : nullptr,
-                sb_cfg.entity);
-          } else if (mode == "control_modal") {
-            MediaControlCtx *ctx = grid_delete_media_control_with_owner(sb_btn, create_media_control_context(
-              sub_slot, sb_cfg,
-              has_on ? on_val : DEFAULT_SLIDER_COLOR,
-              palette.has_off ? palette.off_val : SECONDARY_GREY,
-              palette.has_sensor_color ? palette.sensor_val : TERTIARY_GREY,
-              display_media_control_title_font(display),
-              display_media_control_artist_font(
-                display, display_volume_label_font(
-                  display, lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN))),
-              display_volume_number_font(display),
-              display_icon_font(display),
-              display_volume_width_percent(display)));
-            subscribe_media_control_state(ctx);
-            lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-              MediaControlCtx *ctx = (MediaControlCtx *)lv_event_get_user_data(e);
-              if (ctx) media_control_open_modal(ctx);
-            }, LV_EVENT_CLICKED, ctx);
-          } else if (mode == "volume") {
-            MediaVolumeCtx *ctx = create_media_volume_context(
-              sub_slot.btn, sub_slot.text_lbl, sb_cfg,
-              has_on ? on_val : DEFAULT_SLIDER_COLOR,
-              off_val,
-              sensor_val,
-              display_sensor_font(display),
-              display_volume_number_font(display),
-              display_volume_label_font(display)
-                ? display_volume_label_font(display)
-                : lv_obj_get_style_text_font(sub_slot.unit_lbl, LV_PART_MAIN),
-              display_volume_label_font(display)
-                ? display_volume_label_font(display)
-                : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-              display_icon_font(display),
-              display_volume_width_percent(display),
-              sub_slot.sensor_lbl, sub_slot.unit_lbl);
-            grid_delete_with_owner(sb_btn, ctx);
-            subscribe_media_volume_state(ctx);
-            if (sb_cfg.label.empty()) subscribe_friendly_name(sub_slot.text_lbl, sb_cfg.entity);
-            lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-              MediaVolumeCtx *ctx = (MediaVolumeCtx *)lv_event_get_user_data(e);
-              if (ctx) media_volume_open_modal(ctx);
-            }, LV_EVENT_CLICKED, ctx);
-          } else if (mode == "now_playing" || mode == "cover_art") {
-            MediaNowPlayingCtx *ctx = (MediaNowPlayingCtx *)lv_obj_get_user_data(sub_slot.sensor_container);
-            setup_media_cover_art(sub_slot, sb_cfg, cfg);
-            if (mode == "now_playing") subscribe_media_now_playing_state(ctx, sb_cfg.entity);
-            subscribe_media_cover_art(ctx, sb_cfg.entity);
-            if (mode == "cover_art" && media_cover_art_press_action(sb_cfg) == "control_modal") {
-              MediaControlCtx *control_ctx = grid_delete_media_control_with_owner(sb_btn, create_media_control_context(
-                sub_slot, sb_cfg,
-                has_on ? on_val : DEFAULT_SLIDER_COLOR,
-                palette.has_off ? palette.off_val : SECONDARY_GREY,
-                palette.has_sensor_color ? palette.sensor_val : TERTIARY_GREY,
-                display_media_control_title_font(display),
-                display_media_control_artist_font(
-                  display, display_volume_label_font(
-                    display, lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN))),
-                display_volume_number_font(display),
-                display_icon_font(display),
-                display_volume_width_percent(display)));
-              subscribe_media_control_state(control_ctx);
-              if (ctx && ctx->cover_art) lv_obj_set_user_data(sb_btn, ctx->cover_art);
-              lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-                MediaControlCtx *ctx = (MediaControlCtx *)lv_event_get_user_data(e);
-                if (ctx) media_control_open_modal(ctx);
-              }, LV_EVENT_CLICKED, control_ctx);
-            } else if (mode == "cover_art" || media_now_playing_play_pause_enabled(sb_cfg)) {
-              ParsedCfg *click_ctx = grid_delete_with_owner(sb_btn, new ParsedCfg(sb_cfg));
-              lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-                ParsedCfg *c = (ParsedCfg *)lv_event_get_user_data(e);
-                if (c) send_media_playback_action(c->entity, "play_pause");
-              }, LV_EVENT_CLICKED, click_ctx);
-            }
-          } else {
-            lv_obj_t *media_slider = (lv_obj_t *)lv_obj_get_user_data(sub_slot.sensor_container);
-            if (media_slider) subscribe_media_slider_state(sub_slot.btn, media_slider, sb_cfg.entity);
-            if (sb_cfg.label.empty() && mode != "position")
-              subscribe_friendly_name(sub_slot.text_lbl, sb_cfg.entity);
-          }
-          add_parent_indicator(sb_cfg.entity);
         }
         continue;
       }

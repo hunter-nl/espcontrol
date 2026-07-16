@@ -842,6 +842,8 @@ inline bool climate_control_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool alarm_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
+inline bool media_driver_handle_main_click(
+    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 }
 
 // Handle a main-grid button press: dispatch push event, subpage nav,
@@ -881,31 +883,11 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
         context, p, btn_obj)) return;
   if (espcontrol::cards::alarm_driver_handle_main_click(
         context, p, btn_obj)) return;
+  if (espcontrol::cards::media_driver_handle_main_click(
+        context, p, btn_obj)) return;
   if (p.type == "todo") {
     TodoCardCtx *ctx = (TodoCardCtx *)lv_obj_get_user_data(btn_obj);
     if (todo_card_context_valid(ctx)) todo_card_open_modal(ctx);
-  } else if (p.type == "media") {
-    std::string mode = media_card_mode(p.sensor);
-    if (mode == "control_modal") {
-      MediaControlCtx *ctx = (MediaControlCtx *)lv_obj_get_user_data(btn_obj);
-      if (ctx) media_control_open_modal(ctx);
-    } else if (mode == "volume") {
-      MediaVolumeCtx *ctx = (MediaVolumeCtx *)lv_obj_get_user_data(btn_obj);
-      if (ctx) media_volume_open_modal(ctx);
-    } else if (mode == "playlist") {
-      send_media_playlist_action(p);
-    } else if (mode == "now_playing" && p.precision == "play_pause") {
-      send_media_playback_action(p.entity, "play_pause");
-    } else if (mode == "cover_art") {
-      if (media_cover_art_press_action(p) == "control_modal") {
-        MediaControlCtx *ctx = grid_media_control_runtime_for_owner(btn_obj);
-        if (ctx) media_control_open_modal(ctx);
-      } else {
-        send_media_playback_action(p.entity, "play_pause");
-      }
-    } else if (media_playback_button_mode(mode)) {
-      send_media_playback_action(p.entity, mode);
-    }
   } else {
     if (!p.entity.empty()) {
       bool currently_on = btn_obj && lv_obj_has_state(btn_obj, LV_STATE_CHECKED);
