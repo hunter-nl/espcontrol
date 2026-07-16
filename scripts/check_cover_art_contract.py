@@ -128,6 +128,13 @@ for required in (
 ):
     if required not in image_cards:
         raise SystemExit(f"Image card background-pipeline contract missing: {required}")
+modal_open_start = image_cards.find("inline void image_card_open_modal(ImageCardCtx *ctx) {")
+modal_open_end = image_cards.find("\ninline void image_card_handle_picture", modal_open_start)
+if modal_open_start < 0 or modal_open_end < 0:
+    raise SystemExit("Image card modal-open contract missing")
+modal_open = image_cards[modal_open_start:modal_open_end]
+if "ctx->next_download_retry_ms = 0;" in modal_open:
+    raise SystemExit("Opening an image modal must preserve an already scheduled tile retry")
 
 cover_art = (ROOT / "common" / "device" / "screen_cover_art.yaml").read_text(encoding="utf-8")
 resubscribe_start = cover_art.find("  - id: cover_art_resubscribe")

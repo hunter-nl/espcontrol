@@ -1761,7 +1761,8 @@ inline void image_card_open_modal(ImageCardCtx *ctx) {
     image_card_finish_modal_cleanup(ctx);
   }
   image_card_cancel_stale_modal_download(ctx);
-  ctx->next_download_retry_ms = 0;
+  // Keep any scheduled tile retry alive. While the modal is open the normal
+  // refresh path defers it, then starts it shortly after the modal closes.
   image_card_prioritize_modal_download(ctx);
 
   ControlModalShell shell = control_modal_open_shell(
