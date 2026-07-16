@@ -537,6 +537,10 @@ inline std::string sensor_card_options_normalized(const std::string &options,
        large_numbers_explicitly_disabled(options))) {
     append_large_numbers_option(out, options);
   }
+  if (precision != "time" && cfg_option_token_present(options, "active_color")) {
+    if (!out.empty()) out += ",";
+    out += "active_color";
+  }
   if (precision == "text" && cfg_option_token_present(options, SENSOR_STATE_LABELS_OPTION)) {
     if (!out.empty()) out += ",";
     out += SENSOR_STATE_LABELS_OPTION;
@@ -1695,6 +1699,12 @@ inline bool is_entity_on_ref(esphome::StringRef state) {
          value == "open" || value == "opened" ||
          value == "opening" || value == "closing" ||
          value == "unlocked" || value == "unlocking" || value == "jammed";
+}
+
+inline bool sensor_active_color_state_ref(esphome::StringRef state,
+                                          bool numeric_mode) {
+  return is_entity_on_ref(state) ||
+         (numeric_mode && numeric_state_positive_ref(state));
 }
 
 inline bool presence_detected_ref(esphome::StringRef state) {
