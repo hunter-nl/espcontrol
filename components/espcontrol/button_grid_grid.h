@@ -936,6 +936,7 @@ inline FanCardCtx *grid_delete_fan_card_with_owner(lv_obj_t *owner,
     lv_obj_add_event_cb(owner, [](lv_event_t *e) {
       FanCardCtx *fan = static_cast<FanCardCtx *>(lv_event_get_user_data(e));
       if (fan != nullptr) {
+        fan_close_modals_for_context(fan);
         grid_delete_transient_status_label(fan->status_label);
         fan->status_label = nullptr;
         delete fan;
@@ -1014,6 +1015,7 @@ inline void grid_delete_alarm_action_runtime_ptr(void *ptr) {
 inline void grid_delete_fan_card_runtime_ptr(void *ptr) {
   FanCardCtx *ctx = static_cast<FanCardCtx *>(ptr);
   if (ctx != nullptr) {
+    fan_close_modals_for_context(ctx);
     grid_delete_transient_status_label(ctx->status_label);
     ctx->status_label = nullptr;
     delete ctx;
