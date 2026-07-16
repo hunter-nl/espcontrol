@@ -50,16 +50,16 @@ Use `dev.yaml` by default. If the user names another YAML file, use that file in
 All development YAML files require a local `secrets.yaml` containing `wifi_ssid` and `wifi_password`. Use this existing file as the only secrets source:
 
 ```text
-/Users/jtenniswood/Git/espcontrol/worktrees/integration-2026-07-06/secrets.yaml
+/Users/jtenniswood/Git/espcontrol/secrets.yaml
 ```
 
 Before flashing each selected display:
 
-1. Confirm the source exists with `test -f /Users/jtenniswood/Git/espcontrol/worktrees/integration-2026-07-06/secrets.yaml`. If it is missing, stop and tell the user; do not create or guess secret values.
+1. Confirm the source exists with `test -f /Users/jtenniswood/Git/espcontrol/secrets.yaml`. If it is missing, stop and tell the user; do not create or guess secret values.
 2. Run the following from the selected display's config directory. This creates the ignored local symlink only when `secrets.yaml` is absent, and verifies that any existing file or symlink resolves to the required source:
 
    ```bash
-   SECRETS_SOURCE=/Users/jtenniswood/Git/espcontrol/worktrees/integration-2026-07-06/secrets.yaml
+   SECRETS_SOURCE=/Users/jtenniswood/Git/espcontrol/secrets.yaml
    if [ ! -e secrets.yaml ] && [ ! -L secrets.yaml ]; then
      ln -s "$SECRETS_SOURCE" secrets.yaml
    fi
