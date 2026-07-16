@@ -183,6 +183,9 @@ interval:
               bool shared_playing = false;
               float shared_duration = 0.0f;
               float shared_position = 0.0f;
+              media_playback_prepare_cover_art_progress(
+                id(cover_art_media_player_entity).state,
+                id(cover_art_media_playing));
               bool shared_progress = media_playback_state_snapshot(
                 id(cover_art_media_player_entity).state,
                 shared_playing,
@@ -704,6 +707,9 @@ script:
                 condition:
                   lambda: |-
                     #ifdef ESPCONTROL_LOW_HEAP_COVER_ART
+                    media_playback_prepare_cover_art_progress(
+                      id(cover_art_media_player_entity).state,
+                      id(cover_art_media_playing));
                     return media_playback_state_has_progress(id(cover_art_media_player_entity).state);
                     #else
                     return espcontrol::cover_art::progress_available(id(cover_art_media_duration));
@@ -1214,6 +1220,9 @@ script:
             - lvgl.widget.hide: cover_art_artist_label
       - lambda: |-
           #ifdef ESPCONTROL_LOW_HEAP_COVER_ART
+          media_playback_prepare_cover_art_progress(
+            id(cover_art_media_player_entity).state,
+            id(cover_art_media_playing));
           const bool progress_available =
             media_playback_state_has_progress(id(cover_art_media_player_entity).state);
           #else
@@ -1248,6 +1257,9 @@ script:
           bool shared_playing = false;
           float shared_duration = 0.0f;
           float shared_position = 0.0f;
+          media_playback_prepare_cover_art_progress(
+            id(cover_art_media_player_entity).state,
+            id(cover_art_media_playing));
           bool shared_progress = media_playback_state_snapshot(
             id(cover_art_media_player_entity).state,
             shared_playing,
@@ -1353,6 +1365,9 @@ script:
                 condition:
                   lambda: |-
                     #ifdef ESPCONTROL_LOW_HEAP_COVER_ART
+                    media_playback_prepare_cover_art_progress(
+                      id(cover_art_media_player_entity).state,
+                      id(cover_art_media_playing));
                     return media_playback_state_has_progress(id(cover_art_media_player_entity).state);
                     #else
                     return espcontrol::cover_art::progress_available(id(cover_art_media_duration));
@@ -1789,6 +1804,10 @@ script:
           }
           id(cover_art_api_wait_logged) = false;
           id(cover_art_empty_entity_logged) = false;
+          #ifdef ESPCONTROL_LOW_HEAP_COVER_ART
+          media_playback_prepare_cover_art_progress(
+            cover_entity, id(cover_art_media_playing));
+          #endif
           const bool already_subscribed = cover_entity == id(cover_art_subscribed_entity);
           if (!already_subscribed) {
             ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_COVER_ART);
@@ -1809,7 +1828,7 @@ script:
             id(cover_art_runtime).retry_url.clear();
             id(cover_art_runtime).retry_count = 0;
           };
-          std::function<void()> invalidate_stale_media_duration = []() {
+          std::function<void()> invalidate_stale_media_duration = [cover_entity]() {
             const uint32_t last_duration_ms = id(cover_art_last_duration_callback_ms);
             const bool duration_callback_is_fresh =
               last_duration_ms != 0 &&
@@ -1817,6 +1836,9 @@ script:
             if (!duration_callback_is_fresh) {
               id(cover_art_media_duration) = 0.0f;
             }
+            #ifdef ESPCONTROL_LOW_HEAP_COVER_ART
+            media_playback_invalidate_stale_progress(cover_entity);
+            #endif
             id(cover_art_last_progress_percent) = -1;
           };
 
