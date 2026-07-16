@@ -98,6 +98,7 @@ inline bool driver_uses_legacy_dispatch(
     case Driver::COVER_TOGGLE:
     case Driver::COVER_POSITION:
     case Driver::COVER_TILT:
+    case Driver::SUBPAGE:
       return false;
     default: return true;
   }

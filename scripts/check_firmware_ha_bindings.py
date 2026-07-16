@@ -2467,6 +2467,7 @@ def firmware_navigation_target_errors(
 ) -> list[str]:
     errors: list[str] = []
     navigation_path = firmware_dir / "button_grid_navigation.h"
+    navigation_driver_path = firmware_dir / "button_grid_navigation_driver.h"
     grid_path = firmware_dir / "button_grid_grid.h"
 
     if not navigation_path.exists():
@@ -2502,8 +2503,16 @@ def firmware_navigation_target_errors(
             errors.append(f"{grid_rel}: register every displayed home-screen card for Home Assistant navigation")
         if "navigation_register_home_target(idx, pos, p.label, s.config->state, s.btn);" not in grid_text:
             errors.append(f"{grid_rel}: refresh displayed home-screen card targets during layout-only updates")
-        if "navigation_register_subpage(" not in grid_text:
-            errors.append(f"{grid_rel}: preserve subpage navigation registration")
+    if not navigation_driver_path.exists():
+        errors.append("components/espcontrol/button_grid_navigation_driver.h: preserve subpage navigation registration")
+    else:
+        navigation_driver_rel = navigation_driver_path.relative_to(root)
+        navigation_driver_text = navigation_driver_path.read_text(encoding="utf-8")
+        if (
+            "navigation_driver_own_subpage(" not in navigation_driver_text
+            or "navigation_register_subpage(" not in navigation_driver_text
+        ):
+            errors.append(f"{navigation_driver_rel}: preserve subpage navigation registration")
 
     if not api_navigate_path.exists():
         errors.append("common/device/api_navigate.yaml: route voice aliases through the navigate action")
@@ -3344,6 +3353,7 @@ def expect_navigation_target_errors(
     name: str,
     navigation_text: str,
     grid_text: str,
+    navigation_driver_text: str,
     api_text: str,
     package_texts: dict[str, str],
     local_voice_slugs: tuple[str, ...],
@@ -3357,6 +3367,8 @@ def expect_navigation_target_errors(
         api_path.parent.mkdir(parents=True)
         (firmware_dir / "button_grid_navigation.h").write_text(navigation_text, encoding="utf-8")
         (firmware_dir / "button_grid_grid.h").write_text(grid_text, encoding="utf-8")
+        (firmware_dir / "button_grid_navigation_driver.h").write_text(
+            navigation_driver_text, encoding="utf-8")
         api_path.write_text(api_text, encoding="utf-8")
         manifest_path = root / "devices" / "manifest.json"
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -6104,8 +6116,8 @@ def run_self_test() -> int:
         "navigation_clear_home_targets();\n"
         "navigation_register_home_target(idx, pos, p.label, scfg, s.btn);\n"
         "navigation_clear_home_targets();\n"
-        "navigation_register_home_target(idx, pos, p.label, s.config->state, s.btn);\n"
-        "navigation_register_subpage(\n",
+        "navigation_register_home_target(idx, pos, p.label, s.config->state, s.btn);\n",
+        "inline bool navigation_driver_own_subpage() { navigation_register_subpage( }\n",
         "if (navigation_is_voice_target(target) && !navigation_has_home_label_target(target)) { ${navigate_voice_target_code} } else { espcontrol_navigate(target, id(main_page)->obj); }\n",
         {
             "esp32-p4-86": "navigate_voice_target_code: |-\n  if (id(voice_services_enabled).state) { id(open_device_volume_control).execute(); }\n",

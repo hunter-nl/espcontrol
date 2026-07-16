@@ -828,6 +828,8 @@ inline bool cleaning_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool access_cover_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
+inline bool navigation_driver_handle_main_click(
+    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 }
 
 // Handle a main-grid button press: dispatch push event, subpage nav,
@@ -853,11 +855,9 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
         context, p, btn_obj)) return;
   if (espcontrol::cards::access_cover_driver_handle_main_click(
         context, p, btn_obj)) return;
-  if (p.type == "subpage") {
-    lv_obj_t *sub_scr = (lv_obj_t *)lv_obj_get_user_data(btn_obj);
-    if (sub_scr)
-      lv_scr_load_anim(sub_scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-  } else if (p.type == "alarm") {
+  if (espcontrol::cards::navigation_driver_handle_main_click(
+        context, p, btn_obj)) return;
+  if (p.type == "alarm") {
     AlarmCardCtx *ctx = (AlarmCardCtx *)lv_obj_get_user_data(btn_obj);
     if (alarm_card_context_valid(ctx)) alarm_card_open_page(ctx);
   } else if (p.type == "fan_control") {
