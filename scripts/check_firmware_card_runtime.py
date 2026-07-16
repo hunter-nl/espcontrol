@@ -58,6 +58,7 @@ NAVIGATION_DRIVER_HEADER = "button_grid_navigation_driver.h"
 IMAGE_DRIVER_HEADER = "button_grid_image_driver.h"
 LIGHT_CONTROL_DRIVER_HEADER = "button_grid_light_control_driver.h"
 FAN_CONTROL_DRIVER_HEADER = "button_grid_fan_control_driver.h"
+CLIMATE_CONTROL_DRIVER_HEADER = "button_grid_climate_control_driver.h"
 CARDS_HEADER = "button_grid_cards.h"
 
 
@@ -177,6 +178,9 @@ def check_root(root: Path) -> list[str]:
             or "fan_control_driver_setup_visual(s, p, context)" not in compact_grid
             or "fan_control_driver_bind_main( s, p, context, fan_control_environment)" not in compact_grid
             or "fan_control_driver_bind_subpage( sub_slot, sb_cfg, context, fan_control_environment)" not in compact_grid
+            or "climate_control_driver_setup_visual( s, p, context, display)" not in compact_grid
+            or "climate_control_driver_bind_main( s, p, context, climate_control_environment)" not in compact_grid
+            or "climate_control_driver_bind_subpage( sub_slot, sb_cfg, context, climate_control_environment)" not in compact_grid
             or "bind_basic_sensor_card(s, p, context, palette)" not in compact_grid
             or "bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)" not in compact_grid
         ):
@@ -222,6 +226,7 @@ def check_root(root: Path) -> list[str]:
             'family == espcontrol::cards::Family::LIGHT_CONTROL',
             'p.type == "light_control"', 'sb_cfg.type == "light_control"',
             'p.type == "fan_control"', 'sb_cfg.type == "fan_control"',
+            'family == espcontrol::cards::Family::CLIMATE',
         ):
             if direct_branch in text:
                 failures.append(
@@ -270,6 +275,7 @@ def check_root(root: Path) -> list[str]:
             or "image_driver_handle_main_click(" not in click_body
             or "light_control_driver_handle_main_click(" not in click_body
             or "fan_control_driver_handle_main_click(" not in click_body
+            or "climate_control_driver_handle_main_click(" not in click_body
         ):
             failures.append(
                 f"components/espcontrol/{ACTION_HEADER}: route passive checks through the shared card context"
@@ -286,6 +292,7 @@ def check_root(root: Path) -> list[str]:
                 'p.type == "image"',
                 'p.type == "light_control"',
                 'p.type == "fan_control"',
+                'climate_card_type(p.type)',
             ):
                 if direct_branch in click_body:
                     failures.append(
@@ -635,6 +642,35 @@ def check_root(root: Path) -> list[str]:
         failures.append(
             f"components/espcontrol/{FAN_CONTROL_DRIVER_HEADER}: missing shared fan-control driver"
         )
+    climate_control_driver_header = (
+        root / "components" / "espcontrol" / CLIMATE_CONTROL_DRIVER_HEADER
+    )
+    if climate_control_driver_header.exists():
+        text = climate_control_driver_header.read_text(encoding="utf-8")
+        required = (
+            "climate_control_driver_setup_visual",
+            "climate_control_driver_bind_main",
+            "climate_control_driver_bind_subpage",
+            "climate_control_driver_attach_interaction",
+            "climate_control_driver_refresh_layout",
+            "climate_control_driver_cleanup",
+            "climate_control_driver_handle_main_click",
+            "create_climate_control_context",
+            "subscribe_climate_control_state",
+            "climate_control_open_modal",
+            "grid_track_climate_control_runtime",
+            "grid_delete_climate_control_with_owner",
+            '"climate_control"',
+        )
+        for needle in required:
+            if needle not in text:
+                failures.append(
+                    f"components/espcontrol/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control lifecycle guard {needle}"
+                )
+    elif grid_header.exists():
+        failures.append(
+            f"components/espcontrol/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control driver"
+        )
     cards_header = root / "components" / "espcontrol" / CARDS_HEADER
     if cards_header.exists():
         text = cards_header.read_text(encoding="utf-8")
@@ -854,6 +890,15 @@ def run_self_test() -> None:
                 )
             },
             ("missing shared fan-control lifecycle guard",),
+        ),
+        (
+            {
+                "button_grid_climate_control_driver.h": (
+                    "inline bool climate_control_driver_setup_visual() {}\n"
+                    "inline bool climate_control_driver_bind_main() {}\n"
+                )
+            },
+            ("missing shared climate-control lifecycle guard",),
         ),
         (
             {

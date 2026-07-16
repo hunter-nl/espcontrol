@@ -126,9 +126,13 @@ implementation. Fan Control cards use the shared `FAN_CONTROL` lifecycle
 boundary for main-grid and subpage visual setup, runtime binding, modal click
 dispatch, parent indicators, and allocation cleanup while retaining their
 specialised power, speed, preset, oscillation, direction, Home Assistant, and
-modal implementation. Cover modal remains on the existing `Family` dispatch
-for its later reviewed migration. Other families also remain on that dispatch
-until their reviewed migration PR switches them one family at a time.
+modal implementation. Climate and Climate Control compatibility cards use the
+shared `CLIMATE` lifecycle boundary for main-grid and subpage visual setup,
+runtime binding, modal click dispatch, timer cancellation, reference cleanup,
+and allocation cleanup while retaining their specialised temperature, HVAC
+mode, preset, fan, swing, Home Assistant, and modal implementation. Alarm,
+Cover modal, and Media remain on the existing `Family` dispatch until their
+reviewed migration PRs switch them one family at a time.
 
 The pre-driver-migration runtime baseline is authored in
 `common/config/card_runtime_inventory.json`. It classifies contract and

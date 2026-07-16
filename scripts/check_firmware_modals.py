@@ -853,6 +853,49 @@ def firmware_fan_modal_context_lifecycle_errors(root: Path) -> list[str]:
     return errors
 
 
+def firmware_climate_modal_context_lifecycle_errors(root: Path) -> list[str]:
+    firmware_dir = root / "components" / "espcontrol"
+    climate_path = firmware_dir / "button_grid_climate.h"
+    grid_path = firmware_dir / "button_grid_grid.h"
+    errors: list[str] = []
+
+    if not climate_path.exists():
+        errors.append(
+            "components/espcontrol/button_grid_climate.h: close climate modals and timers before deleting their card context"
+        )
+    else:
+        climate_text = climate_path.read_text(encoding="utf-8")
+        if (
+            "inline void delete_climate_control_context(ClimateControlCtx *ctx)" not in climate_text
+            or "climate_control_modal_ui().active == ctx" not in climate_text
+            or "climate_control_hide_modal();" not in climate_text
+            or "lv_timer_del(ctx->debounce_timer);" not in climate_text
+            or "climate_control_refs();" not in climate_text
+            or "climate_control_ref_count();" not in climate_text
+        ):
+            errors.append(
+                "components/espcontrol/button_grid_climate.h: close climate modals and timers before deleting their card context"
+            )
+
+    if not grid_path.exists():
+        errors.append(
+            "components/espcontrol/button_grid_grid.h: use climate-aware main-grid and subpage cleanup"
+        )
+    else:
+        grid_text = grid_path.read_text(encoding="utf-8")
+        if (
+            "grid_delete_climate_control_runtime_ptr" not in grid_text
+            or "grid_track_climate_control_runtime" not in grid_text
+            or "grid_delete_climate_control_with_owner" not in grid_text
+            or grid_text.count("delete_climate_control_context(") < 2
+        ):
+            errors.append(
+                "components/espcontrol/button_grid_grid.h: use climate-aware main-grid and subpage cleanup"
+            )
+
+    return errors
+
+
 def run_scan() -> int:
     errors = firmware_modal_errors(FIRMWARE_DIR, ROOT)
     errors.extend(firmware_modal_sleep_takeover_errors(ROOT))
@@ -860,6 +903,7 @@ def run_scan() -> int:
     errors.extend(firmware_climate_step_errors(ROOT))
     errors.extend(firmware_climate_option_selection_errors(ROOT))
     errors.extend(firmware_fan_modal_context_lifecycle_errors(ROOT))
+    errors.extend(firmware_climate_modal_context_lifecycle_errors(ROOT))
     errors.extend(firmware_light_control_brightness_errors(ROOT))
     errors.extend(firmware_light_control_tab_errors(ROOT))
     errors.extend(firmware_cover_control_tab_errors(ROOT))
@@ -1260,6 +1304,32 @@ def expect_fan_modal_context_lifecycle_errors(
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
+def expect_climate_modal_context_lifecycle_errors(
+    name: str,
+    climate_text: str,
+    grid_text: str,
+    expected: tuple[str, ...],
+) -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir.mkdir(parents=True)
+        (firmware_dir / "button_grid_climate.h").write_text(
+            climate_text, encoding="utf-8"
+        )
+        (firmware_dir / "button_grid_grid.h").write_text(
+            grid_text, encoding="utf-8"
+        )
+
+        errors = firmware_climate_modal_context_lifecycle_errors(root)
+        for item in expected:
+            assert any(item in error for error in errors), (
+                f"{name}: missing {item!r} in {errors!r}"
+            )
+        if not expected:
+            assert not errors, f"{name}: expected no errors, got {errors!r}"
+
+
 def run_self_test() -> int:
     expect_errors(
         "forbidden click allocation",
@@ -1318,6 +1388,45 @@ def run_self_test() -> int:
         valid_fan_cleanup,
         "fan_close_modals_for_context(ctx);\n",
         ("invalidate fan modals on main-grid and subpage cleanup",),
+    )
+    valid_climate_cleanup = (
+        "inline void delete_climate_control_context(ClimateControlCtx *ctx) {\n"
+        "  if (climate_control_modal_ui().active == ctx) climate_control_hide_modal();\n"
+        "  lv_timer_del(ctx->debounce_timer);\n"
+        "  ClimateControlCtx **refs = climate_control_refs();\n"
+        "  int &count = climate_control_ref_count();\n"
+        "}\n"
+    )
+    valid_climate_grid_cleanup = (
+        "inline void grid_delete_climate_control_runtime_ptr() {\n"
+        "  delete_climate_control_context(ctx);\n"
+        "}\n"
+        "inline void grid_track_climate_control_runtime() {}\n"
+        "inline void grid_delete_climate_control_with_owner() {\n"
+        "  delete_climate_control_context(ctx);\n"
+        "}\n"
+    )
+    expect_climate_modal_context_lifecycle_errors(
+        "climate modal context cleanup",
+        valid_climate_cleanup,
+        valid_climate_grid_cleanup,
+        (),
+    )
+    expect_climate_modal_context_lifecycle_errors(
+        "climate timer remains active",
+        valid_climate_cleanup.replace(
+            "  lv_timer_del(ctx->debounce_timer);\n", ""
+        ),
+        valid_climate_grid_cleanup,
+        ("close climate modals and timers before deleting their card context",),
+    )
+    expect_climate_modal_context_lifecycle_errors(
+        "climate subpage uses generic cleanup",
+        valid_climate_cleanup,
+        valid_climate_grid_cleanup.replace(
+            "  delete_climate_control_context(ctx);\n", "", 1
+        ),
+        ("use climate-aware main-grid and subpage cleanup",),
     )
     expect_sleep_takeover_errors(
         "missing display takeover close",

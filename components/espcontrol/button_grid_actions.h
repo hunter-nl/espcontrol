@@ -836,6 +836,8 @@ inline bool light_control_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool fan_control_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
+inline bool climate_control_driver_handle_main_click(
+    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 }
 
 // Handle a main-grid button press: dispatch push event, subpage nav,
@@ -869,6 +871,8 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
         context, p, btn_obj)) return;
   if (espcontrol::cards::fan_control_driver_handle_main_click(
         context, p, btn_obj)) return;
+  if (espcontrol::cards::climate_control_driver_handle_main_click(
+        context, p, btn_obj)) return;
   if (p.type == "alarm") {
     AlarmCardCtx *ctx = (AlarmCardCtx *)lv_obj_get_user_data(btn_obj);
     if (alarm_card_context_valid(ctx)) alarm_card_open_page(ctx);
@@ -900,9 +904,6 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
     } else if (media_playback_button_mode(mode)) {
       send_media_playback_action(p.entity, mode);
     }
-  } else if (climate_card_type(p.type)) {
-    ClimateControlCtx *ctx = (ClimateControlCtx *)lv_obj_get_user_data(btn_obj);
-    if (ctx) climate_control_open_modal(ctx);
   } else {
     if (!p.entity.empty()) {
       bool currently_on = btn_obj && lv_obj_has_state(btn_obj, LV_STATE_CHECKED);

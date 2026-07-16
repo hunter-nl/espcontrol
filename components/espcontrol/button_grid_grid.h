@@ -140,6 +140,10 @@ inline FanCardCtx *grid_delete_fan_card_with_owner(
     lv_obj_t *owner, FanCardCtx *ctx);
 inline FanCardCtx *grid_track_fan_card_runtime(
     lv_obj_t *owner, FanCardCtx *ctx);
+inline ClimateControlCtx *grid_delete_climate_control_with_owner(
+    lv_obj_t *owner, ClimateControlCtx *ctx);
+inline ClimateControlCtx *grid_track_climate_control_runtime(
+    lv_obj_t *owner, ClimateControlCtx *ctx);
 inline void refresh_slider_card_layout(BtnSlot &slot);
 inline bool bind_garage_status_card(
     BtnSlot &slot, const ParsedCfg &config,
@@ -204,6 +208,7 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
 #include "button_grid_image_driver.h"
 #include "button_grid_light_control_driver.h"
 #include "button_grid_fan_control_driver.h"
+#include "button_grid_climate_control_driver.h"
 
 inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
                                         int row_span = 1) {
@@ -402,6 +407,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   espcontrol::cards::image_driver_cleanup(s, p, context);
   espcontrol::cards::light_control_driver_cleanup(s, p, context);
   espcontrol::cards::fan_control_driver_cleanup(s, p, context);
+  espcontrol::cards::climate_control_driver_cleanup(s, p, context);
   reset_card_slot_dynamic_children(s);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
@@ -441,6 +447,12 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espcontrol::cards::fan_control_driver_setup_visual(s, p, context)) {
     espcontrol::cards::fan_control_driver_attach_interaction(s, p, context);
     espcontrol::cards::fan_control_driver_refresh_layout(s, p, context);
+    return;
+  }
+  if (espcontrol::cards::climate_control_driver_setup_visual(
+        s, p, context, display)) {
+    espcontrol::cards::climate_control_driver_attach_interaction(s, p, context);
+    espcontrol::cards::climate_control_driver_refresh_layout(s, p, context);
     return;
   }
   if (espcontrol::cards::sensor_driver_setup_visual(
@@ -531,12 +543,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
       display_media_title_font(display),
       display_main_width_percent(display),
       row_span, col_span);
-    return;
-  }
-  if (family == espcontrol::cards::Family::CLIMATE) {
-    setup_climate_control_button(
-      s.btn, s.icon_lbl, s.sensor_container, s.sensor_lbl, s.unit_lbl,
-      s.text_lbl, p, display_icon_font(display));
     return;
   }
   if (card_runtime_uses_slider_visual(context)) {
@@ -1022,6 +1028,10 @@ inline void grid_delete_fan_card_runtime_ptr(void *ptr) {
   }
 }
 
+inline void grid_delete_climate_control_runtime_ptr(void *ptr) {
+  delete_climate_control_context(static_cast<ClimateControlCtx *>(ptr));
+}
+
 inline void grid_delete_media_control_runtime_ptr(void *ptr) {
   delete_media_control_context(static_cast<MediaControlCtx *>(ptr));
 }
@@ -1102,6 +1112,17 @@ inline MediaControlCtx *grid_delete_media_control_with_owner(lv_obj_t *owner,
   return ctx;
 }
 
+inline ClimateControlCtx *grid_delete_climate_control_with_owner(
+    lv_obj_t *owner, ClimateControlCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
+      delete_climate_control_context(static_cast<ClimateControlCtx *>(
+        lv_event_get_user_data(event)));
+    }, LV_EVENT_DELETE, ctx);
+  }
+  return ctx;
+}
+
 inline AlarmCardCtx *grid_track_alarm_card_runtime(lv_obj_t *owner,
                                                    AlarmCardCtx *ctx) {
   if (owner != nullptr && ctx != nullptr) {
@@ -1120,6 +1141,18 @@ inline FanCardCtx *grid_track_fan_card_runtime(lv_obj_t *owner, FanCardCtx *ctx)
       owner,
       ctx,
       grid_delete_fan_card_runtime_ptr,
+    });
+  }
+  return ctx;
+}
+
+inline ClimateControlCtx *grid_track_climate_control_runtime(
+    lv_obj_t *owner, ClimateControlCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    grid_runtime_allocations().push_back({
+      owner,
+      ctx,
+      grid_delete_climate_control_runtime_ptr,
     });
   }
   return ctx;
@@ -1262,6 +1295,11 @@ inline void grid_phase2(
         palette, display, s);
     if (espcontrol::cards::fan_control_driver_bind_main(
           s, p, context, fan_control_environment)) continue;
+    auto climate_control_environment =
+      espcontrol::cards::climate_control_driver_environment(
+        palette, display, s);
+    if (espcontrol::cards::climate_control_driver_bind_main(
+          s, p, context, climate_control_environment)) continue;
     if (bind_basic_sensor_card(s, p, context, palette)) continue;
     espcontrol::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
@@ -1404,38 +1442,6 @@ inline void grid_phase2(
           if (p.label.empty() && mode != "position")
             subscribe_friendly_name(s.text_lbl, p.entity);
         }
-      }
-      continue;
-    }
-    if (family == espcontrol::cards::Family::CLIMATE) {
-      if (!p.entity.empty()) {
-        ClimateControlCtx *ctx = create_climate_control_context(
-          s.btn, s.icon_lbl, s.text_lbl, p,
-          has_on ? on_val : DEFAULT_SLIDER_COLOR,
-          off_val,
-          sensor_val,
-          display_volume_number_font(display),
-          display_volume_label_font(display)
-            ? display_volume_label_font(display)
-            : lv_obj_get_style_text_font(s.unit_lbl, LV_PART_MAIN),
-          display_volume_label_font(display)
-            ? display_volume_label_font(display)
-            : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-          display_climate_option_title_font(display)
-            ? display_climate_option_title_font(display)
-            : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-          display_climate_option_value_font(display)
-            ? display_climate_option_value_font(display)
-            : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-          display_climate_option_title_font(display)
-            ? display_climate_option_title_font(display)
-            : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-          display_climate_card_icon_font(display),
-          display_icon_font(display),
-          display_volume_width_percent(display),
-          s.sensor_container, s.sensor_lbl, s.unit_lbl);
-        grid_track_runtime_allocation(s.btn, ctx);
-        subscribe_climate_control_state(ctx);
       }
       continue;
     }
@@ -1674,6 +1680,11 @@ inline void grid_phase2(
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espcontrol::cards::fan_control_driver_bind_subpage(
             sub_slot, sb_cfg, context, fan_control_environment)) continue;
+      auto climate_control_environment =
+        espcontrol::cards::climate_control_driver_environment(
+          palette, display, sub_slot);
+      if (espcontrol::cards::climate_control_driver_bind_subpage(
+            sub_slot, sb_cfg, context, climate_control_environment)) continue;
       if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)) continue;
       espcontrol::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
@@ -1932,42 +1943,6 @@ inline void grid_phase2(
               subscribe_friendly_name(sub_slot.text_lbl, sb_cfg.entity);
           }
           add_parent_indicator(sb_cfg.entity);
-        }
-        continue;
-      }
-      if (family == espcontrol::cards::Family::CLIMATE) {
-        if (!sb_cfg.entity.empty()) {
-          ClimateControlCtx *ctx = create_climate_control_context(
-            sub_slot.btn, sub_slot.icon_lbl, sub_slot.text_lbl, sb_cfg,
-            has_on ? on_val : DEFAULT_SLIDER_COLOR,
-            off_val,
-            sensor_val,
-            display_volume_number_font(display),
-            display_volume_label_font(display)
-              ? display_volume_label_font(display)
-              : lv_obj_get_style_text_font(sub_slot.unit_lbl, LV_PART_MAIN),
-            display_volume_label_font(display)
-              ? display_volume_label_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_climate_option_title_font(display)
-              ? display_climate_option_title_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_climate_option_value_font(display)
-              ? display_climate_option_value_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_climate_option_title_font(display)
-              ? display_climate_option_title_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_climate_card_icon_font(display),
-            display_icon_font(display),
-            display_volume_width_percent(display),
-            sub_slot.sensor_container, sub_slot.sensor_lbl, sub_slot.unit_lbl);
-          grid_delete_with_owner(sb_btn, ctx);
-          subscribe_climate_control_state(ctx);
-          lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-            ClimateControlCtx *ctx = (ClimateControlCtx *)lv_event_get_user_data(e);
-            if (ctx) climate_control_open_modal(ctx);
-          }, LV_EVENT_CLICKED, ctx);
         }
         continue;
       }
