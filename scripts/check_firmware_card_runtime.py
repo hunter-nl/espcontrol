@@ -56,6 +56,7 @@ CLEANING_HEADER = "button_grid_cleaning_driver.h"
 ACCESS_COVER_HEADER = "button_grid_access_cover_driver.h"
 NAVIGATION_DRIVER_HEADER = "button_grid_navigation_driver.h"
 IMAGE_DRIVER_HEADER = "button_grid_image_driver.h"
+LIGHT_CONTROL_DRIVER_HEADER = "button_grid_light_control_driver.h"
 CARDS_HEADER = "button_grid_cards.h"
 
 
@@ -169,6 +170,9 @@ def check_root(root: Path) -> list[str]:
             or "image_driver_setup_visual(s, p, context)" not in compact_grid
             or "image_driver_bind_main( s, p, context, cfg)" not in compact_grid
             or "image_driver_bind_subpage( sub_slot, sb_cfg, context, cfg)" not in compact_grid
+            or "light_control_driver_setup_visual(s, p, context)" not in compact_grid
+            or "light_control_driver_bind_main( s, p, context, light_control_environment)" not in compact_grid
+            or "light_control_driver_bind_subpage( sub_slot, sb_cfg, context, light_control_environment)" not in compact_grid
             or "bind_basic_sensor_card(s, p, context, palette)" not in compact_grid
             or "bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)" not in compact_grid
         ):
@@ -211,6 +215,8 @@ def check_root(root: Path) -> list[str]:
             'sb_cfg.type == "cover" && cover_toggle_mode',
             'p.type == "subpage"', 'p.type != "subpage"',
             'p.type == "image"', 'sb_cfg.type == "image"',
+            'family == espcontrol::cards::Family::LIGHT_CONTROL',
+            'p.type == "light_control"', 'sb_cfg.type == "light_control"',
         ):
             if direct_branch in text:
                 failures.append(
@@ -224,8 +230,8 @@ def check_root(root: Path) -> list[str]:
                 f"components/espcontrol/{GRID_HEADER}: route mower subpage parent indicators through mower active-state handling"
             )
         if (
-            'if (sb_cfg.type == "light_control")' not in text
-            or "subscribe_light_control_state(ctx);\n          add_parent_indicator(sb_cfg.entity);" not in text
+            "light_control_environment.add_parent_indicator" not in text
+            or "light_control_driver_bind_subpage(" not in text
         ):
             failures.append(
                 f"components/espcontrol/{GRID_HEADER}: include full light controls in generic subpage parent indicators"
@@ -250,6 +256,7 @@ def check_root(root: Path) -> list[str]:
             or "access_cover_driver_handle_main_click(" not in click_body
             or "navigation_driver_handle_main_click(" not in click_body
             or "image_driver_handle_main_click(" not in click_body
+            or "light_control_driver_handle_main_click(" not in click_body
         ):
             failures.append(
                 f"components/espcontrol/{ACTION_HEADER}: route passive checks through the shared card context"
@@ -264,10 +271,11 @@ def check_root(root: Path) -> list[str]:
                 'else if (p.type == "cover")',
                 'p.type == "subpage"',
                 'p.type == "image"',
+                'p.type == "light_control"',
             ):
                 if direct_branch in click_body:
                     failures.append(
-                        f"components/espcontrol/{ACTION_HEADER}: keep migrated access/cover clicks inside the shared driver"
+                        f"components/espcontrol/{ACTION_HEADER}: keep migrated clicks inside shared drivers"
                     )
     image_header = root / "components" / "espcontrol" / IMAGE_HEADER
     if image_header.exists():
@@ -557,6 +565,33 @@ def check_root(root: Path) -> list[str]:
         failures.append(
             f"components/espcontrol/{IMAGE_DRIVER_HEADER}: missing shared image driver"
         )
+    light_control_driver_header = (
+        root / "components" / "espcontrol" / LIGHT_CONTROL_DRIVER_HEADER
+    )
+    if light_control_driver_header.exists():
+        text = light_control_driver_header.read_text(encoding="utf-8")
+        required = (
+            "light_control_driver_setup_visual",
+            "light_control_driver_bind_main",
+            "light_control_driver_bind_subpage",
+            "light_control_driver_attach_interaction",
+            "light_control_driver_refresh_layout",
+            "light_control_driver_cleanup",
+            "light_control_driver_handle_main_click",
+            "create_light_control_context",
+            "subscribe_light_control_state",
+            "light_control_open_modal",
+            '"light_control"',
+        )
+        for needle in required:
+            if needle not in text:
+                failures.append(
+                    f"components/espcontrol/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control lifecycle guard {needle}"
+                )
+    elif grid_header.exists():
+        failures.append(
+            f"components/espcontrol/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control driver"
+        )
     cards_header = root / "components" / "espcontrol" / CARDS_HEADER
     if cards_header.exists():
         text = cards_header.read_text(encoding="utf-8")
@@ -758,6 +793,15 @@ def run_self_test() -> None:
                 )
             },
             ("missing shared image lifecycle guard",),
+        ),
+        (
+            {
+                "button_grid_light_control_driver.h": (
+                    "inline bool light_control_driver_setup_visual() {}\n"
+                    "inline bool light_control_driver_bind_main() {}\n"
+                )
+            },
+            ("missing shared light-control lifecycle guard",),
         ),
         (
             {

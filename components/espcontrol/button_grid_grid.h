@@ -202,6 +202,7 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
 #include "button_grid_access_cover_driver.h"
 #include "button_grid_navigation_driver.h"
 #include "button_grid_image_driver.h"
+#include "button_grid_light_control_driver.h"
 
 inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
                                         int row_span = 1) {
@@ -398,6 +399,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   espcontrol::cards::access_cover_driver_cleanup(s, p, context);
   espcontrol::cards::navigation_driver_cleanup(s, p, context);
   espcontrol::cards::image_driver_cleanup(s, p, context);
+  espcontrol::cards::light_control_driver_cleanup(s, p, context);
   reset_card_slot_dynamic_children(s);
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
@@ -427,6 +429,11 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espcontrol::cards::image_driver_setup_visual(s, p, context)) {
     espcontrol::cards::image_driver_attach_interaction(s, p, context);
     espcontrol::cards::image_driver_refresh_layout(s, p, context);
+    return;
+  }
+  if (espcontrol::cards::light_control_driver_setup_visual(s, p, context)) {
+    espcontrol::cards::light_control_driver_attach_interaction(s, p, context);
+    espcontrol::cards::light_control_driver_refresh_layout(s, p, context);
     return;
   }
   if (espcontrol::cards::sensor_driver_setup_visual(
@@ -527,10 +534,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     setup_climate_control_button(
       s.btn, s.icon_lbl, s.sensor_container, s.sensor_lbl, s.unit_lbl,
       s.text_lbl, p, display_icon_font(display));
-    return;
-  }
-  if (family == espcontrol::cards::Family::LIGHT_CONTROL) {
-    setup_light_control_card(s, p);
     return;
   }
   if (card_runtime_uses_slider_visual(context)) {
@@ -715,6 +718,9 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
 
   if (espcontrol::cards::image_driver_refresh_layout(
         s, p, context)) {
+    return;
+  } else if (espcontrol::cards::light_control_driver_refresh_layout(
+               s, p, context)) {
     return;
   } else if (p.type == "media") {
     refresh_media_card_layout(s, p, cfg, row_span);
@@ -1241,6 +1247,11 @@ inline void grid_phase2(
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
     if (espcontrol::cards::image_driver_bind_main(
           s, p, context, cfg)) continue;
+    auto light_control_environment =
+      espcontrol::cards::light_control_driver_environment(
+        palette, display, s);
+    if (espcontrol::cards::light_control_driver_bind_main(
+          s, p, context, light_control_environment)) continue;
     if (bind_basic_sensor_card(s, p, context, palette)) continue;
     espcontrol::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
@@ -1432,23 +1443,6 @@ inline void grid_phase2(
       }
       continue;
     }
-    if (family == espcontrol::cards::Family::LIGHT_CONTROL) {
-      if (!p.entity.empty()) {
-        LightControlCtx *ctx = create_light_control_context(
-          s, p,
-          has_on ? on_val : DEFAULT_SLIDER_COLOR,
-          display_volume_number_font(display),
-          display_volume_label_font(display)
-            ? display_volume_label_font(display)
-            : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-          display_icon_font(display),
-          display_volume_width_percent(display));
-        grid_track_runtime_allocation(s.btn, ctx);
-        subscribe_light_control_state(ctx);
-      }
-      continue;
-    }
-
     if (p.entity.empty()) continue;
 
     if (p.type == "cover" && cover_modal_mode(p.sensor)) {
@@ -1670,6 +1664,13 @@ inline void grid_phase2(
 
       if (espcontrol::cards::image_driver_bind_subpage(
             sub_slot, sb_cfg, context, cfg)) continue;
+      auto light_control_environment =
+        espcontrol::cards::light_control_driver_environment(
+          palette, display, sub_slot);
+      light_control_environment.add_parent_indicator =
+        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
+      if (espcontrol::cards::light_control_driver_bind_subpage(
+            sub_slot, sb_cfg, context, light_control_environment)) continue;
       if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)) continue;
       espcontrol::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
@@ -1982,27 +1983,6 @@ inline void grid_phase2(
           lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
             ClimateControlCtx *ctx = (ClimateControlCtx *)lv_event_get_user_data(e);
             if (ctx) climate_control_open_modal(ctx);
-          }, LV_EVENT_CLICKED, ctx);
-        }
-        continue;
-      }
-      if (sb_cfg.type == "light_control") {
-        if (!sb_cfg.entity.empty()) {
-          LightControlCtx *ctx = create_light_control_context(
-            sub_slot, sb_cfg,
-            has_on ? on_val : DEFAULT_SLIDER_COLOR,
-            display_volume_number_font(display),
-            display_volume_label_font(display)
-              ? display_volume_label_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_icon_font(display),
-            display_volume_width_percent(display));
-          grid_delete_with_owner(sb_btn, ctx);
-          subscribe_light_control_state(ctx);
-          add_parent_indicator(sb_cfg.entity);
-          lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-            LightControlCtx *ctx = (LightControlCtx *)lv_event_get_user_data(e);
-            if (ctx) light_control_open_modal(ctx);
           }, LV_EVENT_CLICKED, ctx);
         }
         continue;

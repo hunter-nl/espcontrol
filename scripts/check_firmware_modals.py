@@ -323,6 +323,9 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
 
 def firmware_subpage_modal_wiring_errors(root: Path) -> list[str]:
     grid_path = root / "components" / "espcontrol" / "button_grid_grid.h"
+    light_driver_path = (
+        root / "components" / "espcontrol" / "button_grid_light_control_driver.h"
+    )
     subpages_path = root / "components" / "espcontrol" / "button_grid_subpages.h"
     errors: list[str] = []
 
@@ -367,20 +370,18 @@ def firmware_subpage_modal_wiring_errors(root: Path) -> list[str]:
         ):
             errors.append("components/espcontrol/button_grid_grid.h: preserve media control context during grid layout refresh")
 
-    light_block = re.search(
-        r'if\s*\(\s*sb_cfg\.type\s*==\s*"light_control"\s*\)\s*\{(?P<body>.*?)\n      \}',
-        text,
-        re.S,
-    )
-    if light_block is None:
+    if (
+        "light_control_driver_bind_subpage(" not in text
+        or not light_driver_path.exists()
+    ):
         errors.append("components/espcontrol/button_grid_grid.h: keep light control cards available in subpages")
         return errors
 
-    body = light_block.group("body")
+    body = light_driver_path.read_text(encoding="utf-8")
     if (
         "create_light_control_context" not in body
-        or "subscribe_light_control_state(ctx);" not in body
-        or "light_control_open_modal(ctx);" not in body
+        or "subscribe_light_control_state(" not in body
+        or "light_control_open_modal(" not in body
         or "LV_EVENT_CLICKED" not in body
     ):
         errors.append("components/espcontrol/button_grid_grid.h: open light control modals from subpage cards")
@@ -873,13 +874,19 @@ def expect_sleep_takeover_errors(name: str, files: dict[str, str], expected: tup
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_subpage_modal_wiring_errors(name: str, grid_text: str, expected: tuple[str, ...]) -> None:
+def expect_subpage_modal_wiring_errors(
+    name: str,
+    grid_text: str,
+    expected: tuple[str, ...],
+    light_driver_text: str | None = None,
+) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
         path = root / "components" / "espcontrol" / "button_grid_grid.h"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             grid_text +
+            "light_control_driver_bind_subpage(sub_slot, sb_cfg, context, environment);\n" +
             '  if (mode == "control_modal") {\n'
             "    MediaControlCtx *ctx = grid_media_control_runtime_for_owner(s.btn);\n"
             "    setup_media_control_button(\n"
@@ -908,6 +915,20 @@ def expect_subpage_modal_wiring_errors(name: str, grid_text: str, expected: tupl
             "        continue;\n"
             "      }\n",
             encoding="utf-8",
+        )
+        light_driver = (
+            light_driver_text
+            if light_driver_text is not None
+            else (
+                "LightControlCtx *ctx = create_light_control_context();\n"
+                "subscribe_light_control_state(ctx);\n"
+                "lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {\n"
+                "  if (ctx) light_control_open_modal(ctx);\n"
+                "}, LV_EVENT_CLICKED, ctx);\n"
+            )
+        )
+        (path.parent / "button_grid_light_control_driver.h").write_text(
+            light_driver, encoding="utf-8"
         )
         (path.parent / "button_grid_subpages.h").write_text(
             'if (b.type == "light_control") {\n'
@@ -1252,34 +1273,16 @@ def run_self_test() -> int:
     )
     expect_subpage_modal_wiring_errors(
         "subpage light modal missing click handler",
-        (
-            '      if (sb_cfg.type == "light_control") {\n'
-            "        if (!sb_cfg.entity.empty()) {\n"
-            "          LightControlCtx *ctx = create_light_control_context(\n"
-            "            sub_slot, sb_cfg, DEFAULT_SLIDER_COLOR, nullptr, nullptr, nullptr, 100);\n"
-            "          subscribe_light_control_state(ctx);\n"
-            "        }\n"
-            "        continue;\n"
-            "      }\n"
-        ),
+        "",
         ("open light control modals from subpage cards",),
+        (
+            "LightControlCtx *ctx = create_light_control_context();\n"
+            "subscribe_light_control_state(ctx);\n"
+        ),
     )
     expect_subpage_modal_wiring_errors(
         "subpage light modal click handler",
-        (
-            '      if (sb_cfg.type == "light_control") {\n'
-            "        if (!sb_cfg.entity.empty()) {\n"
-            "          LightControlCtx *ctx = create_light_control_context(\n"
-            "            sub_slot, sb_cfg, DEFAULT_SLIDER_COLOR, nullptr, nullptr, nullptr, 100);\n"
-            "          subscribe_light_control_state(ctx);\n"
-            "          lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {\n"
-            "            LightControlCtx *ctx = (LightControlCtx *)lv_event_get_user_data(e);\n"
-            "            if (ctx) light_control_open_modal(ctx);\n"
-            "          }, LV_EVENT_CLICKED, ctx);\n"
-            "        }\n"
-            "        continue;\n"
-            "      }\n"
-        ),
+        "",
         (),
     )
     expect_climate_step_errors(

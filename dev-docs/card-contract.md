@@ -118,6 +118,10 @@ target cleanup; child-card layout remains grid infrastructure. Image cards use
 the shared `IMAGE` lifecycle boundary for main-grid and subpage visual setup,
 runtime binding, layout refresh, modal click dispatch, and pool cleanup while
 retaining their specialised downloader, cache, resizing, and modal
+implementation. Light Control cards use the shared `LIGHT_CONTROL` lifecycle
+boundary for main-grid and subpage visual setup, runtime binding, modal click
+dispatch, parent indicators, and allocation cleanup while retaining their
+specialised power, brightness, colour-temperature, colour, and modal
 implementation. Cover modal and the combined Fan Control card remain on the
 existing `Family` dispatch for their later reviewed migrations. Other families
 also remain on that dispatch until their reviewed migration PR switches them

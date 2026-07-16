@@ -100,6 +100,7 @@ inline bool driver_uses_legacy_dispatch(
     case Driver::COVER_TILT:
     case Driver::SUBPAGE:
     case Driver::IMAGE:
+    case Driver::LIGHT_CONTROL:
       return false;
     default: return true;
   }

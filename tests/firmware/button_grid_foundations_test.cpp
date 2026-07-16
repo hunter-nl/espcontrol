@@ -31,6 +31,7 @@ int main() {
   const auto door = card_runtime_context("door_window");
   const auto presence = card_runtime_context("presence");
   const auto image = card_runtime_context("image");
+  const auto light_control = card_runtime_context("light_control");
   const auto clock = card_runtime_context("clock");
   const auto timezone = card_runtime_context("timezone");
   const auto calendar = card_runtime_context("calendar");
@@ -108,7 +109,10 @@ int main() {
       !card_runtime_has_capability(
         subpage, espcontrol::card_runtime::CAPABILITY_ACTIONS) ||
       !card_runtime_information_only(image) || card_runtime_passive(image) ||
-      image.legacy_dispatch) {
+      image.legacy_dispatch ||
+      light_control.runtime.driver !=
+        espcontrol::card_runtime::CardDriverId::LIGHT_CONTROL ||
+      light_control.legacy_dispatch) {
     return EXIT_FAILURE;
   }
   struct TestConfig {
