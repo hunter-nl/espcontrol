@@ -2025,7 +2025,7 @@ inline void image_card_request_media_artwork(ImageCardCtx *ctx) {
   if (!ctx || !ctx->active || !ctx->media_artwork || ctx->entity_id.empty()) return;
   const std::string entity_id = ctx->entity_id;
   const uint32_t generation = ha_subscription_generation();
-  ha_get_attribute(
+  bool requested_remote = ha_get_attribute(
     entity_id,
     std::string("entity_picture"),
     std::function<void(esphome::StringRef)>(
@@ -2034,7 +2034,7 @@ inline void image_card_request_media_artwork(ImageCardCtx *ctx) {
         image_card_handle_media_artwork_picture(ctx, picture, false);
       })
   );
-  ha_get_attribute(
+  bool requested_local = ha_get_attribute(
     entity_id,
     std::string("entity_picture_local"),
     std::function<void(esphome::StringRef)>(
@@ -2043,6 +2043,13 @@ inline void image_card_request_media_artwork(ImageCardCtx *ctx) {
         image_card_handle_media_artwork_picture(ctx, picture, true);
       })
   );
+  if (!requested_remote || !requested_local) {
+    image_card_log_diagnostics(ctx, "media-artwork-retry-queued");
+    image_card_schedule_picture_retry(
+      ctx,
+      ha_api_connected() ? IMAGE_CARD_API_RETRY_INTERVAL_MS : IMAGE_CARD_RETRY_INTERVAL_MS);
+    if (!ctx->image_ready) image_card_set_loading_state(ctx, "Loading", true);
+  }
 }
 
 inline void refresh_image_cards() {
