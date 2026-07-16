@@ -148,6 +148,10 @@ inline ClimateControlCtx *grid_delete_climate_control_with_owner(
     lv_obj_t *owner, ClimateControlCtx *ctx);
 inline ClimateControlCtx *grid_track_climate_control_runtime(
     lv_obj_t *owner, ClimateControlCtx *ctx);
+inline CoverControlCtx *grid_delete_cover_control_with_owner(
+    lv_obj_t *owner, CoverControlCtx *ctx);
+inline CoverControlCtx *grid_track_cover_control_runtime(
+    lv_obj_t *owner, CoverControlCtx *ctx);
 inline void refresh_slider_card_layout(BtnSlot &slot);
 inline bool bind_garage_status_card(
     BtnSlot &slot, const ParsedCfg &config,
@@ -208,6 +212,7 @@ inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
 #include "button_grid_numeric_selectable_driver.h"
 #include "button_grid_cleaning_driver.h"
 #include "button_grid_access_cover_driver.h"
+#include "button_grid_cover_modal_driver.h"
 #include "button_grid_navigation_driver.h"
 #include "button_grid_image_driver.h"
 #include "button_grid_light_control_driver.h"
@@ -408,6 +413,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   espcontrol::cards::numeric_selectable_driver_cleanup(s, p, context);
   espcontrol::cards::cleaning_driver_cleanup(s, p, context);
   espcontrol::cards::access_cover_driver_cleanup(s, p, context);
+  espcontrol::cards::cover_modal_driver_cleanup(s, p, context);
   espcontrol::cards::navigation_driver_cleanup(s, p, context);
   espcontrol::cards::image_driver_cleanup(s, p, context);
   espcontrol::cards::light_control_driver_cleanup(s, p, context);
@@ -464,6 +470,11 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espcontrol::cards::alarm_driver_setup_visual(s, p, context)) {
     espcontrol::cards::alarm_driver_attach_interaction(s, p, context);
     espcontrol::cards::alarm_driver_refresh_layout(s, p, context);
+    return;
+  }
+  if (espcontrol::cards::cover_modal_driver_setup_visual(s, p, context)) {
+    espcontrol::cards::cover_modal_driver_attach_interaction(s, p, context);
+    espcontrol::cards::cover_modal_driver_refresh_layout(s, p, context);
     return;
   }
   if (espcontrol::cards::sensor_driver_setup_visual(
@@ -525,10 +536,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
         s, p, context, cfg, display)) {
     espcontrol::cards::navigation_driver_attach_interaction(s, p, context);
     espcontrol::cards::navigation_driver_refresh_layout(s, p, context, cfg);
-    return;
-  }
-  if (family == espcontrol::cards::Family::COVER && cover_modal_mode(p.sensor)) {
-    setup_cover_modal_card(s, p);
     return;
   }
   if (family == espcontrol::cards::Family::TODO) {
@@ -1056,6 +1063,10 @@ inline void grid_delete_climate_control_runtime_ptr(void *ptr) {
   delete_climate_control_context(static_cast<ClimateControlCtx *>(ptr));
 }
 
+inline void grid_delete_cover_control_runtime_ptr(void *ptr) {
+  delete_cover_control_context(static_cast<CoverControlCtx *>(ptr));
+}
+
 inline void grid_delete_media_control_runtime_ptr(void *ptr) {
   delete_media_control_context(static_cast<MediaControlCtx *>(ptr));
 }
@@ -1147,6 +1158,17 @@ inline ClimateControlCtx *grid_delete_climate_control_with_owner(
   return ctx;
 }
 
+inline CoverControlCtx *grid_delete_cover_control_with_owner(
+    lv_obj_t *owner, CoverControlCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    lv_obj_add_event_cb(owner, [](lv_event_t *event) {
+      delete_cover_control_context(static_cast<CoverControlCtx *>(
+        lv_event_get_user_data(event)));
+    }, LV_EVENT_DELETE, ctx);
+  }
+  return ctx;
+}
+
 inline AlarmCardCtx *grid_track_alarm_card_runtime(lv_obj_t *owner,
                                                    AlarmCardCtx *ctx) {
   if (owner != nullptr && ctx != nullptr) {
@@ -1177,6 +1199,18 @@ inline ClimateControlCtx *grid_track_climate_control_runtime(
       owner,
       ctx,
       grid_delete_climate_control_runtime_ptr,
+    });
+  }
+  return ctx;
+}
+
+inline CoverControlCtx *grid_track_cover_control_runtime(
+    lv_obj_t *owner, CoverControlCtx *ctx) {
+  if (owner != nullptr && ctx != nullptr) {
+    grid_runtime_allocations().push_back({
+      owner,
+      ctx,
+      grid_delete_cover_control_runtime_ptr,
     });
   }
   return ctx;
@@ -1328,6 +1362,11 @@ inline void grid_phase2(
       palette, display, s, cfg, main_page_obj, NS, COLS);
     if (espcontrol::cards::alarm_driver_bind_main(
           s, p, context, alarm_environment)) continue;
+    auto cover_modal_environment =
+      espcontrol::cards::cover_modal_driver_environment(
+        palette, display, s);
+    if (espcontrol::cards::cover_modal_driver_bind_main(
+          s, p, context, cover_modal_environment)) continue;
     if (bind_basic_sensor_card(s, p, context, palette)) continue;
     espcontrol::cards::ToggleDriverState toggle_state;
     toggle_state.has_sensor = &has_sensor[idx - 1];
@@ -1449,28 +1488,6 @@ inline void grid_phase2(
       continue;
     }
     if (p.entity.empty()) continue;
-
-    if (p.type == "cover" && cover_modal_mode(p.sensor)) {
-      CoverControlCtx *ctx = create_cover_control_context(
-        s, p,
-        has_on ? on_val : DEFAULT_SLIDER_COLOR,
-        off_val,
-        display_climate_option_title_font(display)
-          ? display_climate_option_title_font(display)
-          : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-        display_climate_option_value_font(display)
-          ? display_climate_option_value_font(display)
-          : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-        display_climate_option_title_font(display)
-          ? display_climate_option_title_font(display)
-          : lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN),
-        display_climate_card_icon_font(display),
-        display_icon_font(display),
-        display_volume_width_percent(display));
-      grid_track_runtime_allocation(s.btn, ctx);
-      subscribe_cover_control_state(ctx);
-      continue;
-    }
 
     has_sensor[idx - 1] = !p.sensor.empty();
     sensor_text_mode[idx - 1] = has_sensor[idx - 1] && p.precision == "text";
@@ -1695,6 +1712,13 @@ inline void grid_phase2(
         [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
       if (espcontrol::cards::alarm_driver_bind_subpage(
             sub_slot, sb_cfg, context, alarm_environment)) continue;
+      auto cover_modal_environment =
+        espcontrol::cards::cover_modal_driver_environment(
+          palette, display, sub_slot);
+      cover_modal_environment.add_parent_indicator =
+        [&](const std::string &entity_id) { add_parent_indicator(entity_id); };
+      if (espcontrol::cards::cover_modal_driver_bind_subpage(
+            sub_slot, sb_cfg, context, cover_modal_environment)) continue;
       if (bind_basic_sensor_card(sub_slot, sb_cfg, context, palette)) continue;
       espcontrol::cards::BasicActionSubpageEnvironment action_environment;
       action_environment.grid_config = &cfg;
@@ -1757,35 +1781,6 @@ inline void grid_phase2(
         };
       if (espcontrol::cards::access_cover_driver_bind_subpage(
             sub_slot, sb_cfg, context, access_cover_environment)) continue;
-      if (sb_cfg.type == "cover" && cover_modal_mode(sb_cfg.sensor)) {
-        if (!sb_cfg.entity.empty()) {
-          CoverControlCtx *ctx = create_cover_control_context(
-            sub_slot, sb_cfg,
-            has_on ? on_val : DEFAULT_SLIDER_COLOR,
-            off_val,
-            display_climate_option_title_font(display)
-              ? display_climate_option_title_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_climate_option_value_font(display)
-              ? display_climate_option_value_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_climate_option_title_font(display)
-              ? display_climate_option_title_font(display)
-              : lv_obj_get_style_text_font(sub_slot.text_lbl, LV_PART_MAIN),
-            display_climate_card_icon_font(display),
-            display_icon_font(display),
-            display_volume_width_percent(display));
-          grid_delete_with_owner(sb_btn, ctx);
-          subscribe_cover_control_state(ctx);
-          add_parent_indicator(sb_cfg.entity);
-          lv_obj_add_event_cb(sb_btn, [](lv_event_t *e) {
-            lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(e));
-            CoverControlCtx *ctx = (CoverControlCtx *)lv_obj_get_user_data(target);
-            if (ctx) cover_control_open_modal(ctx);
-          }, LV_EVENT_CLICKED, nullptr);
-        }
-        continue;
-      }
       if (family == espcontrol::cards::Family::TODO) {
         if (!sb_cfg.entity.empty()) {
           TodoCardCtx *ctx = create_todo_card_context(

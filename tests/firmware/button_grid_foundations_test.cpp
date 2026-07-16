@@ -158,7 +158,7 @@ int main() {
       cover_command.legacy_dispatch ||
       cover_modal.runtime.driver !=
         espcontrol::card_runtime::CardDriverId::COVER_MODAL ||
-      !cover_modal.legacy_dispatch) {
+      cover_modal.legacy_dispatch) {
     return EXIT_FAILURE;
   }
   if (option_select_compatibility.legacy_dispatch ||

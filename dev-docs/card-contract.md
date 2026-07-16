@@ -136,8 +136,12 @@ setup, inherited subpage configuration, runtime binding, modal click dispatch,
 PIN and control modal dismissal, timer cancellation, display takeover release,
 and allocation cleanup while retaining their specialised PIN entry, arming
 countdown, critical display takeover, Home Assistant, and modal implementation.
-Cover modal and Media remain on the existing `Family` dispatch until their
-reviewed migration PRs switch them one family at a time.
+Cover All Controls uses the shared `COVER_MODAL` lifecycle boundary for
+main-grid and subpage visual setup, runtime binding, modal click dispatch,
+parent indicators, popup dismissal, and allocation cleanup while retaining its
+specialised position, tilt, preset, supported-feature, Home Assistant, and
+modal implementation. Media remains on the existing `Family` dispatch until
+its reviewed migration PR switches it.
 
 The pre-driver-migration runtime baseline is authored in
 `common/config/card_runtime_inventory.json`. It classifies contract and

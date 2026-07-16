@@ -54,6 +54,7 @@ BASIC_ACTION_HEADER = "button_grid_basic_action_driver.h"
 NUMERIC_SELECTABLE_HEADER = "button_grid_numeric_selectable_driver.h"
 CLEANING_HEADER = "button_grid_cleaning_driver.h"
 ACCESS_COVER_HEADER = "button_grid_access_cover_driver.h"
+COVER_MODAL_DRIVER_HEADER = "button_grid_cover_modal_driver.h"
 NAVIGATION_DRIVER_HEADER = "button_grid_navigation_driver.h"
 IMAGE_DRIVER_HEADER = "button_grid_image_driver.h"
 LIGHT_CONTROL_DRIVER_HEADER = "button_grid_light_control_driver.h"
@@ -167,6 +168,9 @@ def check_root(root: Path) -> list[str]:
             or "access_cover_driver_setup_visual( s, p, context, palette)" not in compact_grid
             or "access_cover_driver_bind_main( s, p, context)" not in compact_grid
             or "access_cover_driver_bind_subpage( sub_slot, sb_cfg, context, access_cover_environment)" not in compact_grid
+            or "cover_modal_driver_setup_visual(s, p, context)" not in compact_grid
+            or "cover_modal_driver_bind_main( s, p, context, cover_modal_environment)" not in compact_grid
+            or "cover_modal_driver_bind_subpage( sub_slot, sb_cfg, context, cover_modal_environment)" not in compact_grid
             or "navigation_driver_setup_visual( s, p, context, cfg, display)" not in compact_grid
             or "navigation_driver_bind_main( s, p, context, navigation_state)" not in compact_grid
             or "navigation_driver_own_subpage( slots[si], p, parent_context, si + 1, display_order, sub_scr)" not in compact_grid
@@ -225,6 +229,8 @@ def check_root(root: Path) -> list[str]:
             'p.type == "cover" && cover_toggle_mode',
             'sb_cfg.type == "cover" && cover_command_mode',
             'sb_cfg.type == "cover" && cover_toggle_mode',
+            'p.type == "cover" && cover_modal_mode',
+            'sb_cfg.type == "cover" && cover_modal_mode',
             'p.type == "subpage"', 'p.type != "subpage"',
             'p.type == "image"', 'sb_cfg.type == "image"',
             'family == espcontrol::cards::Family::LIGHT_CONTROL',
@@ -276,6 +282,7 @@ def check_root(root: Path) -> list[str]:
             or "numeric_selectable_driver_handle_main_click(" not in click_body
             or "cleaning_driver_handle_main_click(" not in click_body
             or "access_cover_driver_handle_main_click(" not in click_body
+            or "cover_modal_driver_handle_main_click(" not in click_body
             or "navigation_driver_handle_main_click(" not in click_body
             or "image_driver_handle_main_click(" not in click_body
             or "light_control_driver_handle_main_click(" not in click_body
@@ -294,6 +301,7 @@ def check_root(root: Path) -> list[str]:
                 'p.type == "cover" && cover_command_mode',
                 'p.type == "cover" && cover_toggle_mode',
                 'else if (p.type == "cover")',
+                'p.type == "cover" && cover_modal_mode',
                 'p.type == "subpage"',
                 'p.type == "image"',
                 'p.type == "light_control"',
@@ -540,6 +548,35 @@ def check_root(root: Path) -> list[str]:
     elif grid_header.exists():
         failures.append(
             f"components/espcontrol/{ACCESS_COVER_HEADER}: missing shared access/cover driver"
+        )
+    cover_modal_driver_header = (
+        root / "components" / "espcontrol" / COVER_MODAL_DRIVER_HEADER
+    )
+    if cover_modal_driver_header.exists():
+        text = cover_modal_driver_header.read_text(encoding="utf-8")
+        required = (
+            "cover_modal_driver_setup_visual",
+            "cover_modal_driver_bind_main",
+            "cover_modal_driver_bind_subpage",
+            "cover_modal_driver_attach_interaction",
+            "cover_modal_driver_refresh_layout",
+            "cover_modal_driver_cleanup",
+            "cover_modal_driver_handle_main_click",
+            "create_cover_control_context",
+            "subscribe_cover_control_state",
+            "cover_control_open_modal",
+            "grid_track_cover_control_runtime",
+            "grid_delete_cover_control_with_owner",
+            '"cover"',
+        )
+        for needle in required:
+            if needle not in text:
+                failures.append(
+                    f"components/espcontrol/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal lifecycle guard {needle}"
+                )
+    elif grid_header.exists():
+        failures.append(
+            f"components/espcontrol/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal driver"
         )
     navigation_driver_header = root / "components" / "espcontrol" / NAVIGATION_DRIVER_HEADER
     if navigation_driver_header.exists():

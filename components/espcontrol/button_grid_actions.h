@@ -828,6 +828,8 @@ inline bool cleaning_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool access_cover_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
+inline bool cover_modal_driver_handle_main_click(
+    const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool navigation_driver_handle_main_click(
     const Context &context, const ParsedCfg &config, lv_obj_t *button);
 inline bool image_driver_handle_main_click(
@@ -865,6 +867,8 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
         context, p, btn_obj)) return;
   if (espcontrol::cards::access_cover_driver_handle_main_click(
         context, p, btn_obj)) return;
+  if (espcontrol::cards::cover_modal_driver_handle_main_click(
+        context, p, btn_obj)) return;
   if (espcontrol::cards::navigation_driver_handle_main_click(
         context, p, btn_obj)) return;
   if (espcontrol::cards::image_driver_handle_main_click(
@@ -877,10 +881,7 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
         context, p, btn_obj)) return;
   if (espcontrol::cards::alarm_driver_handle_main_click(
         context, p, btn_obj)) return;
-  if (p.type == "cover" && cover_modal_mode(p.sensor)) {
-    CoverControlCtx *ctx = (CoverControlCtx *)lv_obj_get_user_data(btn_obj);
-    if (ctx) cover_control_open_modal(ctx);
-  } else if (p.type == "todo") {
+  if (p.type == "todo") {
     TodoCardCtx *ctx = (TodoCardCtx *)lv_obj_get_user_data(btn_obj);
     if (todo_card_context_valid(ctx)) todo_card_open_modal(ctx);
   } else if (p.type == "media") {
