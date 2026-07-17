@@ -23,6 +23,7 @@ export function installC6FirmwareUiModule(): GlobalDescriptors {
         if (els.c6FirmwareBadge) {
             els.c6FirmwareBadge.classList.toggle("sp-hidden", !c6FirmwareUpdateKnownAvailable());
         }
+        syncFirmwareCardBadge();
         if (els.c6FirmwareCurrent) {
             els.c6FirmwareCurrent.textContent = displayC6FirmwareVersion(state.c6FirmwareCurrentVersion);
         }

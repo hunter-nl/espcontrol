@@ -541,8 +541,6 @@ export function installStylesModule(): GlobalDescriptors {
         ".sp-fw-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-left:auto}" +
         ".sp-fw-actions-full{justify-content:flex-end;margin:14px 0 0}" +
         ".sp-fw-previous-actions{display:flex;justify-content:flex-end;margin-top:12px}" +
-        ".sp-fw-inline-status{display:none;font-size:.8rem;color:#3dd68c;white-space:nowrap}" +
-        ".sp-fw-inline-status.sp-visible{display:inline}" +
         ".sp-fw-status{font-size:.8rem;color:var(--text2);line-height:1.4;margin:8px 0 0;text-align:right}" +
         ".sp-fw-status:empty{display:none}" +
         ".sp-fw-status.sp-update-available{color:#3dd68c}" +

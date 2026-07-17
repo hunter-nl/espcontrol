@@ -29,8 +29,8 @@ export function installSettingsPageHelpersModule(): GlobalDescriptors {
     function infoPanel(this: any, id?: any, text?: any) {
         return _settingsUiFeature.infoPanel(id, text);
     }
-    function statusBadge(this: any, label?: any) {
-        return _settingsUiFeature.statusBadge(label);
+    function statusBadge(this: any, label?: any, text?: any) {
+        return _settingsUiFeature.statusBadge(label, text);
     }
     function disclosureBadge(this: any, text?: any, label?: any) {
         return _settingsUiFeature.disclosureBadge(text, label);

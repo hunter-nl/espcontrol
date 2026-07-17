@@ -42,10 +42,6 @@ export function installSettingsSystemSectionModule(): GlobalDescriptors {
         var fwActions: any = document.createElement("div");
         fwActions.className = "sp-fw-actions sp-fw-actions-full";
         els.fwActions = fwActions;
-        var fwInlineStatus: any = document.createElement("span");
-        fwInlineStatus.className = "sp-fw-inline-status";
-        fwActions.appendChild(fwInlineStatus);
-        els.fwInlineStatus = fwInlineStatus;
         var fwCheckBtn: any = createActionButton("sp-fw-btn", "Check for Update");
         fwCheckBtn.addEventListener("click", function (this: any) {
             if (!firmwareUpdateControlsVisible())
@@ -259,7 +255,10 @@ export function installSettingsSystemSectionModule(): GlobalDescriptors {
         els.fwPreviousPanel = previousFirmwarePanel;
         firmwareSubpanels.appendChild(previousFirmwarePanel);
         fwBody.appendChild(firmwareSubpanels);
-        var firmwareCard: any = makeCollapsibleCard("Firmware", fwBody, true);
+        var firmwareCardBadge: any = statusBadge("Firmware update available", "Update available");
+        firmwareCardBadge.className = "sp-card-badge sp-hidden";
+        els.firmwareCardBadge = firmwareCardBadge;
+        var firmwareCard: any = makeCollapsibleCard("Firmware", fwBody, true, firmwareCardBadge);
         syncFirmwareVersionSelect();
         syncFirmwareUpdateUi();
         syncC6FirmwareUi();

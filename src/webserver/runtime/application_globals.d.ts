@@ -517,7 +517,6 @@ declare global {
   var firmwareInstallRefreshUntil: any;
   var firmwareUpdateAvailable: any;
   var firmwareUpdateControlsVisible: any;
-  var firmwareUpToDateStatusAvailable: any;
   var firmwareVersionFromMetadata: any;
   var firmwareVersionLabel: any;
   var firmwareVersionMatches: any;
@@ -1122,6 +1121,7 @@ declare global {
   var syncConfigLockUi: any;
   var syncCoverArtScreensaverUi: any;
   var syncFirmwareUpdateUi: any;
+  var syncFirmwareCardBadge: any;
   var syncFirmwareVersionSelect: any;
   var syncIdleUi: any;
   var syncInput: any;

@@ -199,22 +199,6 @@ export function installAppTestHooksSettings(): GlobalDescriptors {
                 state.firmwareVersionIndexLoaded = oldIndexLoaded;
                 return result;
             },
-            firmwareUpToDateStatusFor: function (this: any, installedVersion?: any, latestVersion?: any, updateState?: any, installSupported?: any) {
-                var oldVersion: any = state.firmwareVersion;
-                var oldLatest: any = state.firmwareLatestVersion;
-                var oldUpdateState: any = state.firmwareUpdateState;
-                var oldInstallSupported: any = state.firmwareInstallControlsSupported;
-                state.firmwareVersion = installedVersion || "";
-                state.firmwareLatestVersion = latestVersion || "";
-                state.firmwareUpdateState = updateState || "";
-                state.firmwareInstallControlsSupported = !!installSupported;
-                var result: any = firmwareUpToDateStatusAvailable();
-                state.firmwareVersion = oldVersion;
-                state.firmwareLatestVersion = oldLatest;
-                state.firmwareUpdateState = oldUpdateState;
-                state.firmwareInstallControlsSupported = oldInstallSupported;
-                return result;
-            },
             firmwareFailureStatusFor: function (this: any, message?: any) {
                 var oldError: any = state.firmwareInstallError;
                 var oldStatus: any = state.firmwareInstallStatus;

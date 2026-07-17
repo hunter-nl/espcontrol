@@ -1540,16 +1540,6 @@ assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("wifi", true), true);
 assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("wifi", false), false);
 assert.strictEqual(hooks.firmwareUpdateControlsVisibleFor("ethernet", true), true);
 assert.strictEqual(
-  hooks.firmwareUpToDateStatusFor("v1.10.0", "v1.11.1", "NO UPDATE", false),
-  false,
-  "check-only firmware must not report up to date when the public release is newer"
-);
-assert.strictEqual(
-  hooks.firmwareUpToDateStatusFor("v1.11.1", "v1.11.1", "NO UPDATE", false),
-  true,
-  "matching installed and public versions may report up to date without install controls"
-);
-assert.strictEqual(
   hooks.firmwareVersionAfterUpdateInfo("Dev", { state: "NO UPDATE", latest_version: "v1.11.1" }).version,
   "v1.11.1"
 );
