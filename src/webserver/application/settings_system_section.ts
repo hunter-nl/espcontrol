@@ -246,7 +246,10 @@ export function installSettingsSystemSectionModule(): GlobalDescriptors {
         els.fwPreviousPanel = previousFirmwarePanel;
         firmwareSubpanels.appendChild(previousFirmwarePanel);
         fwBody.appendChild(firmwareSubpanels);
-        var firmwareCard: any = makeCollapsibleCard("Firmware", fwBody, true);
+        var firmwareCardBadge: any = statusBadge("Firmware update available", "Update available");
+        firmwareCardBadge.className = "sp-card-badge sp-hidden";
+        els.firmwareCardBadge = firmwareCardBadge;
+        var firmwareCard: any = makeCollapsibleCard("Firmware", fwBody, true, firmwareCardBadge);
         syncFirmwareVersionSelect();
         syncFirmwareUpdateUi();
         syncC6FirmwareUi();
