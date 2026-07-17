@@ -46,6 +46,7 @@ struct MediaControlCtx {
   int width_compensation_percent = 100;
   bool available = true;
   bool playing = false;
+  bool highlight_playing = true;
   bool volume_known = false;
   bool label_shows_status = false;
   bool top_shows_volume = false;
@@ -944,7 +945,8 @@ inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
     }
   }
 
-  set_card_checked_state(ctx->btn, ctx->available && ctx->playing);
+  set_card_checked_state(
+    ctx->btn, ctx->highlight_playing && ctx->available && ctx->playing);
   media_control_refresh_parent_card(ctx);
   MediaControlModalUi &ui = media_control_modal_ui();
   if (ui.active == ctx && !ctx->available) {

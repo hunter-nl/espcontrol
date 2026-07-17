@@ -226,6 +226,7 @@ inline bool media_driver_bind_data(
         media_cover_art_press_action(config) == "control_modal") {
       MediaControlCtx *control = media_driver_create_control(
         slot, config, context, environment);
+      if (control) control->highlight_playing = false;
       subscribe_media_control_state(control);
     }
   } else {
