@@ -113,7 +113,7 @@ export function installStylesModule(): GlobalDescriptors {
         "display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;word-break:break-word}" +
         ".sp-media-now-artist{font-size:var(--btn-label);line-height:1.2;color:#fff}" +
         ".sp-media-cover-artwork{background-image:radial-gradient(circle at 68% 28%,#ea80fc 0 13%,transparent 34%),linear-gradient(135deg,#3949ab 0%,#00897b 48%,#ff7043 100%)}" +
-        ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(10,25,42,.8);z-index:0}" +
+        ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(10,25,42,.5);z-index:0}" +
         ".sp-media-cover-details-title{margin:var(--btn-pad) var(--btn-pad) 0}" +
         ".sp-btn-label-row.sp-media-cover-details-row{width:auto;margin:0 var(--btn-pad) var(--btn-pad)}" +
         ".sp-btn-double{grid-row:span 2}" +

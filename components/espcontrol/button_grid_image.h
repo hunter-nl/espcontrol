@@ -613,7 +613,7 @@ inline void image_card_apply_media_overlay_tint(ImageCardCtx *ctx) {
       accent.valid ? lv_color_make(accent.red, accent.green, accent.blue)
                    : lv_color_black(),
       LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(ctx->media_overlay, LV_OPA_80, LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(ctx->media_overlay, LV_OPA_50, LV_PART_MAIN);
 }
 
 inline void image_card_apply_downloaded(ImageCardCtx *ctx) {

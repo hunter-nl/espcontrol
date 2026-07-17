@@ -142,6 +142,17 @@ for required in (
         raise SystemExit("P4 JPEG workspace must be released after image buffer allocation failure")
 
 image_cards = (ROOT / "components" / "espcontrol" / "button_grid_image.h").read_text(encoding="utf-8")
+overlay_tint_start = image_cards.find("inline void image_card_apply_media_overlay_tint(")
+overlay_tint_end = image_cards.find("\ninline void image_card_apply_downloaded", overlay_tint_start)
+if overlay_tint_start < 0 or overlay_tint_end < 0:
+    raise SystemExit("Media cover art overlay tint contract missing")
+overlay_tint = image_cards[overlay_tint_start:overlay_tint_end]
+if "lv_obj_set_style_bg_opa(ctx->media_overlay, LV_OPA_50, LV_PART_MAIN);" not in overlay_tint:
+    raise SystemExit("Media cover art overlay tint must remain 50% transparent")
+
+web_styles = (ROOT / "src" / "webserver" / "application" / "styles.ts").read_text(encoding="utf-8")
+if ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(10,25,42,.5)" not in web_styles:
+    raise SystemExit("Web preview media cover tint must match the 50% device overlay")
 for required in (
     "image_card_uses_background_pipeline(next->image, next->source_url)",
 ):
