@@ -1151,18 +1151,22 @@ def firmware_media_sleep_prevention_errors(
             errors.append(f"{rel}: missing screensaver_idle_check script")
         else:
             if (
-                "id(media_player_sleep_prevention_enabled).state &&" not in idle_body
+                "id(cover_art_screensaver_enabled).state &&" not in idle_body
+                or "id(media_player_sleep_prevention_enabled).state &&" not in idle_body
                 or "id(media_player_playing)" not in idle_body
             ):
-                errors.append(f"{rel}: keep media playback awake only through the media sleep prevention setting")
+                errors.append(
+                    f"{rel}: keep media playback awake only while cover art and media sleep prevention are enabled"
+                )
             if "id(cover_art_media_playing)" in idle_body:
                 errors.append(f"{rel}: use the dedicated media sleep prevention playback state")
             if re.search(
-                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,160}"
+                r"\(id\(media_player_sleep_prevention_enabled\)\.state\s*\|\|\s*"
+                r"id\(cover_art_screensaver_enabled\)\.state\)\s*&&\s*"
                 r"id\(media_player_playing\)",
                 idle_body,
             ):
-                errors.append(f"{rel}: do not let cover art alone keep the idle timer awake")
+                errors.append(f"{rel}: require both cover art and media sleep prevention to keep the idle timer awake")
         sleep_body = yaml_script_body(text, "screensaver_sleep_timer")
         if sleep_body is not None:
             if "id(cover_art_media_playing)" in sleep_body and not re.search(
@@ -4903,13 +4907,13 @@ def run_self_test() -> int:
         "    then:\n"
         "      - script.execute: cover_art_start_delay\n",
         (
-            "do not let cover art alone keep the idle timer awake",
+            "require both cover art and media sleep prevention to keep the idle timer awake",
             "do not turn on media sleep prevention",
             "let cover art use its own delay",
         ),
     )
     expect_media_sleep_prevention_errors(
-        "media sleep prevention is independent from cover art",
+        "playback cannot block sleep while cover art is disabled",
         "script:\n"
         "  - id: screensaver_idle_check\n"
         "    then:\n"
@@ -4918,6 +4922,22 @@ def run_self_test() -> int:
         "            lambda: |-\n"
         "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
         "                     (id(media_player_sleep_prevention_enabled).state &&\n"
+        "                      id(media_player_playing));\n",
+        "",
+        "",
+        ("keep media playback awake only while cover art and media sleep prevention are enabled",),
+    )
+    expect_media_sleep_prevention_errors(
+        "media sleep prevention applies while cover art is enabled",
+        "script:\n"
+        "  - id: screensaver_idle_check\n"
+        "    then:\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: |-\n"
+        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "                     (id(cover_art_screensaver_enabled).state &&\n"
+        "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
         "  - id: screensaver_wake\n"
         "    then:\n"
@@ -4960,7 +4980,8 @@ def run_self_test() -> int:
         "          condition:\n"
         "            lambda: |-\n"
         "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
-        "                     (id(media_player_sleep_prevention_enabled).state &&\n"
+        "                     (id(cover_art_screensaver_enabled).state &&\n"
+        "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
         "  - id: screensaver_sleep_timer\n"
         "    then:\n"
@@ -5009,7 +5030,8 @@ def run_self_test() -> int:
         "          condition:\n"
         "            lambda: |-\n"
         "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
-        "                     (id(media_player_sleep_prevention_enabled).state &&\n"
+        "                     (id(cover_art_screensaver_enabled).state &&\n"
+        "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
         "  - id: screensaver_sleep_timer\n"
         "    then:\n"

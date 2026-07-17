@@ -554,7 +554,8 @@ script:
                     return id(display_mode_controller).target_mode_is(
                                espcontrol::DisplayMode::COVER_ART) ||
                            alarm_display_takeover_active() ||
-                           (id(media_player_sleep_prevention_enabled).state &&
+                           (id(cover_art_screensaver_enabled).state &&
+                            id(media_player_sleep_prevention_enabled).state &&
                             id(media_player_playing));
                 then:
                   - script.execute: screensaver_idle_check
