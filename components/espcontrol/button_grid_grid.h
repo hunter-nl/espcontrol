@@ -700,10 +700,15 @@ inline void refresh_media_card_layout(BtnSlot &s, const ParsedCfg &p,
     }
     if (ctx->title_lbl && ctx->artist_lbl) {
       const bool large = media_cover_art_uses_screensaver_fonts(row_span, col_span);
-      const lv_font_t *title_font = large
+      const bool compact = media_cover_art_uses_compact_detail_fonts(row_span, col_span);
+      const lv_font_t *title_font = compact
+        ? display_media_cover_art_artist_font(display)
+        : large
         ? display_media_cover_art_title_font(display)
         : display_media_title_font(display);
-      const lv_font_t *artist_font = large
+      const lv_font_t *artist_font = compact
+        ? display_media_control_artist_font(display, display_media_title_font(display))
+        : large
         ? display_media_cover_art_artist_font(display)
         : (s.text_lbl
             ? lv_obj_get_style_text_font(s.text_lbl, LV_PART_MAIN)

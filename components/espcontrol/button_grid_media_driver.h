@@ -34,15 +34,22 @@ inline bool media_driver_setup_visual(
   const bool large_cover_art =
     context.runtime.driver == card_runtime::CardDriverId::MEDIA_COVER_ART &&
     media_cover_art_uses_screensaver_fonts(row_span, col_span);
+  const bool compact_cover_art =
+    context.runtime.driver == card_runtime::CardDriverId::MEDIA_COVER_ART &&
+    media_cover_art_uses_compact_detail_fonts(row_span, col_span);
   setup_media_card(
     slot, config,
     palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR,
     palette.off_val, palette.sensor_val,
     display_sensor_font(display),
-    large_cover_art
+    compact_cover_art
+      ? display_media_cover_art_artist_font(display)
+      : large_cover_art
       ? display_media_cover_art_title_font(display)
       : display_media_title_font(display),
-    large_cover_art
+    compact_cover_art
+      ? display_media_control_artist_font(display, display_media_title_font(display))
+      : large_cover_art
       ? display_media_cover_art_artist_font(display)
       : nullptr,
     display_main_width_percent(display), row_span, col_span);

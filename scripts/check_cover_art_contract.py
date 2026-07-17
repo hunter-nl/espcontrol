@@ -154,8 +154,10 @@ web_styles = (ROOT / "src" / "webserver" / "application" / "styles.ts").read_tex
 if ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(49,49,49,.5)" not in web_styles:
     raise SystemExit("Web preview media cover tint must use the 50% standard card grey")
 for required in (
-    ".sp-btn-big .sp-media-cover-details-title,.sp-btn-extra-large .sp-media-cover-details-title{font-size:var(--media-cover-title)}",
-    ".sp-btn-big .sp-media-cover-details-row .sp-media-now-artist,.sp-btn-extra-large .sp-media-cover-details-row .sp-media-now-artist{font-size:var(--media-cover-artist)}",
+    ".sp-btn-big .sp-media-cover-details-title{font-size:var(--media-cover-artist)}",
+    ".sp-btn-extra-large .sp-media-cover-details-title{font-size:var(--media-cover-title)}",
+    ".sp-btn-big .sp-media-cover-details-row .sp-media-now-artist{font-size:var(--btn-label)}",
+    ".sp-btn-extra-large .sp-media-cover-details-row .sp-media-now-artist{font-size:var(--media-cover-artist)}",
     ".sp-btn-big.sp-media-cover-details-card,.sp-btn-extra-large.sp-media-cover-details-card{justify-content:flex-start}",
     ".sp-btn-big .sp-media-cover-details-title{-webkit-line-clamp:2}",
     ".sp-btn-wide .sp-media-cover-details-title,.sp-btn-extra-wide .sp-media-cover-details-title{-webkit-line-clamp:2}",
@@ -243,6 +245,8 @@ if "state->artist.clear()" in metadata:
 for required in (
     "inline bool media_cover_art_uses_screensaver_fonts(int row_span, int col_span)",
     "return row_span >= 2 && col_span >= 2;",
+    "inline bool media_cover_art_uses_compact_detail_fonts(int row_span,",
+    "return row_span == 2 && col_span == 2;",
     "inline bool media_cover_art_limits_title_to_two_lines(int row_span,",
     "return row_span == 1 || (row_span == 2 && col_span == 2);",
     "inline void media_position_now_playing_artist(MediaNowPlayingCtx *ctx)",
