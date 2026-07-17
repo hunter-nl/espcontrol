@@ -163,8 +163,23 @@ vm.createContext(hostedSandbox);
 vm.runInContext(generated, hostedSandbox, { filename: webOutput });
 assert.strictEqual(
   hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.imageSlotCapacity(),
-  0,
+  1,
   "shared hosted bundle selects the device profile from its script URL",
+);
+assert.strictEqual(
+  hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.imageSlotCapacityMessage(),
+  "This display supports up to 1 Media Cover Art card.",
+  "S3 explains its constrained cover-art capacity",
+);
+assert.strictEqual(
+  hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("image", false),
+  false,
+  "S3 keeps general Image cards hidden",
+);
+assert.strictEqual(
+  hostedSandbox.__ESPCONTROL_TEST_HOOKS__.config.buttonTypeVisibleInPickerFor("media_cover_art", false),
+  true,
+  "S3 exposes Media Cover Art cards",
 );
 
 for (const [slug, device] of Object.entries(manifest.devices || {})) {

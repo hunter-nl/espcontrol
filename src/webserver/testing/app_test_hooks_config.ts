@@ -124,6 +124,7 @@ export function installAppTestHooksConfig(): GlobalDescriptors {
             imageIconEnabled: imageIconEnabled,
             imageModalMode: imageModalMode,
             imageSlotCapacity: imageSlotCapacity,
+            imageSlotCapacityMessage: imageSlotCapacityMessage,
             imageCardCountForTest: function (this: any, snapshot?: any, candidate?: any) {
                 var oldGrid: any = state.grid;
                 var oldButtons: any = state.buttons;
