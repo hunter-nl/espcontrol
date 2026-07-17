@@ -382,7 +382,7 @@ inline void setup_media_cover_art(BtnSlot &s, const ParsedCfg &p,
     lv_obj_clear_flag(overlay, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(overlay, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(overlay, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(overlay, LV_OPA_50, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(overlay, LV_OPA_60, LV_PART_MAIN);
     lv_obj_set_style_border_width(overlay, 0, LV_PART_MAIN);
     lv_obj_add_flag(overlay, LV_OBJ_FLAG_HIDDEN);
   }

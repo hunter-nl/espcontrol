@@ -147,18 +147,18 @@ overlay_tint_end = image_cards.find("\ninline void image_card_apply_downloaded",
 if overlay_tint_start < 0 or overlay_tint_end < 0:
     raise SystemExit("Media cover art overlay tint contract missing")
 overlay_tint = image_cards[overlay_tint_start:overlay_tint_end]
-if "lv_obj_set_style_bg_opa(ctx->media_overlay, LV_OPA_50, LV_PART_MAIN);" not in overlay_tint:
-    raise SystemExit("Media cover art overlay tint must remain 50% transparent")
+if "lv_obj_set_style_bg_opa(ctx->media_overlay, LV_OPA_60, LV_PART_MAIN);" not in overlay_tint:
+    raise SystemExit("Media cover art overlay tint must remain 60% opaque")
 
 web_styles = (ROOT / "src" / "webserver" / "application" / "styles.ts").read_text(encoding="utf-8")
-if ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(49,49,49,.5)" not in web_styles:
-    raise SystemExit("Web preview media cover tint must use the 50% standard card grey")
+if ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(49,49,49,.6)" not in web_styles:
+    raise SystemExit("Web preview media cover tint must use the 60% standard card grey")
 for required in (
     ".sp-btn-big .sp-media-cover-details-title{font-size:var(--media-cover-artist)}",
+    ".sp-btn-extra-large .sp-media-cover-details-title,.sp-btn-portrait-large .sp-media-cover-details-title{font-size:var(--media-cover-title)}",
     ".sp-btn-big .sp-media-cover-details-row .sp-media-now-artist{font-size:var(--btn-label)}",
-    ".sp-btn-extra-large .sp-media-cover-details-title{font-size:var(--media-cover-title)}",
-    ".sp-btn-extra-large .sp-media-cover-details-row .sp-media-now-artist{font-size:var(--media-cover-artist)}",
-    ".sp-btn-big.sp-media-cover-details-card,.sp-btn-extra-large.sp-media-cover-details-card{justify-content:flex-start}",
+    ".sp-btn-extra-large .sp-media-cover-details-row .sp-media-now-artist,.sp-btn-portrait-large .sp-media-cover-details-row .sp-media-now-artist{font-size:var(--media-cover-artist)}",
+    ".sp-btn-big.sp-media-cover-details-card,.sp-btn-extra-large.sp-media-cover-details-card,.sp-btn-portrait-large.sp-media-cover-details-card{justify-content:flex-start}",
     ".sp-btn-big .sp-media-cover-details-title{-webkit-line-clamp:2}",
     ".sp-btn-wide .sp-media-cover-details-title,.sp-btn-extra-wide .sp-media-cover-details-title{-webkit-line-clamp:2}",
 ):

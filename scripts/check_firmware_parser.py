@@ -202,6 +202,8 @@ int main() {
   assert(row_span == 3 && col_span == 1);
   grid_token_spans('x', row_span, col_span);
   assert(row_span == 1 && col_span == 3);
+  grid_token_spans('p', row_span, col_span);
+  assert(row_span == 4 && col_span == 3);
   grid_token_spans('q', row_span, col_span);
   assert(row_span == 3 && col_span == 3);
   grid_token_spans('h', row_span, col_span);

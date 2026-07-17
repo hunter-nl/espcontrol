@@ -979,6 +979,12 @@ def slot_devices(path: Path = DEVICE_MANIFEST) -> list[dict[str, Any]]:
 
 def public_device_capability(profile: dict[str, Any]) -> dict[str, Any]:
     package = profile["firmware"]["package"]
+    disabled_card_types = set(profile["web"].get("disabledCardTypes", []))
+    image_card_types = [
+        card_type
+        for card_type in IMAGE_CARD_PICKER_TYPES
+        if profile["capabilities"]["imageSlots"] > 0 and card_type not in disabled_card_types
+    ]
     capability = {
         "slug": profile["slug"],
         "installSlug": profile["slug"],
@@ -989,6 +995,7 @@ def public_device_capability(profile: dict[str, Any]) -> dict[str, Any]:
         "orientation": profile["public"]["orientation"],
         "slots": profile["slots"],
         "imageSlots": profile["capabilities"]["imageSlots"],
+        "imageCardTypes": image_card_types,
         "grid": {
             "rows": profile["layout"]["rows"],
             "cols": profile["layout"]["cols"],

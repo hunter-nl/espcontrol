@@ -94,6 +94,7 @@ export function installAppTestHooksConfig(): GlobalDescriptors {
             mediaStateDisplayModeSupported: mediaStateDisplayModeSupported,
             cardRequiresSquareSize: cardRequiresSquareSize,
             cardSupportsMaxSize: cardSupportsMaxSize,
+            cardSupportsPortraitLargeSize: cardSupportsPortraitLargeSize,
             cardSizeMenuOptions: cardSizeMenuOptions,
             normalizeCardSizeForConfig: normalizeCardSizeForConfig,
             normalizeMediaOptions: normalizeMediaOptions,
@@ -124,6 +125,7 @@ export function installAppTestHooksConfig(): GlobalDescriptors {
             imageIconEnabled: imageIconEnabled,
             imageModalMode: imageModalMode,
             imageSlotCapacity: imageSlotCapacity,
+            imageSlotCapacityMessage: imageSlotCapacityMessage,
             imageCardCountForTest: function (this: any, snapshot?: any, candidate?: any) {
                 var oldGrid: any = state.grid;
                 var oldButtons: any = state.buttons;
@@ -207,6 +209,9 @@ export function installAppTestHooksConfig(): GlobalDescriptors {
             buttonTypeVisibleInPickerFor: function (this: any, key?: any, isSub?: any) {
                 var visible: any = buttonTypeVisibleInPicker(key, !!isSub);
                 return visible;
+            },
+            cardTransferEntriesFromEnvelopeForTest: function (this: any, envelope?: any, targetIsSubpage?: any) {
+                return clipboardEntriesFromCardTransfer(envelope, !!targetIsSubpage);
             },
             buttonTypePickerKeysForInfoOnly: function (this: any, enabled?: any, selectedTypeKey?: any) {
                 var oldInfoOnly: any = CFG.infoOnly;
