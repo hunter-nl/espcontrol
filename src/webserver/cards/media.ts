@@ -795,8 +795,8 @@ export function registerMediaCardTypes(): GlobalDescriptors {
                         iconHtml: '<span class="sp-image-preview sp-media-cover-artwork" style="background-color:#' +
                             helpers.escHtml(coverArtColor) + '"></span>' +
                             '<span class="sp-media-cover-tint"></span>' +
-                            '<span class="sp-media-now-title">Midnight City</span>',
-                        labelHtml: '<span class="sp-btn-label-row"><span class="sp-btn-label sp-media-now-artist">M83</span>' +
+                            '<span class="sp-media-now-title sp-media-cover-details-title">Midnight City</span>',
+                        labelHtml: '<span class="sp-btn-label-row sp-media-cover-details-row"><span class="sp-btn-label sp-media-now-artist">M83</span>' +
                             '<span class="sp-type-badge mdi mdi-' + MEDIA_CARD_METADATA.preview.badge + '"></span></span>',
                     };
                 }
