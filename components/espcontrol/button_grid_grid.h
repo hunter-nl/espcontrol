@@ -711,6 +711,8 @@ inline void refresh_media_card_layout(BtnSlot &s, const ParsedCfg &p,
       if (artist_font) {
         lv_obj_set_style_text_font(ctx->artist_lbl, artist_font, LV_PART_MAIN);
       }
+      ctx->artist_below_title = large;
+      ctx->artist_gap = pad > 1 ? pad / 2 : 0;
       lv_obj_clear_flag(ctx->title_lbl, LV_OBJ_FLAG_HIDDEN);
       lv_obj_clear_flag(ctx->artist_lbl, LV_OBJ_FLAG_HIDDEN);
       display_apply_main_width(ctx->title_lbl, display);
@@ -718,6 +720,7 @@ inline void refresh_media_card_layout(BtnSlot &s, const ParsedCfg &p,
       setup_media_now_playing_layout(
         s.btn, s.icon_lbl, ctx->title_lbl, ctx->artist_lbl,
         title_font, pad, row_span == 1, true, 0, false);
+      media_position_now_playing_artist(ctx);
     }
     media_cover_art_refresh_geometry(ctx);
     return;

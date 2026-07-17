@@ -791,7 +791,7 @@ export function registerMediaCardTypes(): GlobalDescriptors {
                 var coverArtColor: any = WEB_UI_COLORS.tertiary;
                 if (mediaCoverArtDetailsEnabled(b)) {
                     return {
-                        buttonClass: "sp-image-card",
+                        buttonClass: "sp-image-card sp-media-cover-details-card",
                         iconHtml: '<span class="sp-image-preview sp-media-cover-artwork" style="background-color:#' +
                             helpers.escHtml(coverArtColor) + '"></span>' +
                             '<span class="sp-media-cover-tint"></span>' +

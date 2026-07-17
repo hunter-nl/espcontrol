@@ -157,6 +157,15 @@ inline void media_apply_now_playing_artist_text(MediaNowPlayingCtx *ctx) {
   lv_label_set_text(ctx->artist_lbl, text);
 }
 
+inline void media_position_now_playing_artist(MediaNowPlayingCtx *ctx) {
+  if (!ctx || !ctx->artist_below_title || !ctx->btn ||
+      !ctx->title_lbl || !ctx->artist_lbl) return;
+  lv_obj_update_layout(ctx->btn);
+  lv_obj_align_to(
+    ctx->artist_lbl, ctx->title_lbl,
+    LV_ALIGN_OUT_BOTTOM_LEFT, 0, ctx->artist_gap);
+}
+
 inline void media_set_now_playing_artist(MediaNowPlayingCtx *ctx,
                                          esphome::StringRef artist) {
   if (!ctx) return;
@@ -805,6 +814,7 @@ inline void media_playback_apply_state_to_now_playing(MediaPlaybackState *state,
     ctx->external_source = state->external_source;
     media_apply_now_playing_artist_text(ctx);
   }
+  media_position_now_playing_artist(ctx);
   if (ctx->play_pause_background && ctx->btn) {
     set_card_checked_state(ctx->btn, state->available && state->playing);
   }
@@ -2653,9 +2663,13 @@ inline void setup_media_card(BtnSlot &s, const ParsedCfg &p, uint32_t on_color,
       }
       ctx->title_lbl = title_lbl;
       ctx->artist_lbl = artist_lbl;
+      ctx->artist_below_title = media_cover_art_uses_screensaver_fonts(
+        row_span, col_span);
+      ctx->artist_gap = pad > 1 ? pad / 2 : 0;
       setup_media_now_playing_layout(
         s.btn, s.icon_lbl, ctx->title_lbl, ctx->artist_lbl,
         media_title_font, pad, row_span == 1, true, 0);
+      media_position_now_playing_artist(ctx);
       return;
     }
     lv_obj_t *title_lbl = lv_label_create(s.btn);
