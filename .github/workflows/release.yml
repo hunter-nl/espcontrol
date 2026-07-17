@@ -24,6 +24,11 @@ jobs:
     if: github.event_name == 'release' || inputs.release_tag != ''
     runs-on: self-hosted
     steps:
+      - name: Prepare self-hosted workspace
+        run: |
+          rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?* 2>/dev/null ||
+            sudo rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?*
+
       - uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
