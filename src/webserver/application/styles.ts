@@ -118,7 +118,7 @@ export function installStylesModule(): GlobalDescriptors {
         ".sp-btn-extra-large .sp-media-cover-details-row .sp-media-now-artist{font-size:var(--media-cover-artist)}" +
         ".sp-btn-big.sp-media-cover-details-card,.sp-btn-extra-large.sp-media-cover-details-card{justify-content:flex-start}" +
         ".sp-media-cover-artwork{background-image:radial-gradient(circle at 68% 28%,#ea80fc 0 13%,transparent 34%),linear-gradient(135deg,#3949ab 0%,#00897b 48%,#ff7043 100%)}" +
-        ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(49,49,49,.5);z-index:0}" +
+        ".sp-media-cover-tint{position:absolute;inset:-2px;background:rgba(49,49,49,.6);z-index:0}" +
         ".sp-media-cover-details-title{margin:var(--btn-pad) var(--btn-pad) 0}" +
         ".sp-btn-label-row.sp-media-cover-details-row{width:auto;margin:0 var(--btn-pad) var(--btn-pad)}" +
         ".sp-btn-double{grid-row:span 2}" +
