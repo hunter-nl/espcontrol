@@ -140,6 +140,7 @@ export function installStylesModule(): GlobalDescriptors {
         ".sp-btn-extra-large .sp-btn-label-row .sp-btn-label{-webkit-line-clamp:var(--btn-lines-dbl)}" +
         ".sp-btn-extra-large .sp-media-now-title{-webkit-line-clamp:var(--btn-lines-dbl)}" +
         ".sp-btn-big .sp-media-cover-details-title{-webkit-line-clamp:2}" +
+        ".sp-btn-wide .sp-media-cover-details-title,.sp-btn-extra-wide .sp-media-cover-details-title{-webkit-line-clamp:2}" +
         ".sp-btn-max-wide{grid-row:span 2;grid-column:span 3}" +
         ".sp-btn-max-tall{grid-row:span 3;grid-column:span 2}" +
         ".sp-empty-cell{border:2px dashed rgba(255,255,255,.15);background:transparent;" +
