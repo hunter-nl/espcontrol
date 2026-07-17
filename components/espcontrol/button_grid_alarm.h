@@ -281,8 +281,12 @@ inline void alarm_delay_audio_update(AlarmCardCtx *ctx, bool announce_start) {
 }
 
 inline bool alarm_delay_audio_resume_context(AlarmCardCtx *excluded) {
+  const std::string excluded_entity = excluded ? excluded->entity_id : "";
   for (AlarmCardCtx *ctx : alarm_delay_audio_contexts()) {
-    if (ctx == excluded || !alarm_card_context_valid(ctx)) continue;
+    if (ctx == excluded || !alarm_card_context_valid(ctx) ||
+        (!excluded_entity.empty() && ctx->entity_id == excluded_entity)) {
+      continue;
+    }
     AlarmDelayAudioMode mode = alarm_delay_audio_mode_for_state(ctx->state);
     bool enabled = ctx->audio_hooks.enabled && ctx->audio_hooks.enabled();
     int remaining = alarm_remaining_delay_seconds(ctx);
