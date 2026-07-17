@@ -494,8 +494,6 @@ inline void image_card_clear_media_artwork(ImageCardCtx *ctx) {
   ctx->last_download_completed_ms = 0;
   image_card_hide(ctx);
   if (ctx->media_overlay) lv_obj_add_flag(ctx->media_overlay, LV_OBJ_FLAG_HIDDEN);
-  ctx->media_overlay_artwork_tint = false;
-  ctx->media_artwork_applied = nullptr;
 }
 
 inline void image_card_layout_modal_loading(ImageCardCtx *ctx) {

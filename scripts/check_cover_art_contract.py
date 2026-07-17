@@ -147,6 +147,24 @@ for required in (
 ):
     if required not in image_cards:
         raise SystemExit(f"Image card background-pipeline contract missing: {required}")
+media_clear_start = image_cards.find(
+    "inline void image_card_clear_media_artwork(ImageCardCtx *ctx) {"
+)
+media_clear_end = image_cards.find(
+    "\ninline void image_card_layout_modal_loading", media_clear_start
+)
+if media_clear_start < 0 or media_clear_end < 0:
+    raise SystemExit("Media artwork clear contract missing")
+media_clear = image_cards[media_clear_start:media_clear_end]
+for persistent_binding in (
+    "ctx->media_overlay_artwork_tint = false;",
+    "ctx->media_artwork_applied = nullptr;",
+):
+    if persistent_binding in media_clear:
+        raise SystemExit(
+            "Temporary artwork loss must preserve the configured overlay bindings: "
+            + persistent_binding
+        )
 modal_request_start = image_cards.find(
     "inline bool image_card_queue_modal_source_request(ImageCardCtx *ctx) {"
 )
