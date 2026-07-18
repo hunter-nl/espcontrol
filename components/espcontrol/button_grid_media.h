@@ -204,6 +204,7 @@ inline void media_control_refresh_volume(MediaControlCtx *ctx);
 inline void media_control_ensure_tab_content(MediaControlCtx *ctx);
 inline void media_control_clear_tab_content();
 inline void media_control_set_volume_value(MediaControlCtx *ctx, int pct);
+inline int media_control_volume_max_pct(MediaControlCtx *ctx);
 inline int media_control_clamp_volume(MediaControlCtx *ctx, int pct);
 inline float media_control_current_position_seconds(MediaControlCtx *ctx);
 inline void media_playlist_refresh_checked(MediaPlaylistCtx *ctx);
@@ -268,7 +269,11 @@ inline void media_control_refresh_parent_card(MediaControlCtx *ctx) {
   if (ctx->top_shows_volume && ctx->volume_value_lbl) {
     if (ctx->volume_known) {
       char buf[8];
-      snprintf(buf, sizeof(buf), "%d", media_control_clamp_volume(ctx, ctx->current_pct));
+      snprintf(
+        buf, sizeof(buf), "%d",
+        espcontrol::media::volume_display_value(
+          ctx->volume_control_mode, ctx->current_pct,
+          media_control_volume_max_pct(ctx)));
       lv_label_set_text(ctx->volume_value_lbl, buf);
     } else {
       lv_label_set_text(ctx->volume_value_lbl, "--");

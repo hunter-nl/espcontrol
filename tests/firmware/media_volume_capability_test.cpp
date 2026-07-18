@@ -11,6 +11,7 @@ int main() {
   using espcontrol::media::volume_command;
   using espcontrol::media::volume_control_mode;
   using espcontrol::media::volume_decrease_enabled;
+  using espcontrol::media::volume_display_value;
   using espcontrol::media::volume_increase_enabled;
 
   // Preserve the existing absolute-volume behaviour until Home Assistant
@@ -48,6 +49,9 @@ int main() {
   assert(volume_arc_interactive(VolumeControlMode::ABSOLUTE));
   assert(!volume_arc_interactive(VolumeControlMode::STEP));
   assert(!volume_arc_interactive(VolumeControlMode::READ_ONLY));
+  assert(volume_display_value(VolumeControlMode::ABSOLUTE, 65, 40) == 40);
+  assert(volume_display_value(VolumeControlMode::STEP, 65, 40) == 65);
+  assert(volume_display_value(VolumeControlMode::READ_ONLY, 65, 40) == 65);
   assert(volume_decrease_enabled(VolumeControlMode::STEP, 30));
   assert(!volume_decrease_enabled(VolumeControlMode::READ_ONLY, 30));
   assert(volume_increase_enabled(VolumeControlMode::STEP, 39, 40));

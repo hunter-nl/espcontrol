@@ -69,6 +69,18 @@ inline bool volume_arc_interactive(VolumeControlMode mode) {
   return mode == VolumeControlMode::ABSOLUTE;
 }
 
+inline int volume_display_value(VolumeControlMode mode,
+                                int reported_value,
+                                int maximum_value) {
+  if (reported_value < 0) reported_value = 0;
+  if (reported_value > 100) reported_value = 100;
+  if (mode != VolumeControlMode::ABSOLUTE) return reported_value;
+
+  if (maximum_value < 1) maximum_value = 1;
+  if (maximum_value > 100) maximum_value = 100;
+  return reported_value > maximum_value ? maximum_value : reported_value;
+}
+
 inline bool volume_decrease_enabled(VolumeControlMode mode, int current_value) {
   return mode != VolumeControlMode::READ_ONLY && current_value > 0;
 }
