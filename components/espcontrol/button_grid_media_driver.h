@@ -43,6 +43,28 @@ inline bool media_driver_setup_visual(
   const lv_font_t *label_font = slot.text_lbl
     ? lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN)
     : nullptr;
+  if (context.runtime.driver == card_runtime::CardDriverId::MEDIA_COVER_ART) {
+    const lv_font_t *selected_title_font = compact_portrait_cover_art
+      ? display_media_control_title_font(display)
+      : compact_large_cover_art
+      ? display_media_cover_art_artist_font(display, display_media_title_font(display))
+      : large_cover_art
+      ? display_media_cover_art_title_font(display)
+      : display_media_title_font(display);
+    const lv_font_t *selected_artist_font = compact_portrait_cover_art
+      ? display_media_control_artist_font(display, label_font)
+      : compact_large_cover_art
+      ? label_font
+      : large_cover_art
+      ? display_media_cover_art_artist_font(display)
+      : nullptr;
+    ESP_LOGI(
+      "media", "Cover art typography: span=%dx%d family=%d compact=%d title=%d artist=%d",
+      row_span, col_span, static_cast<int>(display.modal.layout_family),
+      compact_portrait_cover_art ? 1 : 0,
+      selected_title_font ? static_cast<int>(selected_title_font->line_height) : -1,
+      selected_artist_font ? static_cast<int>(selected_artist_font->line_height) : -1);
+  }
   setup_media_card(
     slot, config,
     palette.has_on ? palette.on_val : DEFAULT_SLIDER_COLOR,
