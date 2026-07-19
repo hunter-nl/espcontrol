@@ -474,6 +474,58 @@ def firmware_media_card_availability_errors(firmware_dir: Path, root: Path) -> l
     return errors
 
 
+def firmware_media_cover_art_external_input_errors(
+    firmware_dir: Path, root: Path
+) -> list[str]:
+    paths = {
+        name: firmware_dir / name
+        for name in (
+            "button_grid_media.h",
+            "button_grid_media_driver.h",
+            "button_grid_image.h",
+            "button_grid_grid.h",
+        )
+    }
+    if not all(path.exists() for path in paths.values()):
+        return []
+    media = paths["button_grid_media.h"].read_text(encoding="utf-8")
+    driver = paths["button_grid_media_driver.h"].read_text(encoding="utf-8")
+    image = paths["button_grid_image.h"].read_text(encoding="utf-8")
+    grid = paths["button_grid_grid.h"].read_text(encoding="utf-8")
+    rel = paths["button_grid_media.h"].relative_to(root)
+    errors: list[str] = []
+
+    if (
+        "source_subscribed" not in media
+        or "source_known" not in media
+        or "media_playback_subscribe_source" not in media
+        or 'std::string("source")' not in media
+    ):
+        errors.append(f"{rel}: keep media source tracking independent from title and artist metadata")
+    if (
+        "subscribe_media_cover_art_source_state" not in media
+        or "subscribe_media_cover_art_source_state(now_playing, config.entity)" not in driver
+    ):
+        errors.append(f"{rel}: subscribe image-only cover art cards to media source changes")
+    if (
+        "image_card_set_media_artwork_suppressed(" not in media
+        or "media_artwork_suppressed" not in image
+        or "image_card_sync_media_artwork_visibility" not in image
+    ):
+        errors.append(f"{rel}: hide media card artwork while an external input is active")
+    if (
+        "if (ctx->media_artwork)" not in image
+        or "image_card_sync_media_artwork_visibility(ctx);" not in image
+        or "!media_ctx->source_known || media_ctx->external_source" not in grid
+        or "!ctx->source_known || ctx->external_source" not in media
+        or "image_card_sync_media_artwork_visibility(art);" not in grid
+    ):
+        errors.append(
+            f"{rel}: prevent cached, pending-source, or late artwork from bypassing suppression"
+        )
+    return errors
+
+
 def firmware_action_card_script_fields_errors(firmware_dir: Path, root: Path) -> list[str]:
     path = firmware_dir / "button_grid_actions.h"
     if not path.exists():
@@ -2909,6 +2961,7 @@ def run_scan() -> int:
     errors.extend(firmware_action_card_availability_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_card_disabled_state_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_card_availability_errors(FIRMWARE_DIR, ROOT))
+    errors.extend(firmware_media_cover_art_external_input_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_action_card_script_fields_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_local_sensor_binding_order_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_time_reconnect_errors(TIME_ADDON_PATH, ROOT))
@@ -3085,6 +3138,23 @@ def expect_media_card_availability_errors(name: str, text: str, expected: tuple[
         (firmware_dir / "button_grid_media.h").write_text(text, encoding="utf-8")
 
         errors = firmware_media_card_availability_errors(firmware_dir, root)
+        for item in expected:
+            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
+        if not expected:
+            assert not errors, f"{name}: expected no errors, got {errors!r}"
+
+
+def expect_media_cover_art_external_input_errors(
+    name: str, files: dict[str, str], expected: tuple[str, ...]
+) -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir.mkdir(parents=True)
+        for filename, text in files.items():
+            (firmware_dir / filename).write_text(text, encoding="utf-8")
+
+        errors = firmware_media_cover_art_external_input_errors(firmware_dir, root)
         for item in expected:
             assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
         if not expected:
@@ -3742,6 +3812,52 @@ def expect_c6_update_status_errors(name: str, text: str, expected: tuple[str, ..
 
 
 def run_self_test() -> int:
+    expect_media_cover_art_external_input_errors(
+        "missing media cover art external-input handling",
+        {
+            "button_grid_media.h": "",
+            "button_grid_media_driver.h": "",
+            "button_grid_image.h": "",
+            "button_grid_grid.h": "",
+        },
+        (
+            "keep media source tracking independent",
+            "subscribe image-only cover art cards",
+            "hide media card artwork",
+            "prevent cached, pending-source, or late artwork",
+        ),
+    )
+    expect_media_cover_art_external_input_errors(
+        "media cover art external-input handling present",
+        {
+            "button_grid_media.h": (
+                "bool source_subscribed = false;\n"
+                "bool source_known = false;\n"
+                "inline void media_playback_subscribe_source() { std::string(\"source\"); }\n"
+                "inline void subscribe_media_cover_art_source_state() {}\n"
+                "inline void apply() {\n"
+                "  image_card_set_media_artwork_suppressed(\n"
+                "    ctx, !ctx->source_known || ctx->external_source);\n"
+                "}\n"
+            ),
+            "button_grid_media_driver.h": (
+                "subscribe_media_cover_art_source_state(now_playing, config.entity);\n"
+            ),
+            "button_grid_image.h": (
+                "bool media_artwork_suppressed = false;\n"
+                "inline void image_card_sync_media_artwork_visibility() {}\n"
+                "inline void apply() {\n"
+                "  if (ctx->media_artwork) image_card_sync_media_artwork_visibility(ctx);\n"
+                "}\n"
+            ),
+            "button_grid_grid.h": (
+                "art->media_artwork_suppressed =\n"
+                "  !media_ctx->source_known || media_ctx->external_source;\n"
+                "image_card_sync_media_artwork_visibility(art);\n"
+            ),
+        },
+        (),
+    )
     valid_backlight_off_handler = (
         "script:\n"
         "  - id: display_backlight_handle_off\n"

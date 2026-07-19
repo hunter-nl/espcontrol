@@ -334,6 +334,7 @@ inline void clear_media_cover_art(MediaNowPlayingCtx *ctx) {
     ctx->cover_art->end_display_takeover = nullptr;
     ctx->cover_art->diagnostics_enabled = false;
     ctx->cover_art->media_artwork = false;
+    ctx->cover_art->media_artwork_suppressed = false;
     ctx->cover_art->media_overlay = nullptr;
     ctx->cover_art->media_overlay_artwork_tint = false;
     ctx->cover_art->media_artwork_applied = nullptr;
@@ -401,6 +402,8 @@ inline void setup_media_cover_art(BtnSlot &s, const ParsedCfg &p,
   art->end_display_takeover = cfg.end_display_takeover;
   art->modal_fit = false;
   art->media_artwork = true;
+  art->media_artwork_suppressed =
+    !media_ctx->source_known || media_ctx->external_source;
   art->media_overlay = overlay;
   art->media_overlay_artwork_tint = show_track_details;
   art->media_artwork_applied = [media_ctx]() {
@@ -416,11 +419,7 @@ inline void setup_media_cover_art(BtnSlot &s, const ParsedCfg &p,
   media_ctx->cover_overlay = overlay;
   if (image_only && media_ctx->btn) lv_obj_set_user_data(media_ctx->btn, art);
   if (art->image_ready) {
-    image_card_set_widget_source(img, art->image);
-    if (overlay) {
-      image_card_apply_media_overlay_tint(art);
-      lv_obj_clear_flag(overlay, LV_OBJ_FLAG_HIDDEN);
-    }
+    image_card_sync_media_artwork_visibility(art);
   }
   media_cover_art_refresh_geometry(media_ctx);
   image_card_log_diagnostics(art, "bind-media-artwork");
