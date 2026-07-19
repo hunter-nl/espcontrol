@@ -539,7 +539,7 @@ export function registerMediaCardTypes(): GlobalDescriptors {
                 panel.appendChild(cardSettingsDisclosure.panel);
 
                 var secondaryPlayerDisclosure: any = helpers.disclosureSection(
-                    "Secondary Media Player",
+                    "External sources",
                     helpers.idPrefix + "media-cover-art-secondary-player",
                     false);
                 var secondaryPlayerSettings: any = secondaryPlayerDisclosure.section;

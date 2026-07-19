@@ -751,7 +751,7 @@ async function assertRotationStartupOrdering(browser) {
   }
 }
 
-async function assertSettingsPage(page, label, options = {}) {
+async function assertSettingsPage(page, label, options = {}, posts = []) {
   await page.getByRole("tab", { name: "Settings" }).click();
   await page.waitForSelector("#sp-settings.sp-page.active");
   const settingsVisible = await page.locator("#sp-settings").isVisible();
@@ -1110,18 +1110,18 @@ async function assertSettingsPage(page, label, options = {}) {
   const screensaverSettings = coverArtCard
     .getByRole("button", { name: "Screensaver Settings", exact: true })
     .locator("..");
-  const secondaryMediaPlayer = coverArtCard
-    .getByRole("button", { name: "Secondary Media Player", exact: true })
+  const externalSources = coverArtCard
+    .getByRole("button", { name: "External sources", exact: true })
     .locator("..");
   assert(await screensaverSettings.isVisible(), `${label}: cover art screensaver settings panel should render`);
-  assert(await secondaryMediaPlayer.isVisible(), `${label}: cover art secondary media player panel should render`);
+  assert(await externalSources.isVisible(), `${label}: cover art external sources panel should render`);
   assert(
     !(await screensaverSettings.getAttribute("class")).includes("sp-open"),
     `${label}: cover art screensaver settings should start collapsed`,
   );
   assert(
-    !(await secondaryMediaPlayer.getAttribute("class")).includes("sp-open"),
-    `${label}: cover art secondary media player should start collapsed`,
+    !(await externalSources.getAttribute("class")).includes("sp-open"),
+    `${label}: cover art external sources should start collapsed`,
   );
   assert.strictEqual(
     await coverArtCard.locator("#sp-set-ss-cover-art-player").evaluate((el) => !!el.closest(".sp-disclosure")),
@@ -1161,7 +1161,7 @@ async function assertSettingsPage(page, label, options = {}) {
       `${label}: track overlay duration should render inside screensaver settings`,
     );
   }
-  await secondaryMediaPlayer.locator("> .sp-disclosure-button").click();
+  await externalSources.locator("> .sp-disclosure-button").click();
   const coverArtSecondaryInfo = coverArtCard.locator("#sp-set-ss-cover-art-secondary-player-info");
   assert(await coverArtSecondaryInfo.isVisible(), `${label}: cover art secondary player explanation should render`);
   assert.strictEqual(
@@ -1176,6 +1176,46 @@ async function assertSettingsPage(page, label, options = {}) {
   assert(
     await coverArtCard.locator("#sp-set-ss-cover-art-secondary-player").isVisible(),
     `${label}: cover art secondary entity should render inside its panel`,
+  );
+  const showExternalInputToggle = coverArtCard.locator("#sp-set-ss-cover-art-show-external-input");
+  assert(
+    await coverArtCard.getByText("Show for external source inputs", { exact: true }).isVisible(),
+    `${label}: external sources should contain the positive show toggle`,
+  );
+  assert.strictEqual(
+    await coverArtCard.getByText("Hide for external source inputs", { exact: true }).count(),
+    0,
+    `${label}: the inverted hide label should no longer render`,
+  );
+  assert.strictEqual(
+    await showExternalInputToggle.isChecked(),
+    false,
+    `${label}: show-for-external-inputs should invert the default enabled hide setting`,
+  );
+  var beforeShowExternalInput = posts.length;
+  await coverArtCard.locator("#sp-set-ss-cover-art-show-external-input + .sp-toggle-track").click();
+  await waitForPost(
+    posts,
+    {
+      domain: "switch",
+      name: "screen_saver__hide_cover_art_on_external_input",
+      action: "turn_off",
+    },
+    `${label}: enabling show-for-external-inputs disables the saved hide setting`,
+    beforeShowExternalInput,
+  );
+  assert(await showExternalInputToggle.isChecked(), `${label}: show-for-external-inputs should become enabled`);
+  var beforeHideExternalInput = posts.length;
+  await coverArtCard.locator("#sp-set-ss-cover-art-show-external-input + .sp-toggle-track").click();
+  await waitForPost(
+    posts,
+    {
+      domain: "switch",
+      name: "screen_saver__hide_cover_art_on_external_input",
+      action: "turn_on",
+    },
+    `${label}: disabling show-for-external-inputs restores the saved hide setting`,
+    beforeHideExternalInput,
   );
   assert(
     await coverArtCard
@@ -1194,12 +1234,6 @@ async function assertSettingsPage(page, label, options = {}) {
       .getByText("Keep Screen Awake During Playback", { exact: true })
       .isVisible(),
     `${label}: keep-screen-awake option should render inside advanced options`,
-  );
-  assert(
-    await coverArtCard
-      .getByText("Hide for external source inputs", { exact: true })
-      .isVisible(),
-    `${label}: external source input option should render inside advanced options`,
   );
   assert(
     await coverArtCard
@@ -1990,13 +2024,17 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
   const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({
     has: page.locator("#sp-inp-media-cover-art-card-settings"),
   });
-  const secondaryPlayer = page.locator(".sp-settings-modal .sp-disclosure").filter({
+  const externalSources = page.locator(".sp-settings-modal .sp-disclosure").filter({
     has: page.locator("#sp-inp-media-cover-art-secondary-player"),
   });
   assert(await cardSettings.isVisible(), `${label}: Cover Art card settings panel should render`);
-  assert(await secondaryPlayer.isVisible(), `${label}: Cover Art secondary media player panel should render`);
+  assert(await externalSources.isVisible(), `${label}: Cover Art external sources panel should render`);
   assert(!(await cardSettings.getAttribute("class")).includes("sp-open"), `${label}: Cover Art card settings should start collapsed`);
-  assert(!(await secondaryPlayer.getAttribute("class")).includes("sp-open"), `${label}: Cover Art secondary media player should start collapsed`);
+  assert(!(await externalSources.getAttribute("class")).includes("sp-open"), `${label}: Cover Art external sources should start collapsed`);
+  assert(
+    await externalSources.getByText("External sources", { exact: true }).isVisible(),
+    `${label}: Cover Art external sources panel should use the shared title`,
+  );
   assert.strictEqual(
     await page.locator("#sp-inp-entity").evaluate((el) => !!el.closest(".sp-disclosure")),
     false,
@@ -2013,9 +2051,9 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
     `${label}: Cover Art track details toggle should be inside Card Settings`,
   );
   assert.strictEqual(
-    await secondaryPlayer.locator("#sp-inp-media-cover-art-secondary-entity").count(),
+    await externalSources.locator("#sp-inp-media-cover-art-secondary-entity").count(),
     1,
-    `${label}: Cover Art secondary entity should be inside Secondary Media Player`,
+    `${label}: Cover Art secondary entity should be inside External sources`,
   );
 
   await cardSettings.locator("> .sp-disclosure-button").click();
@@ -2027,8 +2065,8 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
     await cardSettings.getByText("Show Track Details", { exact: true }).isVisible(),
     `${label}: Cover Art Card Settings should reveal Show Track Details`,
   );
-  await secondaryPlayer.locator("> .sp-disclosure-button").click();
-  const info = secondaryPlayer.locator("#sp-inp-media-cover-art-secondary-player-info");
+  await externalSources.locator("> .sp-disclosure-button").click();
+  const info = externalSources.locator("#sp-inp-media-cover-art-secondary-player-info");
   assert(await info.isVisible(), `${label}: Cover Art secondary media player explanation should be visible`);
   assert.strictEqual(await info.getAttribute("role"), "note", `${label}: Cover Art secondary explanation should be announced as a note`);
   assert(
@@ -2036,7 +2074,7 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
     `${label}: Cover Art secondary explanation should describe external sources`,
   );
   assert(
-    await secondaryPlayer.getByText("External Source Media Entity", { exact: true }).isVisible(),
+    await externalSources.getByText("External Source Media Entity", { exact: true }).isVisible(),
     `${label}: Cover Art secondary entity picker should be visible`,
   );
 
@@ -3791,7 +3829,7 @@ async function runCase(browser, testCase) {
       testCase.name,
       testCase,
     );
-    await assertSettingsPage(page, testCase.name, testCase);
+    await assertSettingsPage(page, testCase.name, testCase, posts);
     if (testCase.exerciseInteractions) {
       await assertNightScheduleSensorControls(page, posts, testCase.name);
     }

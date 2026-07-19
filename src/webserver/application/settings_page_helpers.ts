@@ -229,7 +229,7 @@ export function installSettingsPageHelpersModule(): GlobalDescriptors {
             setSelectValue(els.setCoverArtTrackOverlayDuration, value, timedSettingLabel(value, formatDuration));
         }
         if (els.setCoverArtHideExternalInputToggle) {
-            els.setCoverArtHideExternalInputToggle.checked = !!state.coverArtHideExternalInputOn;
+            els.setCoverArtHideExternalInputToggle.checked = !state.coverArtHideExternalInputOn;
         }
         if (els.setHomeAssistantArtworkProtocol) {
             els.setHomeAssistantArtworkProtocol.value =

@@ -117,14 +117,14 @@ export function installSettingsCoverArtSectionModule(): GlobalDescriptors {
             post: postCoverArtSecondaryMediaPlayerEntity,
         });
         els.setCoverArtSecondaryMediaPlayer = secondaryCoverArtEntityInp;
-        coverArtOnlyOptions.appendChild(inlineDisclosure("Secondary Media Player", secondaryCoverArtSettingsBody, false));
-        var coverArtHideExternalInputToggle: any = toggleRow("Hide for external source inputs", "sp-set-ss-cover-art-hide-external-input", state.coverArtHideExternalInputOn);
-        coverArtAdvancedBody.appendChild(coverArtHideExternalInputToggle.row);
-        coverArtHideExternalInputToggle.input.addEventListener("change", function (this: any) {
-            state.coverArtHideExternalInputOn = this.checked;
+        var coverArtShowExternalInputToggle: any = toggleRow("Show for external source inputs", "sp-set-ss-cover-art-show-external-input", !state.coverArtHideExternalInputOn);
+        secondaryCoverArtSettingsBody.appendChild(coverArtShowExternalInputToggle.row);
+        coverArtShowExternalInputToggle.input.addEventListener("change", function (this: any) {
+            state.coverArtHideExternalInputOn = !this.checked;
             postCoverArtHideExternalInput(state.coverArtHideExternalInputOn);
         });
-        els.setCoverArtHideExternalInputToggle = coverArtHideExternalInputToggle.input;
+        els.setCoverArtHideExternalInputToggle = coverArtShowExternalInputToggle.input;
+        coverArtOnlyOptions.appendChild(inlineDisclosure("External sources", secondaryCoverArtSettingsBody, !state.coverArtHideExternalInputOn));
         state.coverArtFilteringEnabled = !!state.coverArtAttributeConditions;
         var coverArtFilterToggle: any = toggleRow("Advanced Filtering", "sp-set-ss-cover-art-filtering", state.coverArtFilteringEnabled);
         coverArtAdvancedBody.appendChild(coverArtFilterToggle.row);
@@ -162,7 +162,7 @@ export function installSettingsCoverArtSectionModule(): GlobalDescriptors {
         });
         els.setCoverArtConditions = coverArtConditionsInp;
         els.setCoverArtFilterOptions = coverArtFilterOptions;
-        coverArtOnlyOptions.appendChild(inlineDisclosure("Advanced Options", coverArtAdvancedBody, !!state.coverArtAttributeConditions || !state.coverArtHideExternalInputOn));
+        coverArtOnlyOptions.appendChild(inlineDisclosure("Advanced Options", coverArtAdvancedBody, !!state.coverArtAttributeConditions));
         els.setCoverArtOnlyOptions = coverArtOnlyOptions;
         coverArtOptions.appendChild(coverArtOnlyOptions);
         els.setCoverArtOptions = coverArtOptions;
