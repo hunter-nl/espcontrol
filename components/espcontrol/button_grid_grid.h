@@ -402,7 +402,8 @@ inline void setup_media_cover_art(BtnSlot &s, const ParsedCfg &p,
   art->end_display_takeover = cfg.end_display_takeover;
   art->modal_fit = false;
   art->media_artwork = true;
-  art->media_artwork_suppressed = media_ctx->external_source;
+  art->media_artwork_suppressed =
+    !media_ctx->source_known || media_ctx->external_source;
   art->media_overlay = overlay;
   art->media_overlay_artwork_tint = show_track_details;
   art->media_artwork_applied = [media_ctx]() {

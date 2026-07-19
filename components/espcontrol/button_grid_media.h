@@ -479,6 +479,7 @@ struct MediaPlaybackState {
   bool has_state = false;
   bool available = true;
   bool playing = false;
+  bool source_known = false;
   bool external_source = false;
   bool has_duration = false;
   bool has_position = false;
@@ -632,6 +633,7 @@ inline void media_playback_reset_state(MediaPlaybackState *state,
   state->has_state = false;
   state->available = true;
   state->playing = false;
+  state->source_known = false;
   state->external_source = false;
   state->has_duration = false;
   state->has_position = false;
@@ -824,10 +826,11 @@ inline void media_playback_apply_state_to_buttons(MediaPlaybackState *state) {
 inline void media_playback_apply_state_to_now_playing(MediaPlaybackState *state,
                                                       MediaNowPlayingCtx *ctx) {
   if (!state || !ctx) return;
+  ctx->source_known = state->source_known;
   ctx->external_source = state->external_source;
   if (ctx->cover_art) {
     image_card_set_media_artwork_suppressed(
-      ctx->cover_art, ctx->external_source);
+      ctx->cover_art, !ctx->source_known || ctx->external_source);
   }
   if (ctx->title_lbl) {
     const std::string title = state->title.empty() ? std::string("--") : state->title;
@@ -1241,9 +1244,10 @@ inline void media_playback_subscribe_source(MediaPlaybackState *state) {
   auto handle_media_source = [state, generation](esphome::StringRef source) {
     if (!media_playback_generation_valid(state, generation)) return;
     bool external = media_external_source_input(media_metadata_text(source, ""));
-    if (external == state->external_source) return;
+    bool changed = !state->source_known || external != state->external_source;
+    state->source_known = true;
     state->external_source = external;
-    media_playback_apply_metadata_consumers(state);
+    if (changed) media_playback_apply_metadata_consumers(state);
   };
   ha_subscribe_attribute(
     entity_id, std::string("source"),
