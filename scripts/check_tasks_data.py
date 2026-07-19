@@ -83,6 +83,7 @@ TASKS = (
          domains=("firmware",),
          inputs=(
              "tests/firmware/**",
+             "components/espcontrol/configuration_store.*",
              "components/espcontrol/button_grid_limits.h",
              "components/espcontrol/button_grid_string.h",
              "components/espcontrol/button_grid_config_parser.h",
