@@ -219,6 +219,7 @@ inline void media_playback_detach_slider(SliderCtx *ctx);
 inline void media_playback_attach_control(MediaPlaybackState *state, MediaControlCtx *ctx);
 inline void media_playback_subscribe_playback_state(MediaPlaybackState *state);
 inline void media_playback_subscribe_metadata(MediaPlaybackState *state);
+inline void media_playback_subscribe_source(MediaPlaybackState *state);
 inline void media_playback_subscribe_progress(
   MediaPlaybackState *state,
   uint32_t scope = HA_SUBSCRIPTION_SCOPE_DEFAULT);
@@ -460,6 +461,7 @@ struct MediaPlaybackState {
   bool used = false;
   bool state_subscribed = false;
   bool metadata_subscribed = false;
+  bool source_subscribed = false;
   bool progress_subscribed = false;
   uint32_t progress_subscription_scope = 0;
   bool volume_subscribed = false;
@@ -612,6 +614,7 @@ inline void media_playback_reset_state(MediaPlaybackState *state,
   state->used = true;
   state->state_subscribed = false;
   state->metadata_subscribed = false;
+  state->source_subscribed = false;
   state->progress_subscribed = false;
   state->progress_subscription_scope = 0;
   state->volume_subscribed = false;
@@ -821,6 +824,11 @@ inline void media_playback_apply_state_to_buttons(MediaPlaybackState *state) {
 inline void media_playback_apply_state_to_now_playing(MediaPlaybackState *state,
                                                       MediaNowPlayingCtx *ctx) {
   if (!state || !ctx) return;
+  ctx->external_source = state->external_source;
+  if (ctx->cover_art) {
+    image_card_set_media_artwork_suppressed(
+      ctx->cover_art, ctx->external_source);
+  }
   if (ctx->title_lbl) {
     const std::string title = state->title.empty() ? std::string("--") : state->title;
     lv_label_set_text(ctx->title_lbl, title.c_str());
@@ -828,7 +836,6 @@ inline void media_playback_apply_state_to_now_playing(MediaPlaybackState *state,
   if (ctx->artist_lbl) {
     std::strncpy(ctx->artist, state->artist.c_str(), sizeof(ctx->artist) - 1);
     ctx->artist[sizeof(ctx->artist) - 1] = '\0';
-    ctx->external_source = state->external_source;
     media_apply_now_playing_artist_text(ctx);
   }
   media_position_now_playing_artist(ctx);
@@ -1223,6 +1230,14 @@ inline void media_playback_subscribe_metadata(MediaPlaybackState *state) {
       })
   );
 
+  media_playback_subscribe_source(state);
+}
+
+inline void media_playback_subscribe_source(MediaPlaybackState *state) {
+  if (!state || state->source_subscribed || state->entity_id.empty()) return;
+  state->source_subscribed = true;
+  const std::string entity_id = state->entity_id;
+  const uint32_t generation = state->generation;
   auto handle_media_source = [state, generation](esphome::StringRef source) {
     if (!media_playback_generation_valid(state, generation)) return;
     bool external = media_external_source_input(media_metadata_text(source, ""));
@@ -2960,6 +2975,15 @@ inline void subscribe_media_now_playing_state(MediaNowPlayingCtx *ctx,
     media_playback_attach_button(state, ctx->btn, nullptr);
     media_playback_subscribe_playback_state(state);
   }
+}
+
+inline void subscribe_media_cover_art_source_state(
+    MediaNowPlayingCtx *ctx, const std::string &entity_id) {
+  if (!ctx || entity_id.empty()) return;
+  MediaPlaybackState *state = media_playback_ensure_state(entity_id);
+  if (!state) return;
+  media_playback_attach_now_playing(state, ctx);
+  media_playback_subscribe_source(state);
 }
 
 inline MediaVolumeCtx *create_media_volume_context(lv_obj_t *btn,

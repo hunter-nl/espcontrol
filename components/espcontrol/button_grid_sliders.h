@@ -4,6 +4,10 @@
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
+struct ImageCardCtx;
+inline void image_card_set_media_artwork_suppressed(ImageCardCtx *ctx,
+                                                     bool suppressed);
+
 // ── Slider widgets ───────────────────────────────────────────────────
 
 // Context attached to each LVGL slider via user_data

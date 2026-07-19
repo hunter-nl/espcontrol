@@ -72,6 +72,8 @@ Now Playing works best on wider or larger cards because it has more room for tra
 
 Cover Art shows the current artwork reported by the selected media player. Choose a square card size: **1x1**, **2x2**, or **3x3**. EspControl crops the image to fill the tile without stretching it.
 
+When the media player source is **TV** or **Line-in**, the card hides any previously cached artwork so it does not show the last music track while an external input is playing. The latest artwork returns automatically when the media player switches back to a normal media source.
+
 Enable **Show Track Details** to place the current title and artist over the artwork. EspControl adds an artwork-derived dark tint so the text remains readable. If artwork is unavailable, the title and artist remain visible on the card's normal background. The setting is off by default, so existing Cover Art cards remain image-only.
 
 Choose what happens when the artwork is tapped:

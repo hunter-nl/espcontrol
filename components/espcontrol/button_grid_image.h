@@ -70,6 +70,7 @@ struct ImageCardCtx {
   bool diagnostics_enabled = false;
   bool access_token_request_pending = false;
   bool media_artwork = false;
+  bool media_artwork_suppressed = false;
   lv_obj_t *media_overlay = nullptr;
   bool media_overlay_artwork_tint = false;
   std::function<void()> media_artwork_applied;
@@ -473,6 +474,39 @@ inline void image_card_hide(ImageCardCtx *ctx) {
   if (ctx->widget) lv_obj_add_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
 }
 
+inline void image_card_apply_media_overlay_tint(ImageCardCtx *ctx);
+
+inline void image_card_sync_media_artwork_visibility(ImageCardCtx *ctx) {
+  if (!ctx || !ctx->media_artwork || !ctx->widget) return;
+  if (ctx->media_artwork_suppressed || !ctx->image_ready || !ctx->image) {
+    lv_obj_add_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+    if (ctx->media_overlay) {
+      lv_obj_add_flag(ctx->media_overlay, LV_OBJ_FLAG_HIDDEN);
+    }
+  } else {
+    image_card_set_widget_source(ctx->widget, ctx->image);
+    lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_background(ctx->widget);
+    if (ctx->media_overlay) {
+      image_card_apply_media_overlay_tint(ctx);
+      lv_obj_clear_flag(ctx->media_overlay, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_move_foreground(ctx->media_overlay);
+    }
+    if (ctx->media_artwork_applied) ctx->media_artwork_applied();
+  }
+  lv_obj_invalidate(ctx->widget);
+  if (ctx->btn) lv_obj_invalidate(ctx->btn);
+  notify_dashboard_content_changed();
+}
+
+inline void image_card_set_media_artwork_suppressed(ImageCardCtx *ctx,
+                                                     bool suppressed) {
+  if (!ctx || !ctx->media_artwork) return;
+  if (ctx->media_artwork_suppressed == suppressed) return;
+  ctx->media_artwork_suppressed = suppressed;
+  image_card_sync_media_artwork_visibility(ctx);
+}
+
 inline void image_card_clear_media_artwork(ImageCardCtx *ctx) {
   if (!ctx || !ctx->media_artwork) return;
   image_card_release_download_slot(ctx);
@@ -634,18 +668,16 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
   }
   image_card_log_diagnostics(ctx, "tile-download-applied");
   image_card_hide_loading(ctx);
-  image_card_set_widget_source(ctx->widget, ctx->image);
-  lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
-  lv_obj_move_background(ctx->widget);
-  if (ctx->media_overlay) {
-    image_card_apply_media_overlay_tint(ctx);
-    lv_obj_clear_flag(ctx->media_overlay, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_move_foreground(ctx->media_overlay);
+  if (ctx->media_artwork) {
+    image_card_sync_media_artwork_visibility(ctx);
+  } else {
+    image_card_set_widget_source(ctx->widget, ctx->image);
+    lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_background(ctx->widget);
+    lv_obj_invalidate(ctx->widget);
+    if (ctx->btn) lv_obj_invalidate(ctx->btn);
+    notify_dashboard_content_changed();
   }
-  if (ctx->media_artwork_applied) ctx->media_artwork_applied();
-  lv_obj_invalidate(ctx->widget);
-  if (ctx->btn) lv_obj_invalidate(ctx->btn);
-  notify_dashboard_content_changed();
 }
 
 inline void image_card_handle_download_error(ImageCardCtx *ctx) {
@@ -828,6 +860,7 @@ inline void reset_image_card_pool(const GridConfig &cfg) {
     contexts[i].diagnostics_enabled = false;
     contexts[i].access_token_request_pending = false;
     contexts[i].media_artwork = false;
+    contexts[i].media_artwork_suppressed = false;
     contexts[i].media_overlay = nullptr;
     contexts[i].media_overlay_artwork_tint = false;
     contexts[i].media_artwork_applied = nullptr;
@@ -2214,6 +2247,7 @@ inline bool image_card_bind_runtime(BtnSlot &s, const ParsedCfg &p,
   ctx->end_display_takeover = cfg.end_display_takeover;
   ctx->modal_fit = image_card_modal_fit_enabled(p);
   ctx->media_artwork = false;
+  ctx->media_artwork_suppressed = false;
   ctx->media_overlay = nullptr;
   ctx->pending_fallback_picture.clear();
   ctx->media_artwork_retry_mask = 0;
