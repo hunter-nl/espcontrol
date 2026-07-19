@@ -1,5 +1,7 @@
 #pragma once
 
+#include "media_volume_capability.h"
+
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 // ── Home Assistant actions ────────────────────────────────────────────
@@ -667,6 +669,19 @@ inline void send_media_volume_action(const std::string &entity_id, int value) {
   char buf[12];
   snprintf(buf, sizeof(buf), "%d.%02d", value / 100, value % 100);
   send_media_player_action(entity_id, "media_player.volume_set", "volume_level", buf);
+}
+
+inline void send_media_volume_command(
+    const std::string &entity_id,
+    const espcontrol::media::VolumeCommand &command) {
+  using espcontrol::media::VolumeCommandKind;
+  if (command.kind == VolumeCommandKind::SET_ABSOLUTE) {
+    send_media_volume_action(entity_id, command.value);
+  } else if (command.kind == VolumeCommandKind::STEP_DOWN) {
+    send_media_player_action(entity_id, "media_player.volume_down");
+  } else if (command.kind == VolumeCommandKind::STEP_UP) {
+    send_media_player_action(entity_id, "media_player.volume_up");
+  }
 }
 
 inline void send_media_seek_action(const std::string &entity_id, int value, float duration) {

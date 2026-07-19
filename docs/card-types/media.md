@@ -38,7 +38,11 @@ For Play/Pause, you can choose whether the card shows its fixed label or the liv
 
 The Volume Button shows the current volume percentage. Tapping it opens a volume control popup on the panel, where you can adjust the volume without leaving the current page.
 
+For media players that support setting an exact volume, the popup dial is draggable. Some integrations, including Android TV Remote, only support volume-up and volume-down commands. For those players, the dial remains a live volume indicator and the **−** and **+** buttons adjust the volume one device-defined step at a time.
+
 Set **Maximum Volume** to cap the panel control below 100%. The popup dial rescales to that maximum, so a 40% cap makes 40% the end of the arc.
+
+For step-only players, the maximum is best-effort because the device decides the size of each volume step. EspControl disables further volume-up commands once Home Assistant reports that the configured maximum has been reached.
 
 The card watches the media player's `volume_level` attribute, so it also updates when volume changes elsewhere.
 

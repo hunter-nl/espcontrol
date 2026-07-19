@@ -1,5 +1,5 @@
 import type { CardConfig } from "../contracts/types";
-import { WEB_UI_COLORS, defaultTheme } from "./ui_tokens";
+import { WEB_UI_COLORS } from "./ui_tokens";
 import type { AppState, DeviceConfig } from "./types";
 
 export const AUTO_TIMEZONE_OPTION = "Auto (Home Assistant)";
@@ -13,12 +13,6 @@ export const LANGUAGE_LABELS: Readonly<Record<string, string>> = {
   ro: "Română (Romanian)", sk: "Slovenčina (Slovak)", sl: "Slovenščina (Slovenian)",
   sv: "Svenska (Swedish)", tr: "Türkçe (Turkish)", uk: "Українська (Ukrainian)",
 };
-export const THEME_PRESETS = {
-  Light: { on: "0073FF" },
-  Dark: { on: WEB_UI_COLORS.primary },
-} as const;
-export const DEFAULT_COLOR_PRESET = THEME_PRESETS[defaultTheme()];
-
 const LANGUAGE_OPTIONS = ["en", "cs", "da", "de", "es", "fi", "fr", "hu", "it", "nb", "nl", "pl", "pt", "pt-br", "ro", "sk", "sl", "sv", "tr", "uk"];
 
 function emptyCardConfig(): CardConfig {
@@ -33,13 +27,18 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
   const grid = Array.from({ length: deviceConfig.slots }, () => 0);
   const buttons = Array.from({ length: deviceConfig.slots }, emptyCardConfig);
   return {
-    grid, sizes: {}, buttons, theme: defaultTheme(), onColor: DEFAULT_COLOR_PRESET.on,
+    grid, sizes: {}, buttons, onColor: WEB_UI_COLORS.primary,
     selectedSlots: [], lastClickedSlot: -1, clockBarSelectedItem: "", activeTab: "screen",
     _indoorOn: false, _outdoorOn: false, _indoorVal: null, _outdoorVal: null,
     indoorEntity: "", outdoorEntity: "", clockBarTemperatureEntities: [],
     _clockBarTemperatureEntitiesReceived: false, _clockBarTemperatureVisibilityReceived: false,
     temperatureUnit: "Auto", clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
-    networkStatusOn: true, voiceServicesOn: false, networkTransport: "wifi", wifiStrengthPercent: 100,
+    networkStatusOn: true, voiceServicesOn: false,
+    alarmDelayAudioOn: false, alarmDelayTtsOn: true,
+    alarmDelayEntryAnnouncement: "Please disarm the alarm",
+    alarmDelayExitAnnouncement: "Alarm arming, please leave the house",
+    alarmDelayBeepVolume: 0.45, alarmDelayFinalCountdown: 10,
+    networkTransport: "wifi", wifiStrengthPercent: 100,
     temperatureDegreeSymbolOn: true, subpageChevronsOn: true, presenceEntity: "",
     mediaPlayerSleepPreventionOn: true, mediaPlayerSleepPreventionEntity: "",
     coverArtScreensaverOn: false, coverArtMediaPlayerEntity: "", coverArtAttributeConditions: "",

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "media_volume_capability.h"
+
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 // ── Slider widgets ───────────────────────────────────────────────────
@@ -112,6 +114,9 @@ struct MediaVolumeCtx {
   std::function<void(int)> apply_percent;
   std::function<bool()> mic_muted;
   std::function<void(bool)> set_mic_muted;
+  espcontrol::media::VolumeControlMode volume_control_mode =
+    espcontrol::media::VolumeControlMode::ABSOLUTE;
+  bool volume_known = false;
   bool available = true;
 };
 
@@ -3030,6 +3035,46 @@ inline bool media_volume_pending_active(MediaVolumeCtx *ctx) {
 
 inline void media_volume_set_modal_value(MediaVolumeCtx *ctx, int pct);
 
+inline espcontrol::media::VolumeControlMode media_volume_effective_control_mode(
+    MediaVolumeCtx *ctx) {
+  if (!ctx || ctx->apply_percent) {
+    return espcontrol::media::VolumeControlMode::ABSOLUTE;
+  }
+  return ctx->volume_control_mode;
+}
+
+inline void media_volume_set_button_enabled(lv_obj_t *btn, bool enabled) {
+  if (!btn) return;
+  if (enabled) {
+    lv_obj_clear_state(btn, LV_STATE_DISABLED);
+    lv_obj_add_flag(btn, LV_OBJ_FLAG_CLICKABLE);
+  } else {
+    lv_obj_add_state(btn, LV_STATE_DISABLED);
+    lv_obj_clear_flag(btn, LV_OBJ_FLAG_CLICKABLE);
+  }
+}
+
+inline void media_volume_refresh_controls(MediaVolumeCtx *ctx) {
+  MediaVolumeModalUi &ui = media_volume_modal_ui();
+  if (!ctx || ui.active != ctx) return;
+  const auto mode = media_volume_effective_control_mode(ctx);
+  const bool arc_interactive = espcontrol::media::volume_arc_interactive(mode);
+  if (ui.arc) {
+    if (arc_interactive) lv_obj_add_flag(ui.arc, LV_OBJ_FLAG_CLICKABLE);
+    else lv_obj_clear_flag(ui.arc, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_opa(
+      ui.arc, arc_interactive ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_KNOB);
+  }
+  media_volume_set_button_enabled(
+    ui.minus_btn,
+    espcontrol::media::volume_decrease_enabled(
+      mode, ctx->current_pct, ctx->volume_known));
+  media_volume_set_button_enabled(
+    ui.plus_btn,
+    espcontrol::media::volume_increase_enabled(
+      mode, ctx->current_pct, media_volume_max_pct(ctx)));
+}
+
 inline bool media_volume_has_mic_control(MediaVolumeCtx *ctx) {
   return ctx && ctx->mic_muted && ctx->set_mic_muted;
 }
@@ -3060,6 +3105,16 @@ inline void media_volume_set_card_value(MediaVolumeCtx *ctx, int pct) {
 inline void media_volume_apply_percent(MediaVolumeCtx *ctx, int pct,
                                        bool from_user, bool send_action) {
   if (!ctx || !ctx->available) return;
+  const int current_pct = media_clamp_percent(ctx->current_pct);
+  const auto mode = media_volume_effective_control_mode(ctx);
+  const auto command = espcontrol::media::volume_command(
+    mode, current_pct, pct, media_volume_max_pct(ctx), ctx->volume_known);
+  if (!ctx->apply_percent &&
+      mode != espcontrol::media::VolumeControlMode::ABSOLUTE) {
+    if (send_action) send_media_volume_command(ctx->entity_id, command);
+    media_volume_refresh_controls(ctx);
+    return;
+  }
   pct = media_volume_clamp_user_percent(ctx, pct);
   ctx->current_pct = pct;
   if (from_user) {
@@ -3072,9 +3127,10 @@ inline void media_volume_apply_percent(MediaVolumeCtx *ctx, int pct,
     if (ctx->apply_percent) {
       ctx->apply_percent(pct);
     } else {
-      send_media_volume_action(ctx->entity_id, pct);
+      send_media_volume_command(ctx->entity_id, command);
     }
   }
+  media_volume_refresh_controls(ctx);
 }
 
 inline void media_volume_hide_modal() {
@@ -3175,8 +3231,12 @@ inline void media_volume_set_modal_value(MediaVolumeCtx *ctx, int pct) {
   if (!ctx || ui.active != ctx) return;
   pct = media_clamp_percent(pct);
   if (ui.arc) {
+    const int arc_max = media_volume_effective_control_mode(ctx) ==
+        espcontrol::media::VolumeControlMode::ABSOLUTE
+      ? media_volume_max_pct(ctx) : 100;
     ui.updating_arc = true;
-    lv_arc_set_value(ui.arc, pct > media_volume_max_pct(ctx) ? media_volume_max_pct(ctx) : pct);
+    lv_arc_set_range(ui.arc, 0, arc_max);
+    lv_arc_set_value(ui.arc, pct > arc_max ? arc_max : pct);
     ui.updating_arc = false;
   }
   if (ui.pct_lbl) {
@@ -3202,8 +3262,11 @@ inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
 
   ui.arc = lv_arc_create(ui.panel);
   lv_arc_set_bg_angles(ui.arc, 135, 45);
-  lv_arc_set_range(ui.arc, 0, media_volume_max_pct(ctx));
-  lv_arc_set_value(ui.arc, media_volume_clamp_user_percent(ctx, ctx->current_pct));
+  const int arc_max = media_volume_effective_control_mode(ctx) ==
+      espcontrol::media::VolumeControlMode::ABSOLUTE
+    ? media_volume_max_pct(ctx) : 100;
+  lv_arc_set_range(ui.arc, 0, arc_max);
+  lv_arc_set_value(ui.arc, media_clamp_percent(ctx->current_pct));
   lv_obj_set_style_bg_opa(ui.arc, LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_set_style_border_width(ui.arc, 0, LV_PART_MAIN);
   lv_obj_set_style_arc_color(ui.arc, lv_color_hex(DARK_TRACK_BACKGROUND), LV_PART_MAIN);
@@ -3217,6 +3280,8 @@ inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
   lv_obj_add_event_cb(ui.arc, [](lv_event_t *e) {
     MediaVolumeModalUi &ui = media_volume_modal_ui();
     if (ui.updating_arc || !ui.active) return;
+    if (!espcontrol::media::volume_arc_interactive(
+          media_volume_effective_control_mode(ui.active))) return;
     lv_obj_t *arc = static_cast<lv_obj_t *>(lv_event_get_target(e));
     media_volume_apply_percent(ui.active, lv_arc_get_value(arc), true, true);
   }, LV_EVENT_VALUE_CHANGED, nullptr);
@@ -3262,19 +3327,15 @@ inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
   lv_obj_add_event_cb(ui.minus_btn, [](lv_event_t *) {
     MediaVolumeModalUi &ui = media_volume_modal_ui();
     if (ui.active) {
-      int current = ui.active->current_pct > media_volume_max_pct(ui.active)
-        ? media_volume_max_pct(ui.active)
-        : ui.active->current_pct;
-      media_volume_apply_percent(ui.active, current - 1, true, true);
+      media_volume_apply_percent(
+        ui.active, ui.active->current_pct - 1, true, true);
     }
   }, LV_EVENT_CLICKED, nullptr);
   lv_obj_add_event_cb(ui.plus_btn, [](lv_event_t *) {
     MediaVolumeModalUi &ui = media_volume_modal_ui();
     if (ui.active) {
-      int current = ui.active->current_pct > media_volume_max_pct(ui.active)
-        ? media_volume_max_pct(ui.active)
-        : ui.active->current_pct;
-      media_volume_apply_percent(ui.active, current + 1, true, true);
+      media_volume_apply_percent(
+        ui.active, ui.active->current_pct + 1, true, true);
     }
   }, LV_EVENT_CLICKED, nullptr);
 
@@ -3297,5 +3358,6 @@ inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
 
   media_volume_layout_modal(ctx);
   media_volume_set_modal_value(ctx, ctx->current_pct);
+  media_volume_refresh_controls(ctx);
   lv_obj_move_foreground(ui.overlay);
 }
