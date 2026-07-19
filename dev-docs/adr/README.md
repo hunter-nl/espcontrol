@@ -15,3 +15,4 @@ and firmware behavior.
 - [ADR 0006: Hybrid Compiled Firmware Modules](0006-hybrid-compiled-firmware-modules.md)
 - [ADR 0007: Atomic Versioned Configuration Service](0007-atomic-configuration-storage.md)
 - [ADR 0008: Typed Web State Boundary](0008-typed-web-state-boundary.md)
+- [ADR 0009: Atomic Draft Releases](0009-atomic-draft-releases.md)

@@ -197,6 +197,25 @@ The ESPHome Docker image version used by firmware compile, nightly firmware, and
 release firmware workflows is set in `.github/esphome.env`. Update that one file
 when moving to a new ESPHome release.
 
+## Atomic Firmware Releases
+
+Firmware releases begin as GitHub drafts. The `Build Release` workflow is
+manually dispatched with that draft tag and checks out the same immutable tag
+in every job. Each device build writes only publishable files into
+`dist/firmware/`; generated source files and build caches are not release
+assets.
+
+After all device jobs finish, the workflow assembles one distribution and
+checks every manifest, embedded version, checksum, expected filename, and byte
+size. Assets are uploaded while the GitHub release is still private. The
+release becomes public only after the remote asset inventory exactly matches
+the verified local distribution. Any build, upload, or verification failure
+leaves the release as a draft.
+
+The repository release skill documents the operator flow. Do not publish a
+draft manually to work around a failed workflow; fix or rerun the failed build
+so the verification barrier remains intact.
+
 The `Firmware Compile` GitHub workflow is manual-only. Start it with
 `workflow_dispatch` when a PR needs a full firmware compile, especially for
 firmware-visible paths such as `common/`, `components/`, `devices/`, `builds/`,

@@ -69,6 +69,35 @@ def run_fails(args: list[str]) -> None:
     assert code != 0, f"{args} unexpectedly passed"
 
 
+class FakeGitHub:
+    def __init__(self, tag: str, draft: bool = True, wrong_size: bool = False) -> None:
+        self.tag = tag
+        self.draft = draft
+        self.wrong_size = wrong_size
+        self.assets: list[dict[str, object]] = []
+        self.calls: list[list[str]] = []
+
+    def __call__(self, arguments: list[str]) -> str:
+        self.calls.append(arguments)
+        if arguments[0] == "api":
+            return json.dumps({"tag_name": self.tag, "draft": self.draft, "assets": self.assets})
+        if arguments[:2] == ["release", "upload"]:
+            end = arguments.index("--clobber")
+            files = [Path(value) for value in arguments[3:end]]
+            self.assets = [
+                {
+                    "name": path.name,
+                    "size": path.stat().st_size + (1 if self.wrong_size else 0),
+                }
+                for path in files
+            ]
+            return ""
+        if arguments[:2] == ["release", "edit"]:
+            self.draft = False
+            return ""
+        raise AssertionError(f"unexpected fake gh command: {arguments}")
+
+
 def validate_esphome_env(path: Path) -> None:
     lines = path.read_text(encoding="utf-8").splitlines()
     assert len(lines) == 1, f"{path}: expected exactly one ESPHOME_VERSION line"
@@ -106,10 +135,16 @@ def test_esphome_env_format() -> None:
 
 def test_release_workflow_uses_current_ota_output() -> None:
     workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
-    current_copy = 'cp "${BUILD_DIR}/firmware.ota.bin" output/${{ matrix.slug }}.ota.bin'
-    legacy_copy = 'cp "${BUILD_DIR}/firmware.bin" output/${{ matrix.slug }}.ota.bin'
+    current_copy = 'cp "${BUILD_DIR}/firmware.ota.bin" dist/firmware/${{ matrix.slug }}.ota.bin'
+    legacy_copy = 'cp "${BUILD_DIR}/firmware.bin" dist/firmware/${{ matrix.slug }}.ota.bin'
     assert current_copy in workflow, "release workflow must package ESPHome's firmware.ota.bin output"
     assert legacy_copy not in workflow, "release workflow still packages the obsolete firmware.bin output"
+    assert "types: [published]" not in workflow, "public releases must not start an incomplete firmware build"
+    assert "required: true" in workflow, "release workflow must require an explicit draft tag"
+    assert "scripts/firmware_release.py verify-draft" in workflow
+    assert "scripts/firmware_release.py verify-bundle" in workflow
+    assert "scripts/firmware_release.py publish-draft" in workflow
+    assert "path: dist/firmware/" in workflow, "publishable firmware must use the dist boundary"
 
 
 def make_release_files(base: Path, slug: str = SLUG, version: str = VERSION) -> tuple[Path, Path, Path]:
@@ -267,6 +302,74 @@ def test_missing_asset_fails() -> None:
         run_fails(["verify-directory", "--version", VERSION, "--dir", str(base), "--slugs", SLUG])
 
 
+def test_release_inventory_rejects_extra_files() -> None:
+    with TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        make_release_files(base)
+        (base / "partial-build.log").write_text("not a release asset", encoding="utf-8")
+        try:
+            firmware_release.verify_release_inventory(base, [SLUG])
+        except firmware_release.FirmwareReleaseError:
+            pass
+        else:
+            raise AssertionError("release inventory accepted an unexpected build file")
+
+
+def test_draft_release_publishes_only_after_remote_asset_verification() -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        base = root / "firmware"
+        base.mkdir()
+        make_release_files(base)
+        notes = root / "release-notes.md"
+        notes.write_text("Verified release notes\n", encoding="utf-8")
+        github = FakeGitHub(VERSION)
+        firmware_release.publish_draft_release(
+            base, [SLUG], VERSION, "owner/repo", notes, gh_runner=github
+        )
+        assert github.draft is False
+        assert [call[:2] for call in github.calls] == [
+            ["api", f"repos/owner/repo/releases/tags/{VERSION}"],
+            ["release", "upload"],
+            ["api", f"repos/owner/repo/releases/tags/{VERSION}"],
+            ["release", "edit"],
+            ["api", f"repos/owner/repo/releases/tags/{VERSION}"],
+        ]
+
+
+def test_published_or_mismatched_asset_release_stays_unpublished() -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        base = root / "firmware"
+        base.mkdir()
+        make_release_files(base)
+        notes = root / "release-notes.md"
+        notes.write_text("Verified release notes\n", encoding="utf-8")
+
+        already_published = FakeGitHub(VERSION, draft=False)
+        try:
+            firmware_release.publish_draft_release(
+                base, [SLUG], VERSION, "owner/repo", notes, gh_runner=already_published
+            )
+        except firmware_release.FirmwareReleaseError:
+            pass
+        else:
+            raise AssertionError("publisher accepted an already-public release")
+        assert len(already_published.calls) == 1
+
+        wrong_size = FakeGitHub(VERSION, wrong_size=True)
+        try:
+            firmware_release.publish_draft_release(
+                base, [SLUG], VERSION, "owner/repo", notes, gh_runner=wrong_size
+            )
+        except firmware_release.FirmwareReleaseError:
+            pass
+        else:
+            raise AssertionError("publisher accepted an asset with the wrong byte size")
+        assert wrong_size.draft is True
+        assert not any(call[:2] == ["release", "edit"] for call in wrong_size.calls)
+
+
 def test_wrong_slug_path_fails() -> None:
     with TemporaryDirectory() as tmp:
         base = Path(tmp)
@@ -324,6 +427,9 @@ def main() -> int:
     test_wrong_chip_family_fails()
     test_wrong_md5_fails()
     test_missing_asset_fails()
+    test_release_inventory_rejects_extra_files()
+    test_draft_release_publishes_only_after_remote_asset_verification()
+    test_published_or_mismatched_asset_release_stays_unpublished()
     test_wrong_slug_path_fails()
     test_public_pages_verification()
     print("Firmware release helper tests passed.")

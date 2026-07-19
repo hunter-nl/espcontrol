@@ -53,6 +53,11 @@ python3 scripts/build.py
 
 Use `python3 scripts/build.py --check` to confirm generated files are current.
 
+Generated source files remain tracked because firmware and web compilation
+consume them. Publishable binaries are different: release jobs assemble those
+only under the ignored `dist/` directory. Nothing under `dist/` is an authored
+source or a committed generated input.
+
 ## Runtime Flow
 
 1. The device boots ESPHome firmware from `devices/<slug>/dev.yaml` or
