@@ -1101,7 +1101,7 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
       .getByText("Keep Screen Awake During Playback", { exact: true })
       .isVisible(),
     false,
-    `${label}: keep-screen-awake option should remain inside collapsed advanced options`,
+    `${label}: keep-screen-awake option should remain inside collapsed screensaver settings`,
   );
   assert(
     await coverArtCard.locator("#sp-set-ss-cover-art-player").isVisible(),
@@ -1124,6 +1124,11 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: cover art external sources should start collapsed`,
   );
   assert.strictEqual(
+    await screensaverSettings.locator("#sp-set-ss-media-sleep-prevention").count(),
+    1,
+    `${label}: keep-screen-awake should belong to screensaver settings`,
+  );
+  assert.strictEqual(
     await coverArtCard.locator("#sp-set-ss-cover-art-player").evaluate((el) => !!el.closest(".sp-disclosure")),
     false,
     `${label}: cover art primary entity should remain outside collapsible panels`,
@@ -1142,6 +1147,10 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   assert(
     await coverArtCard.locator("#sp-set-ss-cover-art-delay").isVisible(),
     `${label}: cover art show-after field should render inside screensaver settings`,
+  );
+  assert(
+    await coverArtCard.getByText("Keep Screen Awake During Playback", { exact: true }).isVisible(),
+    `${label}: keep-screen-awake should render inside screensaver settings`,
   );
   assert.deepStrictEqual(
     await coverArtCard.locator("#sp-set-ss-cover-art-delay option").evaluateAll(
@@ -1229,12 +1238,6 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: cover art conditions field should be hidden until advanced filtering is enabled`,
   );
   await coverArtCard.getByText("Advanced Options", { exact: true }).click();
-  assert(
-    await coverArtCard
-      .getByText("Keep Screen Awake During Playback", { exact: true })
-      .isVisible(),
-    `${label}: keep-screen-awake option should render inside advanced options`,
-  );
   assert(
     await coverArtCard
       .getByText("Advanced Filtering", { exact: true })

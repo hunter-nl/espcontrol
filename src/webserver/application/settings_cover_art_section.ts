@@ -15,8 +15,9 @@ export function installSettingsCoverArtSectionModule(): GlobalDescriptors {
         var coverArtOptions: any = condField();
         var coverArtOnlyOptions: any = condField();
         var coverArtAdvancedBody: any = document.createElement("div");
+        var coverArtScreensaverSettingsBody: any = document.createElement("div");
         var sleepPreventionToggle: any = toggleRow("Keep Screen Awake During Playback", "sp-set-ss-media-sleep-prevention", state.mediaPlayerSleepPreventionOn);
-        coverArtAdvancedBody.appendChild(sleepPreventionToggle.row);
+        coverArtScreensaverSettingsBody.appendChild(sleepPreventionToggle.row);
         sleepPreventionToggle.input.addEventListener("change", function (this: any) {
             state.mediaPlayerSleepPreventionOn = this.checked;
             syncMediaPlayerSleepPreventionUi();
@@ -41,7 +42,6 @@ export function installSettingsCoverArtSectionModule(): GlobalDescriptors {
             },
         });
         els.setCoverArtMediaPlayer = coverArtEntityInp;
-        var coverArtScreensaverSettingsBody: any = document.createElement("div");
         var coverArtDelayField: any = document.createElement("div");
         coverArtDelayField.className = "sp-field";
         coverArtDelayField.appendChild(fieldLabel("Show After", "sp-set-ss-cover-art-delay"));
