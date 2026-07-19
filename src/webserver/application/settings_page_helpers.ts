@@ -139,7 +139,7 @@ export function installSettingsPageHelpersModule(): GlobalDescriptors {
             "sp-alarm-delay-audio-info",
             "Entry and exit beeps use the panel speaker. TTS is sent as a Home Assistant announcement event only while Voice Services are enabled."));
         syncAlarmDelayAudioUi();
-        return makeCollapsibleCard("Alarm Delay Audio", body, true);
+        return makeCollapsibleCard("Alarm Audio", body, true);
     }
     function coverArtTrackOverlayDurationSupported(this: any) {
         return !!(CFG && CFG.coverArtSquareOverlay);

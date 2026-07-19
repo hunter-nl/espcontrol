@@ -69,11 +69,11 @@ If Home Assistant reports an alarm arming delay or pending entry delay, the pane
 
 The delay display follows the alarm entity updates from Home Assistant, so it works whether Home Assistant sends the total delay once or keeps sending updated remaining-time values during the countdown.
 
-### Alarm Delay Audio
+### Alarm Audio
 
 The **ESP32-P4 86 Panel** can also provide audible entry and exit delay feedback. This is off by default, so updating does not make an existing alarm setup start sounding unexpectedly.
 
-Open **Settings → Alarm Delay Audio** to configure:
+Open **Settings → Alarm Audio** to configure:
 
 - **Alarm Delay Audio** — enables all alarm delay sounds.
 - **TTS Announcements** — sends the configured entry or exit message to Home Assistant when Voice Services are enabled. Home Assistant can use the `esphome.alarm_delay_announcement` event as a TTS automation hook for the panel's Voice Media Player. The event's `device` field is the individual ESPHome node name, while `model` identifies the panel model.
