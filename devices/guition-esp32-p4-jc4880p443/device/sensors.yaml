@@ -416,8 +416,8 @@ esphome:
                 return clock_bar_should_show(
                     id(clock_bar_enabled).state,
                     id(main_page)->obj,
-                    id(display_mode_controller).current_mode(),
-                    id(display_mode_controller).target_schedule_inactive());
+                    id(espcontrol_app).display().current_mode(),
+                    id(espcontrol_app).display().target_schedule_inactive());
               },
               []() {
                 id(screensaver_presence_wake).execute();

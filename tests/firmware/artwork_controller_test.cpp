@@ -14,8 +14,16 @@ using espcontrol::artwork::artwork_source_request_mask;
 using espcontrol::artwork::artwork_picture_response_clears_retry;
 using espcontrol::artwork::source_response_can_apply_immediately;
 using espcontrol::cover_art::RuntimeState;
+using espcontrol::cover_art::media_card_artwork_suppressed;
 
 int main() {
+  // A media entity may not expose a source attribute. Valid downloaded artwork
+  // remains visible until an external input is positively identified.
+  assert(!media_card_artwork_suppressed(false, false));
+  assert(!media_card_artwork_suppressed(false, true));
+  assert(!media_card_artwork_suppressed(true, false));
+  assert(media_card_artwork_suppressed(true, true));
+
   SourceCandidates sources;
   assert(sources.empty());
 

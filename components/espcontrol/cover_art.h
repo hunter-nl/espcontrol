@@ -39,6 +39,11 @@ inline bool external_media_source(const std::string &source) {
          normalized == "line in" || normalized.rfind("hdmi", 0) == 0;
 }
 
+inline bool media_card_artwork_suppressed(bool source_known,
+                                          bool external_source) {
+  return source_known && external_source;
+}
+
 inline bool media_entity_state_usable(const std::string &state) {
   const std::string normalized = normalized_media_source(state);
   return normalized == "playing" || normalized == "paused" ||

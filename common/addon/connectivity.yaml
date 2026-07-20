@@ -111,7 +111,7 @@ script:
     then:
       - lvgl.resume:
       - lambda: |-
-          id(display_mode_controller).clear(
+          id(espcontrol_app).display().clear(
               espcontrol::DisplayRequestSource::MANUAL_SLEEP);
       - script.execute: display_mode_reconcile
       - script.wait: display_mode_apply_transition

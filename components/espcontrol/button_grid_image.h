@@ -2196,6 +2196,11 @@ inline void image_card_refresh_due() {
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++) {
     ImageCardCtx *ctx = &contexts[i];
     if (!ctx->active) continue;
+    if (esphome::artwork_image::image_pipeline_completion_needs_recovery(
+          ctx->image_ready, ctx->image && ctx->image->has_image(),
+          ctx->image && ctx->image->get_url() == ctx->url)) {
+      image_card_apply_downloaded(ctx);
+    }
     if (ctx->next_picture_retry_ms != 0 &&
         (int32_t)(now - ctx->next_picture_retry_ms) >= 0) {
       ctx->next_picture_retry_ms = 0;

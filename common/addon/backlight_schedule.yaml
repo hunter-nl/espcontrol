@@ -136,7 +136,7 @@ switch:
                 call.set_value("disabled");
                 call.perform();
       - lambda: |-
-          id(display_mode_controller).clear(
+          id(espcontrol_app).display().clear(
               espcontrol::DisplayRequestSource::MANUAL_SLEEP);
       - globals.set:
           id: manual_wake_ms
@@ -144,7 +144,7 @@ switch:
       - if:
           condition:
             lambda: |-
-              const auto transition = id(display_mode_controller).resolve();
+              const auto transition = id(espcontrol_app).display().resolve();
               return transition.target_mode != espcontrol::DisplayMode::ACTIVE &&
                   (transition.winning_source == espcontrol::DisplayRequestSource::BOOT_GUARD ||
                    transition.winning_source == espcontrol::DisplayRequestSource::SCREEN_SCHEDULE);
@@ -243,7 +243,7 @@ text:
         - if:
             condition:
               lambda: |-
-                return id(display_mode_controller).current_mode_is(
+                return id(espcontrol_app).display().current_mode_is(
                     espcontrol::DisplayMode::CLOCK);
             then:
               - lambda: 'apply_clock_screensaver_text_color(id(clock_label), id(schedule_clock_text_color).state);'
@@ -389,7 +389,7 @@ number:
         - if:
             condition:
               lambda: |-
-                if (!id(display_mode_controller).current_mode_is(
+                if (!id(espcontrol_app).display().current_mode_is(
                       espcontrol::DisplayMode::ACTIVE)) return false;
                 auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
                 return screen_schedule_night_active(
@@ -425,7 +425,7 @@ number:
         - if:
             condition:
               lambda: |-
-                return id(display_mode_controller).current_mode_is(
+                return id(espcontrol_app).display().current_mode_is(
                     espcontrol::DisplayMode::CLOCK);
             then:
               - script.execute: clock_screensaver_refresh_brightness
@@ -480,7 +480,7 @@ script:
     mode: restart
     then:
       - lambda: |-
-          id(display_mode_controller).clear(
+          id(espcontrol_app).display().clear(
               espcontrol::DisplayRequestSource::MANUAL_SLEEP);
       - globals.set: { id: manual_wake_ms, value: '0' }
       - script.execute: display_mode_reconcile
@@ -492,7 +492,7 @@ script:
     mode: restart
     then:
       - lambda: |-
-          id(display_mode_controller).clear(
+          id(espcontrol_app).display().clear(
               espcontrol::DisplayRequestSource::MANUAL_SLEEP);
       - globals.set: { id: manual_wake_ms, value: '0' }
       - script.execute: display_mode_reconcile
@@ -505,7 +505,7 @@ script:
     then:
       - script.stop: screen_schedule_wake_timeout_check
       - lambda: |-
-          id(display_mode_controller).clear(
+          id(espcontrol_app).display().clear(
               espcontrol::DisplayRequestSource::MANUAL_SLEEP);
       - globals.set: { id: manual_wake_ms, value: '0' }
       - script.execute: display_mode_reconcile
@@ -521,7 +521,7 @@ script:
     then:
       - script.stop: screen_schedule_wake_timeout_check
       - lambda: |-
-          id(display_mode_controller).clear(
+          id(espcontrol_app).display().clear(
               espcontrol::DisplayRequestSource::MANUAL_SLEEP);
       - globals.set: { id: manual_wake_ms, value: '0' }
       - script.execute: display_mode_reconcile
@@ -538,7 +538,7 @@ script:
       - script.stop: home_screen_idle_check
       - script.stop: screen_schedule_wake_timeout_check
       - lambda: |-
-          id(display_mode_controller).clear(
+          id(espcontrol_app).display().clear(
               espcontrol::DisplayRequestSource::MANUAL_SLEEP);
       - globals.set: { id: manual_wake_ms, value: '0' }
       - script.execute: display_mode_reconcile
@@ -591,7 +591,7 @@ script:
           return (int) (timeout_s * 1000.0f);
       - lambda: |-
           if (!id(schedule_enabled).state || id(manual_wake_ms) == 0 ||
-              id(display_mode_controller).request_active(
+              id(espcontrol_app).display().request_active(
                   espcontrol::DisplayRequestSource::MANUAL_SLEEP)) {
             return;
           }
@@ -629,16 +629,16 @@ script:
     mode: restart
     then:
       - lambda: |-
-          if (!id(display_mode_controller).target_mode_is(
+          if (!id(espcontrol_app).display().target_mode_is(
                 espcontrol::DisplayMode::ACTIVE) &&
-              !id(display_mode_controller).target_mode_is(
+              !id(espcontrol_app).display().target_mode_is(
                 espcontrol::DisplayMode::COVER_ART)) return;
           auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
-          if (id(display_mode_controller).target_source_is(
+          if (id(espcontrol_app).display().target_source_is(
                 espcontrol::DisplayRequestSource::SCREEN_SCHEDULE)) {
-            if (id(display_mode_controller).target_mode_is(
+            if (id(espcontrol_app).display().target_mode_is(
                   espcontrol::DisplayMode::CLOCK)) return;
-            if (id(display_mode_controller).target_mode_is(
+            if (id(espcontrol_app).display().target_mode_is(
                   espcontrol::DisplayMode::DISPLAY_OFF)) {
               id(backlight_force_display_off).execute();
               return;
@@ -739,9 +739,9 @@ interval:
       - if:
           condition:
             lambda: |-
-              return (id(display_mode_controller).target_source_is(
+              return (id(espcontrol_app).display().target_source_is(
                           espcontrol::DisplayRequestSource::SCREEN_SCHEDULE) &&
-                      id(display_mode_controller).target_mode_is(
+                      id(espcontrol_app).display().target_mode_is(
                           espcontrol::DisplayMode::DISPLAY_OFF)) ||
                      screen_schedule_waiting_for_time(
                        id(screen_schedule_trigger).state,

@@ -291,7 +291,7 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
         if (
             "id: display_takeover_begin" not in backlight_text
             or "id: display_takeover_end" not in backlight_text
-            or "id: display_mode_controller" not in backlight_text
+            or "id(espcontrol_app).display()" not in backlight_text
             or "cover_art_screensaver_active" in backlight_text
         ):
             errors.append("common/addon/backlight.yaml: centralize typed display-takeover lifecycle")
@@ -1388,19 +1388,19 @@ def valid_sleep_takeover_files() -> dict[str, str]:
         "common/addon/backlight.yaml": (
             "globals:\n"
             "  - id: screensaver_sensor_sleep_pending\n"
-            "  - id: display_mode_controller\n"
+            "  - id: espcontrol_app\n"
             "script:\n"
             "  - id: display_takeover_begin\n"
             "    then:\n"
-            "      - lambda: 'id(display_mode_controller).begin_takeover(static_cast<espcontrol::DisplayTakeoverKind>(takeover_kind));'\n"
+            "      - lambda: 'id(espcontrol_app).display().begin_takeover(static_cast<espcontrol::DisplayTakeoverKind>(takeover_kind));'\n"
             "      - script.execute: display_mode_reconcile\n"
             "  - id: display_takeover_end\n"
             "    then:\n"
-            "      - lambda: 'id(display_mode_controller).end_takeover(static_cast<espcontrol::DisplayTakeoverKind>(takeover_kind));'\n"
+            "      - lambda: 'id(espcontrol_app).display().end_takeover(static_cast<espcontrol::DisplayTakeoverKind>(takeover_kind));'\n"
             "      - script.execute: display_mode_reconcile\n"
             "  - id: screensaver_sleep_timer\n"
             "    then:\n"
-            "      - lambda: 'id(display_mode_controller).takeover_active(espcontrol::DisplayTakeoverKind::INTERACTIVE);'\n"
+            "      - lambda: 'id(espcontrol_app).display().takeover_active(espcontrol::DisplayTakeoverKind::INTERACTIVE);'\n"
             "      - script.execute: display_mode_request_automatic\n"
             "  - id: home_screen_idle_check\n"
             "    then:\n"

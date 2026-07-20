@@ -516,12 +516,12 @@ def firmware_media_cover_art_external_input_errors(
     if (
         "if (ctx->media_artwork)" not in image
         or "image_card_sync_media_artwork_visibility(ctx);" not in image
-        or "!media_ctx->source_known || media_ctx->external_source" not in grid
-        or "!ctx->source_known || ctx->external_source" not in media
+        or "media_card_artwork_suppressed(" not in grid
+        or "media_card_artwork_suppressed(" not in media
         or "image_card_sync_media_artwork_visibility(art);" not in grid
     ):
         errors.append(
-            f"{rel}: prevent cached, pending-source, or late artwork from bypassing suppression"
+            f"{rel}: prevent cached or late artwork from bypassing external-input suppression"
         )
     return errors
 
@@ -1651,7 +1651,7 @@ def firmware_cover_art_low_heap_progress_errors(
     else:
         condition_body = low_heap_refresh.group(1)
         active_guard = condition_body.find(
-            "if (!id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART))"
+            "if (!id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART))"
         )
         prepare_progress = condition_body.find("media_playback_prepare_cover_art_progress")
         if active_guard < 0 or prepare_progress < 0 or active_guard > prepare_progress:
@@ -2071,7 +2071,7 @@ def firmware_screensaver_wake_guard_errors(
             pending_restore_tokens = (
                 "id: screensaver_wake_restore_pending",
                 "id(screensaver_wake_restore_pending) =",
-                "!id(display_mode_controller).target_mode_is(",
+                "!id(espcontrol_app).display().target_mode_is(",
                 "const bool restore_pending = id(screensaver_wake_restore_pending);",
                 "id(screensaver_wake_restore_pending) = false;",
                 "return restore_pending ||",
@@ -2101,7 +2101,7 @@ def firmware_screensaver_wake_guard_errors(
                     errors.append(f"{rel}: preserve the shared wake guard while screensaver state is restored")
 
             clear_marker = (
-                "id(display_mode_controller).clear("
+                "id(espcontrol_app).display().clear("
                 "espcontrol::DisplayRequestSource::IDLE_TIMER);"
             )
             clear_index = body.find(clear_marker)
@@ -2233,7 +2233,7 @@ def firmware_display_backlight_manual_sleep_errors(
         errors.append(f"{backlight_rel}: missing shared display_backlight_handle_off script")
     else:
         if (
-            "!id(display_mode_controller).target_mode_is(" not in handler_body
+            "!id(espcontrol_app).display().target_mode_is(" not in handler_body
             or "espcontrol::DisplayMode::DISPLAY_OFF" not in handler_body
         ):
             errors.append(
@@ -2321,7 +2321,7 @@ def firmware_clock_bar_pending_wake_errors(display_path: Path, root: Path) -> li
     body = yaml_script_body(text, "clock_bar_apply")
     if body is None:
         return [f"{rel}: missing clock_bar_apply script"]
-    if "id(display_mode_controller).target_mode()" not in body:
+    if "id(espcontrol_app).display().target_mode()" not in body:
         return [f"{rel}: resolve clock bar visibility from the pending display target"]
     return []
 
@@ -2493,10 +2493,10 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
             and "DisplayRequestSource::MEDIA_PLAYBACK" not in reconcile_body
         )
         legacy_clears_cover_art = (
-            "if (schedule_night && id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART))" in reconcile_body
+            "if (schedule_night && id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART))" in reconcile_body
             or (
-                "if (id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART))" in reconcile_body
-                and "id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) = false;" in reconcile_body
+                "if (id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART))" in reconcile_body
+                and "id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) = false;" in reconcile_body
                 and "id(hide_cover_art_view).execute();" in reconcile_body
             )
         )
@@ -3828,7 +3828,7 @@ def run_self_test() -> int:
             "keep media source tracking independent",
             "subscribe image-only cover art cards",
             "hide media card artwork",
-            "prevent cached, pending-source, or late artwork",
+            "prevent cached or late artwork",
         ),
     )
     expect_media_cover_art_external_input_errors(
@@ -3841,7 +3841,8 @@ def run_self_test() -> int:
                 "inline void subscribe_media_cover_art_source_state() {}\n"
                 "inline void apply() {\n"
                 "  image_card_set_media_artwork_suppressed(\n"
-                "    ctx, !ctx->source_known || ctx->external_source);\n"
+                "    ctx, media_card_artwork_suppressed(\n"
+                "      ctx->source_known, ctx->external_source));\n"
                 "}\n"
             ),
             "button_grid_media_driver.h": (
@@ -3855,8 +3856,8 @@ def run_self_test() -> int:
                 "}\n"
             ),
             "button_grid_grid.h": (
-                "art->media_artwork_suppressed =\n"
-                "  !media_ctx->source_known || media_ctx->external_source;\n"
+                "art->media_artwork_suppressed = media_card_artwork_suppressed(\n"
+                "  media_ctx->source_known, media_ctx->external_source);\n"
                 "image_card_sync_media_artwork_visibility(art);\n"
             ),
         },
@@ -3869,7 +3870,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return !id(display_mode_controller).target_mode_is(\n"
+        "              return !id(espcontrol_app).display().target_mode_is(\n"
         "                  espcontrol::DisplayMode::DISPLAY_OFF);\n"
         "          then:\n"
         "            - script.execute: screen_schedule_manual_sleep\n"
@@ -5055,7 +5056,7 @@ def run_self_test() -> int:
         "    then:\n"
         "      - if:\n"
         "          condition:\n"
-        "            lambda: 'return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART);'\n"
+        "            lambda: 'return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART);'\n"
         "          then:\n"
         "            - lambda: 'id(cover_art_manual_pause_until_ms) = 1;'\n",
         ("restart its countdown after every touch",),
@@ -5074,7 +5075,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) &&\n"
+        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) &&\n"
         "                     id(cover_art_runtime).image_available &&\n"
         "                     id(cover_art_runtime).refresh_needed &&\n"
         "                     !${cover_art_live_image_updates};\n"
@@ -5212,16 +5213,16 @@ def run_self_test() -> int:
         "          id: display_mode_effect_cover_art\n"
         "      - script.execute:\n"
         "          id: cover_art_hide_effect\n"
-        "      - lambda: 'id(display_mode_controller).complete_transition(generation, espcontrol::DisplayMode::COVER_ART);'\n"
+        "      - lambda: 'id(espcontrol_app).display().complete_transition(generation, espcontrol::DisplayMode::COVER_ART);'\n"
         "  - id: display_mode_request_cover_art\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).request(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK, espcontrol::DisplayMode::COVER_ART);'\n"
+        "      - lambda: 'id(espcontrol_app).display().request(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK, espcontrol::DisplayMode::COVER_ART);'\n"
         "      - script.execute: display_mode_reconcile\n"
         "      - script.wait: display_mode_reconcile\n"
         "      - script.wait: display_mode_apply_transition\n"
         "  - id: display_mode_clear_cover_art\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).clear(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK);'\n"
+        "      - lambda: 'id(espcontrol_app).display().clear(espcontrol::DisplayRequestSource::MEDIA_PLAYBACK);'\n"
         "      - script.execute: display_mode_reconcile\n"
         "      - script.wait: display_mode_reconcile\n"
         "      - script.wait: display_mode_apply_transition\n"
@@ -5235,10 +5236,10 @@ def run_self_test() -> int:
         "script:\n"
         "  - id: display_mode_effect_cover_art\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).transition_is_current(generation, espcontrol::DisplayMode::COVER_ART); lv_obj_move_foreground(id(cover_art_screensaver));'\n"
+        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, espcontrol::DisplayMode::COVER_ART); lv_obj_move_foreground(id(cover_art_screensaver));'\n"
         "  - id: cover_art_hide_effect\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).transition_is_current(generation, target); return std::string(\"${device_slug}\") == \"guition-esp32-s3-4848s040\";'\n"
+        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, target); return std::string(\"${device_slug}\") == \"guition-esp32-s3-4848s040\";'\n"
         "      - artwork_image.release: cover_art_downloaded_image\n"
         "  - id: hide_cover_art_view\n"
         "    then:\n"
@@ -5252,22 +5253,22 @@ def run_self_test() -> int:
         "      - script.wait: display_mode_clear_cover_art\n"
         "  - id: cover_art_delay_timer\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).generation_is_current(generation);'\n"
+        "      - lambda: 'id(espcontrol_app).display().generation_is_current(generation);'\n"
         "  - id: cover_art_apply_downloaded_image\n"
         "    then:\n"
         "      - lambda: 'return id(cover_art_download_generation);'\n"
         "  - id: cover_art_deferred_download\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).transition_is_current(generation, mode);'\n"
+        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, mode);'\n"
         "  - id: cover_art_retry_download\n"
         "    then:\n"
         "      - lambda: 'return id(cover_art_download_generation);'\n"
         "  - id: cover_art_refresh_progress\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).transition_is_current(generation, mode);'\n"
+        "      - lambda: 'id(espcontrol_app).display().transition_is_current(generation, mode);'\n"
         "  - id: cover_art_delayed_playback_stopped\n"
         "    then:\n"
-        "      - lambda: 'id(display_mode_controller).generation_is_current(generation);'\n"
+        "      - lambda: 'id(espcontrol_app).display().generation_is_current(generation);'\n"
         "      - globals.set: { id: cover_art_delay_interrupted_by_transition, value: 'false' }\n"
         "      - globals.set: { id: cover_art_media_playing, value: 'false' }\n"
         "      - script.execute: display_mode_clear_cover_art\n"
@@ -5300,7 +5301,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
         "                     ((id(media_player_sleep_prevention_enabled).state ||\n"
         "                       id(cover_art_screensaver_enabled).state) &&\n"
         "                      id(media_player_playing));\n",
@@ -5327,7 +5328,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
         "                     (id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n",
         "",
@@ -5342,7 +5343,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
@@ -5386,7 +5387,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
@@ -5396,7 +5397,7 @@ def run_self_test() -> int:
         "          condition:\n"
         "            lambda: |-\n"
         "              const std::string &state = id(cover_art_last_playback_state);\n"
-        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_media_playing) &&\n"
         "                      state != \"playing\" && state != \"buffering\" && state != \"paused\");\n"
         "          then:\n"
@@ -5436,7 +5437,7 @@ def run_self_test() -> int:
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
-        "              return id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              return id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
         "                      id(media_player_playing));\n"
@@ -5640,7 +5641,7 @@ def run_self_test() -> int:
         "          condition:\n"
         "            lambda: |-\n"
         "              #ifdef ESPCONTROL_LOW_HEAP_COVER_ART\n"
-        "              if (!id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART)) return false;\n"
+        "              if (!id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART)) return false;\n"
         "              media_playback_prepare_cover_art_progress(id(cover_art_media_player_entity).state, id(cover_art_media_playing));\n"
         "              return true;\n"
         "              #else\n"
@@ -6215,20 +6216,20 @@ def run_self_test() -> int:
         "    then:\n"
         "      - lambda: |-\n"
         "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "              !id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
         "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
-        "              id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF);\n"
+        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF);\n"
         "      - script.execute: screensaver_wake_touch_block\n"
         "      - lambda: |-\n"
-        "          id(display_mode_controller).clear(espcontrol::DisplayRequestSource::IDLE_TIMER);\n"
+        "          id(espcontrol_app).display().clear(espcontrol::DisplayRequestSource::IDLE_TIMER);\n"
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
         "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
         "              id(screensaver_wake_restore_pending) = false;\n"
         "              return restore_pending ||\n"
-        "                  !id(display_mode_controller).current_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "                  !id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
         "          then:\n"
         "            - if:\n"
         "                condition:\n"
@@ -6253,20 +6254,20 @@ def run_self_test() -> int:
         "    then:\n"
         "      - lambda: |-\n"
         "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "              !id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
         "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
-        "              id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF);\n"
+        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) ||\n"
+        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF);\n"
         "      - script.execute: screensaver_wake_touch_block\n"
         "      - lambda: |-\n"
-        "          id(display_mode_controller).clear(espcontrol::DisplayRequestSource::IDLE_TIMER);\n"
+        "          id(espcontrol_app).display().clear(espcontrol::DisplayRequestSource::IDLE_TIMER);\n"
         "      - if:\n"
         "          condition:\n"
         "            lambda: |-\n"
         "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
         "              id(screensaver_wake_restore_pending) = false;\n"
         "              return restore_pending ||\n"
-        "                  !id(display_mode_controller).current_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
+        "                  !id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::ACTIVE);\n"
         "          then:\n"
         "            - globals.set:\n"
         "                id: screensaver_wake_touch_guard_active\n"
@@ -6290,7 +6291,7 @@ def run_self_test() -> int:
     expect_screensaver_wake_guard_errors(
         "Cover Art-only guard does not cover Display Off",
         valid_shared_wake_flow.replace(
-            " ||\n              id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF)",
+            " ||\n              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::DISPLAY_OFF)",
             "",
         ),
         valid_shared_wake_guard_widget,
@@ -6343,7 +6344,7 @@ def run_self_test() -> int:
         "  - id: clock_screensaver_keep_on_top\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          if (!id(display_mode_controller).current_mode_is(espcontrol::DisplayMode::CLOCK)) return;\n"
+        "          if (!id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::CLOCK)) return;\n"
         "          hide_clock_bar_top_layer_widgets(nullptr, 0, nullptr, nullptr);\n"
         "          refresh_screensaver_fullscreen(id(clock_screensaver), id(dim_screensaver_touch_guard));\n"
         "          lv_obj_move_foreground(id(clock_screensaver));\n"
@@ -6379,7 +6380,7 @@ def run_self_test() -> int:
         "  - id: clock_screensaver_keep_on_top\n"
         "    then:\n"
         "      - lambda: |-\n"
-        "          if (!id(display_mode_controller).current_mode_is(espcontrol::DisplayMode::CLOCK)) return;\n"
+        "          if (!id(espcontrol_app).display().current_mode_is(espcontrol::DisplayMode::CLOCK)) return;\n"
         "          hide_clock_bar_top_layer_widgets(nullptr, 0, nullptr, nullptr);\n"
         "          refresh_screensaver_fullscreen(id(clock_screensaver), id(dim_screensaver_touch_guard));\n"
         "          lv_obj_move_foreground(id(clock_screensaver));\n"
@@ -6487,7 +6488,7 @@ def run_self_test() -> int:
         "          id: screen_schedule_asleep\n"
         "          value: 'true'\n"
         "      - lambda: |-\n"
-        "          id(display_mode_controller).request(\n"
+        "          id(espcontrol_app).display().request(\n"
         "              espcontrol::DisplayRequestSource::SCREEN_SCHEDULE,\n"
         "              espcontrol::DisplayMode::DISPLAY_OFF);\n"
         "      - script.execute: display_mode_reconcile\n"
@@ -6529,8 +6530,8 @@ def run_self_test() -> int:
         "          if (schedule_night) {\n"
         "            controller.request(espcontrol::DisplayRequestSource::SCREEN_SCHEDULE,\n"
         "                               espcontrol::DisplayMode::CLOCK);\n"
-        "            if (id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART)) {\n"
-        "              id(display_mode_controller).target_mode_is(espcontrol::DisplayMode::COVER_ART) = false;\n"
+        "            if (id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART)) {\n"
+        "              id(espcontrol_app).display().target_mode_is(espcontrol::DisplayMode::COVER_ART) = false;\n"
         "              id(hide_cover_art_view).execute();\n"
         "            }\n"
         "          }\n"
