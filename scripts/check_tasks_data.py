@@ -83,6 +83,8 @@ TASKS = (
          domains=("firmware",),
          inputs=(
              "tests/firmware/**",
+             "components/espcontrol/configuration_service.*",
+             "components/espcontrol/configuration_store.*",
              "components/espcontrol/button_grid_limits.h",
              "components/espcontrol/button_grid_string.h",
              "components/espcontrol/button_grid_config_parser.h",
@@ -99,7 +101,7 @@ TASKS = (
          cache_tools=("node",)),
     task("mutations", ("python3", "scripts/run_mutations.py"),
          domains=("firmware", "web"),
-         inputs=("tests/mutations/**", "tests/firmware/**", "tests/web/*.test.ts", "tests/web/unit/**", "src/webserver/model/**", "src/webserver/generated/**", "scripts/run_mutations.py"),
+         inputs=("tests/mutations/**", "tests/firmware/**", "tests/web/*.test.ts", "tests/web/unit/**", "components/espcontrol/configuration_service.*", "components/espcontrol/configuration_store.*", "src/webserver/model/**", "src/webserver/generated/**", "scripts/run_mutations.py"),
          cache="never"),
     task("generated", ("python3", "scripts/build.py", "--check"),
          ("python3", "scripts/build.py", "--self-test"), profiles=PRODUCT,

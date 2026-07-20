@@ -20,6 +20,7 @@ outputs. For the hard edit/rebuild/check contract, use
 | Entity names | `common/config/entity_names.json` | Shared Home Assistant entity names used by firmware and the setup page. |
 | Icons | `common/assets/icons.json` and `common/assets/*glyphs.yaml` | Icon names, glyphs, and font glyph sets. |
 | Firmware UI | `components/espcontrol/*.h` | LVGL card grid, card renderers, modals, config parsing, Home Assistant bindings. |
+| Configuration service | `components/espcontrol/configuration_service.*` and `configuration_store.*` | Versioned documents, one-time legacy import, compatibility dual-write, and atomic two-slot storage; not yet the production persistence path. |
 | Web setup page | `src/webserver/` | Browser UI for configuring cards, settings, backup/restore, and previews. |
 | Typed web state | `src/webserver/state/` | Device configuration and application state types, isolated state creation, direct module-owned state access, event aliases, and event parsing. Application state must not be published as a browser global. |
 | Typed device API | `src/webserver/api/` | Injectable HTTP transport and ordered request queue; UI modules retain user-facing reactions. |
