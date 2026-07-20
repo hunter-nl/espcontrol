@@ -137,6 +137,7 @@ struct AlarmDelayAudioCoordinator {
   int remaining_seconds = -1;
   uint32_t remaining_updated_ms = 0;
   uint32_t period_ms = 1000U;
+  bool awaiting_announcement = false;
   lv_timer_t *timer = nullptr;
   AlarmDelayAudioHooks hooks;
 };
@@ -191,6 +192,7 @@ inline void alarm_delay_audio_stop() {
   coordinator.mode = AlarmDelayAudioMode::NONE;
   coordinator.remaining_seconds = -1;
   coordinator.remaining_updated_ms = 0;
+  coordinator.awaiting_announcement = false;
   coordinator.hooks = AlarmDelayAudioHooks();
 }
 
@@ -220,6 +222,14 @@ inline void alarm_delay_audio_timer_cb(lv_timer_t *timer) {
     }
     return;
   }
+  bool ready = !coordinator.hooks.ready || coordinator.hooks.ready();
+  if (alarm_delay_audio_waiting_for_announcement(
+        coordinator.awaiting_announcement, ready)) {
+    coordinator.period_ms = 100U;
+    lv_timer_set_period(timer, coordinator.period_ms);
+    return;
+  }
+  coordinator.awaiting_announcement = false;
   if (coordinator.hooks.play_beep) {
     coordinator.hooks.play_beep(coordinator.mode);
   }
@@ -258,12 +268,17 @@ inline void alarm_delay_audio_update(AlarmCardCtx *ctx, bool announce_start) {
   coordinator.hooks = ctx->audio_hooks;
 
   if (starting) {
+    bool announced = false;
     if (announce_start && coordinator.hooks.tts_enabled &&
         coordinator.hooks.tts_enabled() &&
         coordinator.hooks.announce) {
       coordinator.hooks.announce(mode);
+      announced = true;
     }
-    if (coordinator.hooks.play_beep) coordinator.hooks.play_beep(mode);
+    coordinator.awaiting_announcement = announced;
+    if (!announced && coordinator.hooks.play_beep) {
+      coordinator.hooks.play_beep(mode);
+    }
   }
   uint32_t period = alarm_delay_audio_beep_period_ms(
     remaining, alarm_delay_audio_final_countdown_seconds(coordinator));

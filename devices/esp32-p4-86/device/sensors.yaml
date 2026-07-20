@@ -74,6 +74,9 @@ script:
           cfg.alarm_delay_audio.final_countdown_seconds = []() {
             return static_cast<int>(id(alarm_delay_final_countdown_seconds).state);
           };
+          cfg.alarm_delay_audio.ready = []() {
+            return !id(alarm_delay_tts_pending);
+          };
           cfg.alarm_delay_audio.play_beep = [](AlarmDelayAudioMode mode) {
             id(play_alarm_delay_beep).execute(mode == AlarmDelayAudioMode::ENTRY);
           };
@@ -183,6 +186,9 @@ esphome:
             };
             cfg.alarm_delay_audio.final_countdown_seconds = []() {
               return static_cast<int>(id(alarm_delay_final_countdown_seconds).state);
+            };
+            cfg.alarm_delay_audio.ready = []() {
+              return !id(alarm_delay_tts_pending);
             };
             cfg.alarm_delay_audio.play_beep = [](AlarmDelayAudioMode mode) {
               id(play_alarm_delay_beep).execute(mode == AlarmDelayAudioMode::ENTRY);
@@ -346,6 +352,9 @@ esphome:
             };
             cfg.alarm_delay_audio.final_countdown_seconds = []() {
               return static_cast<int>(id(alarm_delay_final_countdown_seconds).state);
+            };
+            cfg.alarm_delay_audio.ready = []() {
+              return !id(alarm_delay_tts_pending);
             };
             cfg.alarm_delay_audio.play_beep = [](AlarmDelayAudioMode mode) {
               id(play_alarm_delay_beep).execute(mode == AlarmDelayAudioMode::ENTRY);

@@ -76,7 +76,7 @@ The **ESP32-P4 86 Panel** can also provide audible entry and exit delay feedback
 Open **Settings → Alarm Audio** to configure:
 
 - **Alarm Delay Audio** — enables all alarm delay sounds.
-- **TTS Announcements** — sends the configured entry or exit message to Home Assistant when Voice Services are enabled. Home Assistant can use the `esphome.alarm_delay_announcement` event as a TTS automation hook for the panel's Voice Media Player. The event's `device` field is the individual ESPHome node name, while `model` identifies the panel model.
+- **TTS Announcements** — sends the configured entry or exit message to Home Assistant when Voice Services are enabled. Home Assistant can use the `esphome.alarm_delay_announcement` event as a TTS automation hook for the panel's Voice Media Player. Beeping waits briefly for that announcement and starts after it finishes. The event's `device` field is the individual ESPHome node name, while `model` identifies the panel model.
 - **Entry Announcement** and **Exit Announcement** — the message supplied to that hook.
 - **Beep Volume** — the local warning-beep volume.
 - **Faster Beeps During Final Seconds** — changes the final countdown period; the default is 10 seconds.

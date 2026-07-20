@@ -14,10 +14,16 @@ struct AlarmDelayAudioHooks {
   std::function<bool()> enabled;
   std::function<bool()> tts_enabled;
   std::function<int()> final_countdown_seconds;
+  std::function<bool()> ready;
   std::function<void(AlarmDelayAudioMode)> play_beep;
   std::function<void(AlarmDelayAudioMode)> announce;
   std::function<void()> stop;
 };
+
+inline bool alarm_delay_audio_waiting_for_announcement(
+    bool awaiting_announcement, bool ready) {
+  return awaiting_announcement && !ready;
+}
 
 inline AlarmDelayAudioMode alarm_delay_audio_mode_for_state(
     const std::string &state) {

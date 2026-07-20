@@ -33,5 +33,10 @@ int main() {
       !alarm_delay_audio_should_reset_timer(false, 1000U, 700U)) {
     return EXIT_FAILURE;
   }
+  if (!alarm_delay_audio_waiting_for_announcement(true, false) ||
+      alarm_delay_audio_waiting_for_announcement(true, true) ||
+      alarm_delay_audio_waiting_for_announcement(false, false)) {
+    return EXIT_FAILURE;
+  }
   return EXIT_SUCCESS;
 }
