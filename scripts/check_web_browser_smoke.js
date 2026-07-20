@@ -798,9 +798,14 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: cover art settings should be grouped with sleep and schedule controls`,
   );
   assert.strictEqual(
-    settingsPlacement["Cover Art Screen Saver"]?.index,
-    settingsPlacement.Idle?.index + 1,
-    `${label}: cover art settings should appear immediately below Idle`,
+    settingsPlacement.Idle?.section,
+    "Display",
+    `${label}: idle settings should be grouped with display controls`,
+  );
+  assert.strictEqual(
+    settingsPlacement.Idle?.index,
+    settingsPlacement.Backlight?.index + 1,
+    `${label}: idle settings should appear immediately below Backlight`,
   );
   const firmwareCard = page
     .locator("#sp-settings .card")
