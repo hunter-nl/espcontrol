@@ -697,6 +697,20 @@ def check_root(root: Path) -> list[str]:
                 failures.append(
                     f"components/espcontrol/{MEDIA_DRIVER_HEADER}: avoid duplicate access-token subscriptions on cover-art route switches"
                 )
+            clear_route = route_body.find("now_playing->refresh_entity_route = nullptr")
+            attach_primary = route_body.find("media_playback_attach_now_playing(primary, now_playing)")
+            if clear_route < 0 or attach_primary < 0 or clear_route > attach_primary:
+                failures.append(
+                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching cached playback state"
+                )
+        bind_body = function_body(text, "media_driver_bind_data") or ""
+        if bind_body:
+            clear_route = bind_body.find("now_playing->refresh_entity_route = nullptr")
+            attach_source = bind_body.find("subscribe_media_cover_art_source_state")
+            if clear_route < 0 or attach_source < 0 or clear_route > attach_source:
+                failures.append(
+                    f"components/espcontrol/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching source state"
+                )
     elif grid_header.exists():
         failures.append(
             f"components/espcontrol/{MEDIA_DRIVER_HEADER}: missing shared media driver"

@@ -187,6 +187,10 @@ inline void media_driver_bind_cover_art_route(
     const std::string &primary_entity,
     const std::string &secondary_entity) {
   if (!now_playing || primary_entity.empty()) return;
+  // Phase 2 can reuse this visual context after releasing its old control.
+  // Clear the old route before attaching playback state because attachment
+  // can immediately apply cached state and invoke the route callback.
+  now_playing->refresh_entity_route = nullptr;
   now_playing->primary_entity = primary_entity;
   now_playing->secondary_entity = secondary_entity;
   now_playing->active_entity.clear();
@@ -267,8 +271,12 @@ inline void media_driver_bind_cover_art_route(
     }
 
     if (entity_changed && control) {
-      media_playback_detach_control(control);
-      control->entity_id = next_entity;
+      // A newly bound control already targets the primary entity. Rebind it
+      // only when the active route genuinely switches to another entity.
+      if (control->entity_id != next_entity) {
+        media_playback_detach_control(control);
+        control->entity_id = next_entity;
+      }
       subscribe_media_control_state(control);
     }
   };
@@ -318,6 +326,12 @@ inline bool media_driver_bind_data(
       ? static_cast<MediaNowPlayingCtx *>(
           lv_obj_get_user_data(slot.sensor_container))
       : nullptr;
+    if (mode == "cover_art" && now_playing) {
+      // The visual context can survive a Phase 2 refresh after its previous
+      // control was released. Clear that route before any source-state attach
+      // can immediately apply cached state through the stale callback.
+      now_playing->refresh_entity_route = nullptr;
+    }
     media_driver_track_now_playing(context, slot.btn, now_playing);
     if (now_playing && now_playing->progress_slider) {
       media_driver_track_slider(
