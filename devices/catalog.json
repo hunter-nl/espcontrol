@@ -741,6 +741,13 @@
         "public": {
           "name": "Guition JC8012P4A1",
           "docsPath": "/screens/jc8012p4a1"
+        },
+        "firmware": {
+          "package": {
+            "extraPackages": {
+              "battery": "!include device/battery.yaml"
+            }
+          }
         }
       }
     },

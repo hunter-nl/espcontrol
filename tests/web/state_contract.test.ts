@@ -94,6 +94,7 @@ export function runStateContractTests(): void {
     clockBarTime: "switch-screen__clock_bar_time",
     clockBarTemperatureEntities: "text-clock_bar_temperature_entities",
     networkStatus: "switch-screen__network_status_icon",
+    batteryStatus: "switch-screen__battery_status",
     voiceServices: "switch-voice_services",
     alarmDelayAudio: "switch-alarm_delay__audio",
     alarmDelayTts: "switch-alarm_delay__tts",

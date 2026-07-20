@@ -860,6 +860,7 @@ declare global {
   var postMediaPlayerSleepPrevention: any;
   var postMediaPlayerSleepPreventionEntity: any;
   var postNetworkStatusIcon: any;
+  var postBatteryStatus: any;
   var postNumber: any;
   var postNumberWithObjectId: any;
   var postNumberWithObjectIds: any;

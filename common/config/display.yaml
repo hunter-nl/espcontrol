@@ -69,6 +69,7 @@ script:
                                            id(display_time),
                                            id(network_status_button));
           ${voice_clock_bar_hide_code}
+          ${battery_status_hide_code}
           network_status_hide_modal();
 
   - id: clock_bar_apply
@@ -110,6 +111,7 @@ script:
                                              id(display_time),
                                              id(network_status_button));
             ${voice_clock_bar_hide_code}
+            ${battery_status_hide_code}
             network_status_hide_modal();
             return;
           }
@@ -140,6 +142,7 @@ script:
             network_status_hide_modal();
           }
           ${voice_clock_bar_apply_code}
+          ${battery_status_apply_code}
           if (!visible) return;
 
           refresh_clock_bar_temperature_label_values(id(main_page)->obj,

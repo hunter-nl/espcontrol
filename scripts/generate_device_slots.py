@@ -61,7 +61,34 @@ def package_substitution_lines(device: dict) -> list[str]:
             ]
         )
     lines.extend(cover_art_substitution_lines(device))
+    lines.extend(battery_substitution_lines(device))
     return lines
+
+
+def clock_bar_icon_offset_expr() -> str:
+    """C++ expression for the x-offset of a one-slot clock-bar icon, placed
+    immediately left of the network status icon (itself at -clock_bar_right_x)."""
+    return "-(clock_bar_right_x + clock_bar_item_width / 2)"
+
+
+def battery_substitution_lines(device: dict) -> list[str]:
+    if device["slug"] != "guition-esp32-p4-jc8012p4a1":
+        return [
+            '  battery_status_apply_code: ""',
+            '  battery_status_hide_code: ""',
+        ]
+    return [
+        "  battery_status_apply_code: |-",
+        "    if (id(battery_status_enabled).state) {",
+        "      lv_obj_align(id(battery_status_button), LV_ALIGN_TOP_RIGHT,",
+        f"                   {clock_bar_icon_offset_expr()}, clock_bar_icon_y);",
+        "      lv_obj_clear_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
+        "    } else {",
+        "      lv_obj_add_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
+        "    }",
+        "  battery_status_hide_code: |-",
+        "    lv_obj_add_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
+    ]
 
 
 def voice_substitution_lines(device: dict) -> list[str]:
@@ -79,7 +106,7 @@ def voice_substitution_lines(device: dict) -> list[str]:
         "  voice_clock_bar_apply_code: |-",
         "    if (id(voice_services_enabled).state) {",
         "      lv_obj_align(id(voice_clock_bar_mute_button), LV_ALIGN_TOP_RIGHT,",
-        "                   -(clock_bar_right_x + clock_bar_item_width / 2), clock_bar_icon_y);",
+        f"                   {clock_bar_icon_offset_expr()}, clock_bar_icon_y);",
         "      lv_obj_clear_flag(id(voice_clock_bar_mute_button), LV_OBJ_FLAG_HIDDEN);",
         "      const bool microphone_muted = id(master_mute_switch).state;",
         "      const bool output_muted = id(voice_media_player).is_muted();",

@@ -458,6 +458,7 @@ export default defineConfig({
           { text: 'Appearance', link: '/features/appearance' },
           { text: 'Backlight', link: '/features/backlight' },
           { text: 'Clock Bar', link: '/features/clock-bar' },
+          { text: 'Battery', link: '/features/battery' },
           { text: 'Rotation', link: '/features/rotation' },
           { text: '<span class="sidebar-static-header">Sleep & Schedule</span>' },
           { text: 'Idle', link: '/features/idle' },

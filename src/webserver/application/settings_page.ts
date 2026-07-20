@@ -200,6 +200,23 @@ export function installSettingsPageModule(): GlobalDescriptors {
             voiceServicesCard = makeCollapsibleCard("Voice Services", voiceServicesBody, true);
             els.voiceServicesCard = voiceServicesCard;
         }
+        var batteryStatusCard: any = null;
+        if (CFG.features && CFG.features.battery) {
+            var batteryStatusBody: any = document.createElement("div");
+            var batteryStatus: any = toggleRow("Show Battery Icon (Experimental)", "sp-set-battery-status", state.batteryStatusOn);
+            batteryStatusBody.appendChild(batteryStatus.row);
+            els.setBatteryStatusToggle = batteryStatus.input;
+            batteryStatus.input.addEventListener("change", function (this: any) {
+                state.batteryStatusOn = this.checked;
+                syncClockBarUi();
+                postBatteryStatus(state.batteryStatusOn);
+            });
+            var batteryStatusBadge: any = statusBadge("Battery icon on");
+            els.setBatteryStatusBadge = batteryStatusBadge;
+            syncClockBarUi();
+            batteryStatusCard = makeCollapsibleCard("Battery", batteryStatusBody, true, batteryStatusBadge);
+            els.batteryStatusCard = batteryStatusCard;
+        }
         var alarmDelayAudioCard: any = buildAlarmDelayAudioSettingsCard();
         var rotationCard: any = null;
         if (CFG.features && CFG.features.screenRotation) {
@@ -381,6 +398,7 @@ export function installSettingsPageModule(): GlobalDescriptors {
             backlightCard,
             idleCard,
             clockBarCard,
+            batteryStatusCard,
             rotationCard,
         ]);
         appendSettingsSection(config, "Voice & Sounds", [

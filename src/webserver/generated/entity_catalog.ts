@@ -102,6 +102,19 @@ export const ENTITY_CATALOG = {
         "network_status_enabled"
       ]
     },
+    "screen_battery_status": {
+      "domain": "switch",
+      "name": "Screen: Battery Status Icon",
+      "objectIds": [
+        "screen__battery_status",
+        "screen_battery_status",
+        "battery_status_enabled"
+      ]
+    },
+    "battery_percent": {
+      "domain": "sensor",
+      "name": "Battery"
+    },
     "voice_services": {
       "domain": "switch",
       "name": "Voice Services",
@@ -733,6 +746,10 @@ export const ENTITY_CATALOG = {
       "esp32_c6_latest_firmware",
       "esp32_c6_check_for_update",
       "esp32_c6_install_update"
+    ],
+    "settings_battery": [
+      "screen_battery_status",
+      "battery_percent"
     ],
     "settings_voice": [
       "voice_services"

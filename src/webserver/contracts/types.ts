@@ -173,6 +173,7 @@ export interface PanelSettings {
   clock_bar: boolean;
   clock_bar_time?: boolean;
   network_status_icon: boolean;
+  battery_status?: boolean;
   voice_services?: boolean;
   timezone: string;
   language: string;
