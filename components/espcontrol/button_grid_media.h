@@ -833,7 +833,8 @@ inline void media_playback_apply_state_to_now_playing_snapshot(
   ctx->external_source = state->external_source;
   if (ctx->cover_art) {
     image_card_set_media_artwork_suppressed(
-      ctx->cover_art, !ctx->source_known || ctx->external_source);
+      ctx->cover_art, espcontrol::cover_art::media_card_artwork_suppressed(
+        ctx->source_known, ctx->external_source));
   }
   if (ctx->title_lbl) {
     const std::string title =

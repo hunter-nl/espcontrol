@@ -516,12 +516,12 @@ def firmware_media_cover_art_external_input_errors(
     if (
         "if (ctx->media_artwork)" not in image
         or "image_card_sync_media_artwork_visibility(ctx);" not in image
-        or "!media_ctx->source_known || media_ctx->external_source" not in grid
-        or "!ctx->source_known || ctx->external_source" not in media
+        or "media_card_artwork_suppressed(" not in grid
+        or "media_card_artwork_suppressed(" not in media
         or "image_card_sync_media_artwork_visibility(art);" not in grid
     ):
         errors.append(
-            f"{rel}: prevent cached, pending-source, or late artwork from bypassing suppression"
+            f"{rel}: prevent cached or late artwork from bypassing external-input suppression"
         )
     return errors
 
@@ -3828,7 +3828,7 @@ def run_self_test() -> int:
             "keep media source tracking independent",
             "subscribe image-only cover art cards",
             "hide media card artwork",
-            "prevent cached, pending-source, or late artwork",
+            "prevent cached or late artwork",
         ),
     )
     expect_media_cover_art_external_input_errors(
@@ -3841,7 +3841,8 @@ def run_self_test() -> int:
                 "inline void subscribe_media_cover_art_source_state() {}\n"
                 "inline void apply() {\n"
                 "  image_card_set_media_artwork_suppressed(\n"
-                "    ctx, !ctx->source_known || ctx->external_source);\n"
+                "    ctx, media_card_artwork_suppressed(\n"
+                "      ctx->source_known, ctx->external_source));\n"
                 "}\n"
             ),
             "button_grid_media_driver.h": (
@@ -3855,8 +3856,8 @@ def run_self_test() -> int:
                 "}\n"
             ),
             "button_grid_grid.h": (
-                "art->media_artwork_suppressed =\n"
-                "  !media_ctx->source_known || media_ctx->external_source;\n"
+                "art->media_artwork_suppressed = media_card_artwork_suppressed(\n"
+                "  media_ctx->source_known, media_ctx->external_source);\n"
                 "image_card_sync_media_artwork_visibility(art);\n"
             ),
         },
