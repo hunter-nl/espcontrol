@@ -774,10 +774,12 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     await page
       .locator("#sp-settings .sp-settings-status-title")
       .evaluateAll((nodes) => nodes.map((node) => node.textContent)),
-    ["Display", "Sleep & Schedule", "Preferences", "System"],
+    options.slug === "esp32-p4-86"
+      ? ["Display", "Voice & Sounds", "Sleep & Schedule", "Preferences", "System"]
+      : ["Display", "Sleep & Schedule", "Preferences", "System"],
     `${label}: settings groups should be ordered by purpose`,
   );
-  const coverArtPlacement = await page.locator("#sp-settings .sp-config").evaluate((config) => {
+  const settingsPlacement = await page.locator("#sp-settings .sp-config").evaluate((config) => {
     let section = "";
     const placement = {};
     Array.from(config.children).forEach((child, index) => {
@@ -791,13 +793,13 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     return placement;
   });
   assert.strictEqual(
-    coverArtPlacement["Cover Art Screen Saver"]?.section,
+    settingsPlacement["Cover Art Screen Saver"]?.section,
     "Sleep & Schedule",
     `${label}: cover art settings should be grouped with sleep and schedule controls`,
   );
   assert.strictEqual(
-    coverArtPlacement["Cover Art Screen Saver"]?.index,
-    coverArtPlacement.Idle?.index + 1,
+    settingsPlacement["Cover Art Screen Saver"]?.index,
+    settingsPlacement.Idle?.index + 1,
     `${label}: cover art settings should appear immediately below Idle`,
   );
   const firmwareCard = page
@@ -987,6 +989,21 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     })
     .first();
   if (options.slug === "esp32-p4-86") {
+    assert.strictEqual(
+      settingsPlacement["Voice Services"]?.section,
+      "Voice & Sounds",
+      `${label}: voice services should be grouped with voice and sound controls`,
+    );
+    assert.strictEqual(
+      settingsPlacement["Alarm Audio"]?.section,
+      "Voice & Sounds",
+      `${label}: alarm audio should be grouped with voice and sound controls`,
+    );
+    assert.strictEqual(
+      settingsPlacement["Alarm Audio"]?.index,
+      settingsPlacement["Voice Services"]?.index + 1,
+      `${label}: alarm audio should appear immediately below voice services`,
+    );
     assert(
       await voiceServicesCard.isVisible(),
       `${label}: voice services settings card is available for the voice-capable panel`,

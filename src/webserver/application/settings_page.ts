@@ -380,9 +380,11 @@ export function installSettingsPageModule(): GlobalDescriptors {
             appearanceCard,
             backlightCard,
             clockBarCard,
+            rotationCard,
+        ]);
+        appendSettingsSection(config, "Voice & Sounds", [
             voiceServicesCard,
             alarmDelayAudioCard,
-            rotationCard,
         ]);
         appendSettingsSection(config, "Sleep & Schedule", [
             idleCard,
