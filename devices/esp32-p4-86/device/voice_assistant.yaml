@@ -467,7 +467,8 @@ script:
                   const size_t count = std::min(
                       chunk_samples, total_samples - sample_offset);
                   alarm_delay_audio_fill_tone(
-                      mode, samples, sample_offset, count, sample_rate);
+                      mode, samples, sample_offset, count, sample_rate,
+                      static_cast<float>(id(alarm_delay_beep_volume).state));
                   const uint8_t *bytes =
                       reinterpret_cast<const uint8_t *>(samples);
                   const size_t byte_count = count * sizeof(int16_t);

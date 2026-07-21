@@ -85,15 +85,27 @@ inline int16_t alarm_delay_audio_tone_sample(AlarmDelayAudioMode mode,
       (32768LL * 32767LL));
 }
 
+inline int16_t alarm_delay_audio_scale_tone_sample(int16_t sample,
+                                                    float volume) {
+  if (!(volume > 0.0f)) return 0;
+  if (volume >= 1.0f) return sample;
+  const int32_t gain = static_cast<int32_t>(volume * 32767.0f + 0.5f);
+  return static_cast<int16_t>(
+      static_cast<int32_t>(sample) * gain / 32767);
+}
+
 inline void alarm_delay_audio_fill_tone(AlarmDelayAudioMode mode,
                                         int16_t *samples,
                                         size_t sample_offset,
                                         size_t sample_count,
-                                        uint32_t sample_rate) {
+                                        uint32_t sample_rate,
+                                        float volume = 1.0f) {
   if (!samples) return;
   for (size_t i = 0; i < sample_count; i++) {
-    samples[i] = alarm_delay_audio_tone_sample(
-        mode, sample_offset + i, sample_rate);
+    samples[i] = alarm_delay_audio_scale_tone_sample(
+        alarm_delay_audio_tone_sample(
+            mode, sample_offset + i, sample_rate),
+        volume);
   }
 }
 

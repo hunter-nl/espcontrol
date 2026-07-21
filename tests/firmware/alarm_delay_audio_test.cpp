@@ -71,5 +71,19 @@ int main() {
   bool has_audio = false;
   for (int16_t sample : samples) has_audio = has_audio || sample != 0;
   if (!has_audio) return EXIT_FAILURE;
+  if (alarm_delay_audio_scale_tone_sample(12000, 0.5f) != 6000 ||
+      alarm_delay_audio_scale_tone_sample(-12000, 0.5f) != -6000 ||
+      alarm_delay_audio_scale_tone_sample(12000, 0.0f) != 0 ||
+      alarm_delay_audio_scale_tone_sample(12000, 1.0f) != 12000 ||
+      alarm_delay_audio_scale_tone_sample(12000, 2.0f) != 12000) {
+    return EXIT_FAILURE;
+  }
+  int16_t muted_samples[32] = {};
+  alarm_delay_audio_fill_tone(
+      AlarmDelayAudioMode::EXIT, muted_samples, exit_tone_sample, 32,
+      sample_rate, 0.0f);
+  for (int16_t sample : muted_samples) {
+    if (sample != 0) return EXIT_FAILURE;
+  }
   return EXIT_SUCCESS;
 }
