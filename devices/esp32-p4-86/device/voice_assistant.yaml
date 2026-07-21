@@ -451,6 +451,10 @@ script:
                   - media_player.volume_set:
                       id: voice_media_player
                       volume: !lambda return id(alarm_delay_beep_volume).state;
+            - mixer_speaker.apply_ducking:
+                id: voice_media_mixing_input
+                decibel_reduction: 20
+                duration: 0s
             - switch.turn_on: speaker_amplifier_enable
             - lambda: |-
                 constexpr uint32_t sample_rate = 48000U;
@@ -507,9 +511,9 @@ script:
                 args: ['entry_delay ? "entry" : "exit"']
             - homeassistant.action:
                 action: assist_satellite.announce
-                data:
-                  preannounce: "false"
                 data_template:
+                  # Render in Home Assistant so this remains a native boolean.
+                  preannounce: "{{ false }}"
                   entity_id: >-
                     {% set suffixed = 'assist_satellite.' ~ node_slug ~ '_assist_satellite' %}
                     {% set plain = 'assist_satellite.' ~ node_slug %}
