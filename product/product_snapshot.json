@@ -510,7 +510,6 @@
         },
         "display": {
           "wrapTallLabels": true,
-          "imageCardDiagnostics": true,
           "subpageChevronX": 4,
           "subpageChevronY": -2,
           "modal": {
@@ -704,7 +703,6 @@
         },
         "display": {
           "wrapTallLabels": true,
-          "imageCardDiagnostics": true,
           "subpageChevronX": 4,
           "subpageChevronY": -2,
           "modal": {

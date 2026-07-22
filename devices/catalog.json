@@ -102,7 +102,6 @@
         "firmware": {
           "display": {
             "wrapTallLabels": true,
-            "imageCardDiagnostics": true,
             "subpageChevronX": 4,
             "subpageChevronY": -2
           },
