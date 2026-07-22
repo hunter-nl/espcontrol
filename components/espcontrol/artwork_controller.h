@@ -64,6 +64,15 @@ constexpr bool source_response_can_apply_immediately(bool local_response,
   return local_response && usable_url;
 }
 
+// Duplicate Home Assistant callbacks do not need to restart artwork work that
+// is already queued or downloading. When idle, the same URL must remain
+// processable so explicit refreshes and download recovery can try again.
+constexpr bool artwork_response_needs_processing(bool source_changed,
+                                                 bool download_active,
+                                                 bool debounce_pending) {
+  return source_changed || (!download_active && !debounce_pending);
+}
+
 // Owns the ordering rules for Home Assistant's remote and local artwork URLs.
 // A new remote URL starts a new artwork generation, so any cached local URL is
 // discarded until the matching local attribute arrives.

@@ -2109,7 +2109,7 @@ inline void image_card_handle_media_artwork_picture(ImageCardCtx *ctx,
   std::string url = image_card_join_url(image_card_base_url(ctx), raw);
   // These two attribute requests run independently. A delayed remote callback
   // must not discard a newer local proxy URL that has already arrived.
-  ctx->media_artwork_sources.update(
+  bool source_changed = ctx->media_artwork_sources.update(
       local, url,
       espcontrol::artwork::RemoteUpdatePolicy::PRESERVE_LOCAL);
   if (local) {
@@ -2120,6 +2120,11 @@ inline void image_card_handle_media_artwork_picture(ImageCardCtx *ctx,
     if (!url.empty() && url != ctx->source_url) {
       ctx->startup_download_errors = 0;
     }
+  }
+  if (!espcontrol::artwork::artwork_response_needs_processing(
+          source_changed, ctx->download_active,
+          ctx->media_artwork_timer != nullptr)) {
+    return;
   }
   if (espcontrol::artwork::source_response_can_apply_immediately(local, !url.empty())) {
     if (ctx->media_artwork_timer) {

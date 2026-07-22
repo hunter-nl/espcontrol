@@ -12,6 +12,7 @@ using espcontrol::artwork::artwork_source_failed_mask;
 using espcontrol::artwork::artwork_source_mark_received;
 using espcontrol::artwork::artwork_source_request_mask;
 using espcontrol::artwork::artwork_picture_response_clears_retry;
+using espcontrol::artwork::artwork_response_needs_processing;
 using espcontrol::artwork::source_response_can_apply_immediately;
 using espcontrol::cover_art::RuntimeState;
 using espcontrol::cover_art::media_card_artwork_suppressed;
@@ -62,6 +63,14 @@ int main() {
   assert(source_response_can_apply_immediately(true, true));
   assert(!source_response_can_apply_immediately(false, true));
   assert(!source_response_can_apply_immediately(true, false));
+
+  // Repeated callbacks must not restart artwork work that is already pending,
+  // while changed sources and idle recovery attempts must still be processed.
+  assert(!artwork_response_needs_processing(false, true, false));
+  assert(!artwork_response_needs_processing(false, false, true));
+  assert(artwork_response_needs_processing(false, false, false));
+  assert(artwork_response_needs_processing(true, true, false));
+  assert(artwork_response_needs_processing(true, false, true));
 
   // A partial queue failure retries only the source that failed. Reads that
   // were already accepted must not accumulate duplicate deferred callbacks.
