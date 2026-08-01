@@ -1,0 +1,28 @@
+name: Hermes Runner Migration Canary
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-docker:
+    name: Verify isolated Docker runtime
+    runs-on: [self-hosted, Linux, X64, hermes, espcontrol]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify security boundary and Docker path mapping
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${DOCKER_HOST:-}" = "tcp://github-runner-docker:2375"
+          test ! -S /var/run/docker.sock
+          docker info >/dev/null
+          marker="${RUNNER_TEMP}/hermes-runner-canary-${GITHUB_RUN_ID}"
+          mkdir -p "${marker}"
+          trap 'rm -rf "${marker}"' EXIT
+          docker run --rm -v "${marker}:/probe" alpine:3.22 sh -c 'test -d /probe && touch /probe/path-mapping-ok'
+          test -f "${marker}/path-mapping-ok"
+          docker run --rm alpine:3.22 uname -m | grep -Eq '^(x86_64|amd64)$'
