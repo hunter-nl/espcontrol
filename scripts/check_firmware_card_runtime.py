@@ -183,7 +183,7 @@ def check_root(root: Path) -> list[str]:
                 "control_context = grid_media_control_runtime_for_owner(slots[i].btn);",
                 "slots[i].btn, visual_context, slider_context, control_context",
                 "espcontrol::cards::changed_domains(",
-                "mutation == espcontrol::cards::CardMutation::REBIND",
+                "espcontrol::cards::requires_runtime_release(mutation)",
                 "main_card_snapshots[i] = current_card_nodes[i]",
                 "reconstruct_main_cards && reconstruct_slot[idx - 1]",
                 "lv_obj_add_flag(unused_slot.btn, LV_OBJ_FLAG_HIDDEN);",

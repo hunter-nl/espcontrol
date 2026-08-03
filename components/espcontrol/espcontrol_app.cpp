@@ -191,8 +191,11 @@ void EspControlApp::loop() {
           message, sizeof(message), "{\"revision\":%u}",
           static_cast<unsigned>(revision));
       if (length > 0 && static_cast<size_t>(length) < sizeof(message)) {
-        events->try_send_nodefer(message, static_cast<size_t>(length),
-                                 "espcontrol_configuration");
+        // Each browser session retains the newest revision notification until
+        // its socket is writable, so a busy compatibility/state stream cannot
+        // silently consume the only notification.
+        events->queue_latest_nodefer(message, static_cast<size_t>(length),
+                                     "espcontrol_configuration");
       }
     }
   }

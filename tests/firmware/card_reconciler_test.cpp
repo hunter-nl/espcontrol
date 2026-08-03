@@ -104,6 +104,17 @@ bool binding_owned_visual_state_is_reconstructed() {
              domains, CardMutation::REBIND, true);
 }
 
+bool every_mutation_releases_previous_runtime() {
+  using espcontrol::cards::requires_runtime_release;
+  return !requires_runtime_release(CardMutation::NONE) &&
+         requires_runtime_release(CardMutation::ADD) &&
+         requires_runtime_release(CardMutation::REMOVE) &&
+         requires_runtime_release(CardMutation::REPLACE) &&
+         requires_runtime_release(CardMutation::REBIND) &&
+         requires_runtime_release(CardMutation::UPDATE_VISUAL) &&
+         requires_runtime_release(CardMutation::UPDATE_LAYOUT);
+}
+
 bool subpage_addresses_are_unambiguous() {
   FixedCardGraph<4> graph;
   CardNode first = card(1);
@@ -153,6 +164,7 @@ int main() {
   if (!binding_change_preserves_patch_details()) return EXIT_FAILURE;
   if (!visual_and_layout_changes_are_distinct()) return EXIT_FAILURE;
   if (!binding_owned_visual_state_is_reconstructed()) return EXIT_FAILURE;
+  if (!every_mutation_releases_previous_runtime()) return EXIT_FAILURE;
   if (!subpage_addresses_are_unambiguous()) return EXIT_FAILURE;
   if (!capacity_and_duplicates_are_rejected()) return EXIT_FAILURE;
   if (!repeated_revisions_remain_bounded()) return EXIT_FAILURE;

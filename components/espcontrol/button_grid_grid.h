@@ -1726,8 +1726,7 @@ inline void grid_phase2(
     reconstruct_slot[i] = espcontrol::cards::requires_visual_reconstruction(
       domains, mutation, espcontrol::cards::media_driver_matches(context));
     release_runtime_slot[i] =
-      mutation == espcontrol::cards::CardMutation::REPLACE ||
-      mutation == espcontrol::cards::CardMutation::REBIND;
+      espcontrol::cards::requires_runtime_release(mutation);
     if (domains != espcontrol::cards::CHANGE_NONE) {
       ESP_LOGD("card_runtime",
                "Card %d mutation=%u domains=0x%02x visual=%d release=%d",

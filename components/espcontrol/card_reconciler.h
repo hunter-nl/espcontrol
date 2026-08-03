@@ -184,6 +184,13 @@ inline bool requires_visual_reconstruction(
           binding_runtime_owns_visual_state);
 }
 
+// Every mutation that rebuilds or rebinds a card must release allocations
+// owned by the previous runtime. In particular, visual-only media updates
+// reconstruct LVGL user_data and must not leave the detached contexts tracked.
+inline bool requires_runtime_release(CardMutation mutation) {
+  return mutation != CardMutation::NONE;
+}
+
 // Planning is pure and allocation-free. The returned pointers refer to the two
 // input graphs, which must remain alive while the plan is being applied.
 template <std::size_t MaxCards>
