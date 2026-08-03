@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "configuration_store.h"
+#include "nvs_configuration_capacity.h"
 #include "nvs.h"
 
 namespace espcontrol::configuration {
@@ -13,9 +14,13 @@ namespace espcontrol::configuration {
 // long edit session cannot grow the allocator state or the number of keys.
 class NvsConfigurationStorage final : public StorageBackend {
  public:
-  static constexpr size_t CHUNK_SIZE = 1024;
-  static constexpr size_t SLOT_CAPACITY = 64 * 1024;
-  static constexpr size_t CHUNKS_PER_SLOT = SLOT_CAPACITY / CHUNK_SIZE;
+  static constexpr size_t CHUNK_SIZE = NvsConfigurationCapacity::CHUNK_SIZE;
+  static constexpr size_t BUFFER_CAPACITY =
+      NvsConfigurationCapacity::MAX_SLOT_CAPACITY;
+  static constexpr size_t MAX_CHUNKS_PER_SLOT =
+      NvsConfigurationCapacity::MAX_CHUNKS_PER_SLOT;
+  static_assert(CONFIGURATION_SLOT_COUNT ==
+                NvsConfigurationCapacity::RETAINED_SLOT_COUNT);
 
   NvsConfigurationStorage() = default;
   ~NvsConfigurationStorage() override;
@@ -24,7 +29,7 @@ class NvsConfigurationStorage final : public StorageBackend {
   void close();
   bool ready() const { return handle_ != 0; }
 
-  size_t slot_capacity() const override { return SLOT_CAPACITY; }
+  size_t slot_capacity() const override { return slot_capacity_; }
   bool read(uint8_t slot, size_t offset, uint8_t *output,
             size_t size) override;
   bool write(uint8_t slot, size_t offset, const uint8_t *data,
@@ -40,6 +45,7 @@ class NvsConfigurationStorage final : public StorageBackend {
                 size_t output_size) const;
 
   nvs_handle_t handle_{0};
+  size_t slot_capacity_{0};
   uint8_t chunk_[CHUNK_SIZE]{};
 };
 

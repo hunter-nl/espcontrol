@@ -26,6 +26,31 @@ bool NvsConfigurationStorage::setup() {
              esp_err_to_name(result));
     return false;
   }
+
+  nvs_stats_t stats{};
+  size_t owned_entries = 0;
+  const esp_err_t stats_result = nvs_get_stats(nullptr, &stats);
+  const esp_err_t owned_result =
+      nvs_get_used_entry_count(handle_, &owned_entries);
+  if (stats_result != ESP_OK || owned_result != ESP_OK) {
+    ESP_LOGE(TAG, "Unable to measure configuration storage capacity: %s / %s",
+             esp_err_to_name(stats_result), esp_err_to_name(owned_result));
+    close();
+    return false;
+  }
+  // Existing entries in this namespace are reclaimable by future alternating
+  // writes, so include them with currently free entries. The policy then
+  // reserves space for unrelated ESPHome preferences and divides the remainder
+  // between both retained snapshots before the API advertises its size limit.
+  slot_capacity_ = NvsConfigurationCapacity::slot_capacity_for_entry_budget(
+      stats.free_entries + owned_entries);
+  if (slot_capacity_ <= CONFIGURATION_ENVELOPE_HEADER_SIZE) {
+    ESP_LOGE(TAG, "Insufficient NVS space for retained configuration snapshots");
+    close();
+    return false;
+  }
+  ESP_LOGI(TAG, "Configuration storage capacity: %u bytes per retained slot",
+           static_cast<unsigned>(slot_capacity_));
   return true;
 }
 
@@ -33,12 +58,13 @@ void NvsConfigurationStorage::close() {
   if (!ready()) return;
   nvs_close(handle_);
   handle_ = 0;
+  slot_capacity_ = 0;
 }
 
 bool NvsConfigurationStorage::valid_range(uint8_t slot, size_t offset,
                                           size_t size) const {
   return ready() && slot < CONFIGURATION_SLOT_COUNT &&
-         offset <= SLOT_CAPACITY && size <= SLOT_CAPACITY - offset;
+         offset <= slot_capacity_ && size <= slot_capacity_ - offset;
 }
 
 void NvsConfigurationStorage::make_key(uint8_t slot, size_t chunk,
@@ -123,7 +149,7 @@ bool NvsConfigurationStorage::truncate(uint8_t slot, size_t size) {
   if (!valid_range(slot, size, 0)) return false;
   const size_t first_unused_chunk =
       (size + CHUNK_SIZE - 1) / CHUNK_SIZE;
-  for (size_t chunk = first_unused_chunk; chunk < CHUNKS_PER_SLOT; ++chunk) {
+  for (size_t chunk = first_unused_chunk; chunk < MAX_CHUNKS_PER_SLOT; ++chunk) {
     char key[8];
     make_key(slot, chunk, key, sizeof(key));
     const esp_err_t result = nvs_erase_key(handle_, key);

@@ -65,16 +65,16 @@ void EspControlApp::setup() {
   configuration_ = new (runtime_storage) ConfigurationRuntime();
   if (!configuration_->backend.setup()) return;
   configuration_->scratch = static_cast<uint8_t *>(heap_caps_malloc(
-      configuration::NvsConfigurationStorage::SLOT_CAPACITY,
+      configuration::NvsConfigurationStorage::BUFFER_CAPACITY,
       MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
   configuration_->upload = static_cast<uint8_t *>(heap_caps_malloc(
-      configuration::NvsConfigurationStorage::SLOT_CAPACITY,
+      configuration::NvsConfigurationStorage::BUFFER_CAPACITY,
       MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
   configuration_->snapshot = static_cast<uint8_t *>(heap_caps_malloc(
-      configuration::NvsConfigurationStorage::SLOT_CAPACITY,
+      configuration::NvsConfigurationStorage::BUFFER_CAPACITY,
       MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
   configuration_->capture = static_cast<uint8_t *>(heap_caps_malloc(
-      configuration::NvsConfigurationStorage::SLOT_CAPACITY,
+      configuration::NvsConfigurationStorage::BUFFER_CAPACITY,
       MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
   if (configuration_->scratch == nullptr || configuration_->upload == nullptr ||
       configuration_->snapshot == nullptr || configuration_->capture == nullptr) {
@@ -99,7 +99,7 @@ void EspControlApp::setup() {
   }
   configuration_->service.use_scratch(
       configuration_->scratch,
-      configuration::NvsConfigurationStorage::SLOT_CAPACITY);
+      configuration::NvsConfigurationStorage::BUFFER_CAPACITY);
 }
 
 void EspControlApp::bootstrap_configuration() {
@@ -184,9 +184,9 @@ void EspControlApp::register_configuration_transport() {
   configuration_->handler = new configuration::ConfigurationHttpHandler(
       configuration_->document_api, configuration_->legacy,
       configuration_->snapshot,
-      configuration::NvsConfigurationStorage::SLOT_CAPACITY,
+      configuration::NvsConfigurationStorage::BUFFER_CAPACITY,
       configuration_->upload,
-      configuration::NvsConfigurationStorage::SLOT_CAPACITY);
+      configuration::NvsConfigurationStorage::BUFFER_CAPACITY);
   // Register through WebServerBase so optional Basic/Digest authentication is
   // applied to the configuration routes exactly like the built-in web API.
   server_base->add_handler(configuration_->handler);

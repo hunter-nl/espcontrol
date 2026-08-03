@@ -62,6 +62,14 @@ target_compile_options(configuration_store_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(configuration_store_test PRIVATE ../../components/espcontrol)
 add_test(NAME configuration_store_test COMMAND configuration_store_test)
 
+add_executable(nvs_configuration_capacity_test
+  nvs_configuration_capacity_test.cpp
+)
+target_compile_features(nvs_configuration_capacity_test PRIVATE cxx_std_17)
+target_compile_options(nvs_configuration_capacity_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(nvs_configuration_capacity_test PRIVATE ../../components/espcontrol)
+add_test(NAME nvs_configuration_capacity_test COMMAND nvs_configuration_capacity_test)
+
 add_executable(configuration_service_test
   configuration_service_test.cpp
   ../../components/espcontrol/configuration_service.cpp
