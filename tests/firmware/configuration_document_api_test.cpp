@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "configuration_document_api.h"
