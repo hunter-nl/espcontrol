@@ -29,6 +29,7 @@ class EspControlApp : public esphome::Component {
 
   void bootstrap_configuration();
   void register_configuration_transport();
+  void synchronize_external_configuration();
 
   EspControlAppCore core_{};
   ConfigurationRuntime *configuration_{nullptr};

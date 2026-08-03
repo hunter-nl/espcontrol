@@ -41,6 +41,9 @@ class ConfigurationHttpHandler final
   uint32_t take_committed_revision() {
     return committed_revision_.exchange(0);
   }
+  void note_committed_revision(uint32_t revision) {
+    if (revision != 0) committed_revision_.store(revision);
+  }
 
  private:
   void handle_snapshot(

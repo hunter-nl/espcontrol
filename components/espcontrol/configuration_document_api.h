@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 
@@ -30,6 +31,7 @@ struct DocumentSave {
   uint32_t revision{0};
   uint16_t document_version{CURRENT_CONFIGURATION_DOCUMENT_VERSION};
   size_t document_size{0};
+  bool changed{false};
 
   bool ok() const { return status == DocumentApiStatus::OK; }
 };
@@ -43,17 +45,57 @@ class ConfigurationDocumentApi {
       : service_(service) {}
 
   DocumentSnapshot snapshot(uint8_t *output, size_t output_capacity) {
+    if (busy_.test_and_set(std::memory_order_acquire)) {
+      return {DocumentApiStatus::UNAVAILABLE};
+    }
     const ServiceLoadResult loaded = service_.load(output, output_capacity);
-    return {map_load_status(loaded.status), loaded.generation,
-            loaded.document_version, loaded.document_size};
+    const DocumentSnapshot result{
+        map_load_status(loaded.status), loaded.generation,
+        loaded.document_version, loaded.document_size};
+    busy_.clear(std::memory_order_release);
+    return result;
   }
 
   DocumentSave replace(uint32_t expected_revision, uint16_t document_version,
                        const uint8_t *document, size_t document_size) {
+    if (busy_.test_and_set(std::memory_order_acquire)) {
+      return {DocumentApiStatus::UNAVAILABLE};
+    }
     const ServiceSaveResult saved = service_.save_if_revision(
         expected_revision, document_version, document, document_size);
-    return {map_save_status(saved.status), saved.generation,
-            saved.document_version, saved.document_size};
+    const DocumentSave result{
+        map_save_status(saved.status), saved.generation,
+        saved.document_version, saved.document_size, saved.ok()};
+    busy_.clear(std::memory_order_release);
+    return result;
+  }
+
+  // Captures compatibility entities and folds them into the durable document
+  // while holding the same non-blocking lock used by browser transactions.
+  DocumentSave synchronize(LegacyConfigurationAdapter &source,
+                           uint8_t *capture, size_t capture_capacity) {
+    if (busy_.test_and_set(std::memory_order_acquire)) {
+      return {DocumentApiStatus::UNAVAILABLE};
+    }
+    const LegacyLoadResult current = source.load(capture, capture_capacity);
+    if (current.status != LegacyStatus::OK) {
+      const DocumentApiStatus status =
+          current.status == LegacyStatus::EMPTY
+              ? DocumentApiStatus::EMPTY
+              : current.status == LegacyStatus::BUFFER_TOO_SMALL
+                    ? DocumentApiStatus::TOO_LARGE
+                    : DocumentApiStatus::UNAVAILABLE;
+      busy_.clear(std::memory_order_release);
+      return {status, 0, current.document_version, current.document_size};
+    }
+    bool changed = false;
+    const ServiceSaveResult saved = service_.save_current_if_changed(
+        capture, current.document_size, &changed);
+    const DocumentSave result{
+        map_save_status(saved.status), saved.generation,
+        saved.document_version, saved.document_size, changed};
+    busy_.clear(std::memory_order_release);
+    return result;
   }
 
   size_t maximum_document_size() const {
@@ -97,6 +139,7 @@ class ConfigurationDocumentApi {
   }
 
   ConfigurationService &service_;
+  std::atomic_flag busy_ = ATOMIC_FLAG_INIT;
 };
 
 }  // namespace espcontrol::configuration

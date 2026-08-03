@@ -208,6 +208,25 @@ bool failed_generation_keeps_previous_leases() {
          scoped.active_count() == 1 && scoped.pending_count() == 0;
 }
 
+bool destructive_failed_generation_discards_previous_leases() {
+  using SmallBroker = espcontrol::ha::StateBroker<FakeTransport, 2, 1>;
+  using Scoped = espcontrol::ha::ScopedStateSubscriptions<SmallBroker, 1>;
+  SmallBroker broker;
+  Scoped scoped(broker);
+  int old_calls = 0;
+  if (!scoped.subscribe("sensor.removed", "", [&](std::string) { ++old_calls; }, 1)) {
+    return false;
+  }
+  scoped.begin_generation(1);
+  if (scoped.subscribe("sensor.replacement", "", [](std::string) {}, 1) ||
+      scoped.commit_generation(true)) {
+    return false;
+  }
+  broker.transport().publish(0, "must not dispatch", true);
+  return old_calls == 0 && scoped.active_count() == 0 &&
+         scoped.pending_count() == 0;
+}
+
 bool cached_get_requested_in_callback_is_delivered_afterwards() {
   Broker broker;
   std::string nested;
@@ -250,6 +269,7 @@ int main() {
                  one_shot_get_channel_survives_until_pruned() &&
                  generations_swap_leases_atomically() &&
                  failed_generation_keeps_previous_leases() &&
+                 destructive_failed_generation_discards_previous_leases() &&
                  cached_get_requested_in_callback_is_delivered_afterwards()
              ? EXIT_SUCCESS
              : EXIT_FAILURE;

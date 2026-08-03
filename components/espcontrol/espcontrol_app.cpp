@@ -24,6 +24,7 @@ namespace {
 
 constexpr char TAG[] = "espcontrol.app";
 constexpr uint32_t CONFIGURATION_RETRY_DELAY_MS = 5000;
+constexpr uint32_t CONFIGURATION_EXTERNAL_SYNC_INTERVAL_MS = 1000;
 
 }  // namespace
 
@@ -36,12 +37,15 @@ struct EspControlApp::ConfigurationRuntime {
   configuration::ConfigurationDocumentApi document_api{service};
   uint8_t *scratch{nullptr};
   uint8_t *upload{nullptr};
+  uint8_t *snapshot{nullptr};
+  uint8_t *capture{nullptr};
 #ifdef USE_WEBSERVER
   configuration::ConfigurationHttpHandler *handler{nullptr};
 #endif
   bool ready{false};
   bool transport_registered{false};
   uint32_t retry_at{0};
+  uint32_t external_sync_at{0};
 };
 
 configuration::ConfigurationDocumentApi &
@@ -66,7 +70,14 @@ void EspControlApp::setup() {
   configuration_->upload = static_cast<uint8_t *>(heap_caps_malloc(
       configuration::NvsConfigurationStorage::SLOT_CAPACITY,
       MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
-  if (configuration_->scratch == nullptr || configuration_->upload == nullptr) {
+  configuration_->snapshot = static_cast<uint8_t *>(heap_caps_malloc(
+      configuration::NvsConfigurationStorage::SLOT_CAPACITY,
+      MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+  configuration_->capture = static_cast<uint8_t *>(heap_caps_malloc(
+      configuration::NvsConfigurationStorage::SLOT_CAPACITY,
+      MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+  if (configuration_->scratch == nullptr || configuration_->upload == nullptr ||
+      configuration_->snapshot == nullptr || configuration_->capture == nullptr) {
     ESP_LOGE(TAG, "Unable to reserve fixed configuration transaction memory");
     if (configuration_->scratch != nullptr) {
       heap_caps_free(configuration_->scratch);
@@ -75,6 +86,14 @@ void EspControlApp::setup() {
     if (configuration_->upload != nullptr) {
       heap_caps_free(configuration_->upload);
       configuration_->upload = nullptr;
+    }
+    if (configuration_->snapshot != nullptr) {
+      heap_caps_free(configuration_->snapshot);
+      configuration_->snapshot = nullptr;
+    }
+    if (configuration_->capture != nullptr) {
+      heap_caps_free(configuration_->capture);
+      configuration_->capture = nullptr;
     }
     return;
   }
@@ -164,7 +183,7 @@ void EspControlApp::register_configuration_transport() {
   if (server_base == nullptr) return;
   configuration_->handler = new configuration::ConfigurationHttpHandler(
       configuration_->document_api, configuration_->legacy,
-      configuration_->scratch,
+      configuration_->snapshot,
       configuration::NvsConfigurationStorage::SLOT_CAPACITY,
       configuration_->upload,
       configuration::NvsConfigurationStorage::SLOT_CAPACITY);
@@ -176,10 +195,40 @@ void EspControlApp::register_configuration_transport() {
 #endif
 }
 
+void EspControlApp::synchronize_external_configuration() {
+  if (configuration_ == nullptr || !configuration_->ready ||
+      configuration_->capture == nullptr) {
+    return;
+  }
+  const uint32_t now = esphome::millis();
+  if (static_cast<int32_t>(now - configuration_->external_sync_at) < 0) return;
+  configuration_->external_sync_at =
+      now + CONFIGURATION_EXTERNAL_SYNC_INTERVAL_MS;
+
+  // Home Assistant and ESPHome's native API can update the compatibility
+  // entities without going through the custom configuration transport. Fold
+  // those changes back into the revisioned source of truth so the next boot
+  // cannot restore an older value over them. The revision check cleanly loses
+  // to a simultaneous browser transaction and retries from its new snapshot.
+  const configuration::DocumentSave saved =
+      configuration_->document_api.synchronize(
+          configuration_->legacy, configuration_->capture,
+          configuration_->document_api.maximum_document_size());
+  if (!saved.ok() || !saved.changed) return;
+#ifdef USE_WEBSERVER
+  if (configuration_->handler != nullptr) {
+    configuration_->handler->note_committed_revision(saved.revision);
+  }
+#endif
+  ESP_LOGI(TAG, "External configuration change committed as revision %u",
+           static_cast<unsigned>(saved.revision));
+}
+
 void EspControlApp::loop() {
   core_.run_once();
   bootstrap_configuration();
   register_configuration_transport();
+  synchronize_external_configuration();
 #ifdef USE_WEBSERVER
   if (configuration_ != nullptr && configuration_->handler != nullptr) {
     const uint32_t revision =

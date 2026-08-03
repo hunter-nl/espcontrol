@@ -384,12 +384,16 @@ class ScopedStateSubscriptions {
     return true;
   }
 
-  bool commit_generation() {
+  bool commit_generation(bool discard_replaced_on_failure = false) {
     if (!collecting_) return true;
     if (collection_failed_) {
       clear_bank(pending_);
       collecting_ = false;
       visible_generation_ = committed_generation_;
+      if (discard_replaced_on_failure) {
+        release_matching(active_, replace_scopes_);
+      }
+      replace_scopes_ = 0;
       broker_.prune();
       return false;
     }
@@ -402,6 +406,10 @@ class ScopedStateSubscriptions {
         clear_bank(pending_);
         collecting_ = false;
         visible_generation_ = committed_generation_;
+        if (discard_replaced_on_failure) {
+          release_matching(active_, replace_scopes_);
+        }
+        replace_scopes_ = 0;
         broker_.prune();
         return false;
       }

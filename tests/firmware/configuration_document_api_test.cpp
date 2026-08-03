@@ -55,6 +55,26 @@ class EmptyLegacy final : public LegacyConfigurationAdapter {
   size_t mirror_count = 0;
 };
 
+class BufferLegacy final : public LegacyConfigurationAdapter {
+ public:
+  explicit BufferLegacy(std::string value) : value_(std::move(value)) {}
+
+  LegacyLoadResult load(uint8_t *output, size_t capacity) override {
+    if (value_.size() > capacity) {
+      return {LegacyStatus::BUFFER_TOO_SMALL,
+              CURRENT_CONFIGURATION_DOCUMENT_VERSION, value_.size()};
+    }
+    if (!value_.empty()) std::memcpy(output, value_.data(), value_.size());
+    return {LegacyStatus::OK, CURRENT_CONFIGURATION_DOCUMENT_VERSION,
+            value_.size()};
+  }
+  bool mirror(uint16_t, const uint8_t *, size_t) override { return true; }
+  void set(std::string value) { value_ = std::move(value); }
+
+ private:
+  std::string value_;
+};
+
 bool snapshot_and_replace_form_one_revisioned_boundary() {
   MemoryBackend backend(256);
   ConfigurationStore store(backend);
@@ -125,12 +145,43 @@ bool snapshot_capacity_failure_reports_required_size() {
          snapshot.revision == 1 && snapshot.document_size == sizeof(value) - 1;
 }
 
+bool compatibility_changes_create_revisions_only_when_needed() {
+  MemoryBackend backend(256);
+  ConfigurationStore store(backend);
+  EmptyLegacy durable_legacy;
+  ConfigurationService service(store, durable_legacy);
+  ConfigurationDocumentApi api(service);
+  BufferLegacy entities("first");
+  std::array<uint8_t, 64> capture{};
+
+  const DocumentSave first =
+      api.synchronize(entities, capture.data(), capture.size());
+  const DocumentSave unchanged =
+      api.synchronize(entities, capture.data(), capture.size());
+  entities.set("second");
+  const DocumentSave second =
+      api.synchronize(entities, capture.data(), capture.size());
+  if (!first.ok() || !first.changed || first.revision != 1 ||
+      !unchanged.ok() || unchanged.changed || unchanged.revision != 1 ||
+      !second.ok() || !second.changed || second.revision != 2) {
+    return false;
+  }
+
+  std::array<uint8_t, 64> snapshot_buffer{};
+  const DocumentSnapshot snapshot =
+      api.snapshot(snapshot_buffer.data(), snapshot_buffer.size());
+  return snapshot.ok() && snapshot.revision == 2 &&
+         snapshot.document_size == 6 &&
+         std::memcmp(snapshot_buffer.data(), "second", 6) == 0;
+}
+
 }  // namespace
 
 int main() {
   return snapshot_and_replace_form_one_revisioned_boundary() &&
                  stale_replacement_reports_current_revision() &&
-                 snapshot_capacity_failure_reports_required_size()
+                 snapshot_capacity_failure_reports_required_size() &&
+                 compatibility_changes_create_revisions_only_when_needed()
              ? EXIT_SUCCESS
              : EXIT_FAILURE;
 }

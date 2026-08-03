@@ -395,6 +395,11 @@ def check_root(root: Path) -> list[str]:
             )
         image_reset_pos = text.find("image_driver_reset_pool(cfg);")
         subpage_clear_pos = text.find("navigation_clear_subpages();")
+        return_home_pos = text.find("navigation_return_home(main_page_obj);")
+        if return_home_pos < 0 or return_home_pos > subpage_clear_pos:
+            failures.append(
+                f"components/espcontrol/{GRID_HEADER}: return home before deleting rebuilt subpages"
+            )
         if image_reset_pos < 0 or subpage_clear_pos < 0 or image_reset_pos > subpage_clear_pos:
             failures.append(
                 f"components/espcontrol/{GRID_HEADER}: reset image-card contexts before deleting subpage screens"

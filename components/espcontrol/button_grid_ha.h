@@ -291,8 +291,8 @@ inline void bump_ha_subscription_generation() {
 #define ESPCONTROL_HA_GENERATION_HELPERS_DEFINED 1
 
 inline void ha_commit_subscription_generation() {
-  if (!ha_state_subscriptions().commit_generation()) {
-    ESP_LOGW("ha", "Keeping the previous Home Assistant bindings; replacement exceeded fixed capacity");
+  if (!ha_state_subscriptions().commit_generation(true)) {
+    ESP_LOGW("ha", "Discarded stale Home Assistant bindings after replacement exceeded fixed capacity");
   }
 }
 

@@ -1665,6 +1665,11 @@ inline void grid_phase2(
     bool reconstruct_main_cards = false) {
   ESP_LOGI("sensors", "Phase 2: subscriptions + subpages start (%lu ms)", esphome::millis());
   grid_log_memory("start");
+  if (reconstruct_main_cards) {
+    // Rebuilds delete and recreate every registered subpage. Move away from an
+    // active subpage first so navigation_clear_subpages() can delete it too.
+    navigation_return_home(main_page_obj);
+  }
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);

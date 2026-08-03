@@ -272,4 +272,43 @@ ServiceSaveResult ConfigurationService::save_if_revision(
   return save(document_version, document, document_size);
 }
 
+ServiceSaveResult ConfigurationService::save_current_if_changed(
+    const uint8_t *document, size_t document_size, bool *changed) {
+  if (changed != nullptr) *changed = false;
+  if (document_size > 0 && document == nullptr) {
+    return {ServiceStatus::INVALID_ARGUMENT, StoreStatus::INVALID_ARGUMENT,
+            CURRENT_CONFIGURATION_DOCUMENT_VERSION, 0, document_size};
+  }
+
+  std::vector<uint8_t> owned;
+  uint8_t *current_document = scratch_;
+  if (current_document == nullptr) {
+    owned.resize(maximum_document_size());
+    current_document = owned.empty() ? nullptr : owned.data();
+  }
+  const ServiceLoadResult current =
+      load(current_document, maximum_document_size());
+  if (current.status == ServiceStatus::EMPTY) {
+    const ServiceSaveResult saved = save_current(document, document_size);
+    if (saved.ok() && changed != nullptr) *changed = true;
+    return saved;
+  }
+  if (!current.ok()) {
+    return {current.status, current.store_status,
+            CURRENT_CONFIGURATION_DOCUMENT_VERSION, current.generation,
+            document_size};
+  }
+  if (current.document_version == CURRENT_CONFIGURATION_DOCUMENT_VERSION &&
+      current.document_size == document_size &&
+      std::memcmp(current_document, document, document_size) == 0) {
+    return {ServiceStatus::OK, current.store_status, current.document_version,
+            current.generation, current.document_size};
+  }
+
+  const ServiceSaveResult saved = save_current_if_revision(
+      current.generation, document, document_size);
+  if (saved.ok() && changed != nullptr) *changed = true;
+  return saved;
+}
+
 }  // namespace espcontrol::configuration

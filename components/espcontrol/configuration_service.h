@@ -114,6 +114,11 @@ class ConfigurationService {
                             CURRENT_CONFIGURATION_DOCUMENT_VERSION, document,
                             document_size);
   }
+  // Saves a current-version document only when its bytes differ from the
+  // durable snapshot. `changed` is set after a successful new commit.
+  ServiceSaveResult save_current_if_changed(const uint8_t *document,
+                                            size_t document_size,
+                                            bool *changed);
   ServiceSaveResult save_current(const uint8_t *document,
                                  size_t document_size) {
     return save(CURRENT_CONFIGURATION_DOCUMENT_VERSION, document,
