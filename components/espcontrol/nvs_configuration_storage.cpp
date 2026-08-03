@@ -119,6 +119,23 @@ bool NvsConfigurationStorage::write(uint8_t slot, size_t offset,
   return true;
 }
 
+bool NvsConfigurationStorage::truncate(uint8_t slot, size_t size) {
+  if (!valid_range(slot, size, 0)) return false;
+  const size_t first_unused_chunk =
+      (size + CHUNK_SIZE - 1) / CHUNK_SIZE;
+  for (size_t chunk = first_unused_chunk; chunk < CHUNKS_PER_SLOT; ++chunk) {
+    char key[8];
+    make_key(slot, chunk, key, sizeof(key));
+    const esp_err_t result = nvs_erase_key(handle_, key);
+    if (result != ESP_OK && result != ESP_ERR_NVS_NOT_FOUND) {
+      ESP_LOGE(TAG, "Unable to erase obsolete configuration chunk %s: %s",
+               key, esp_err_to_name(result));
+      return false;
+    }
+  }
+  return true;
+}
+
 bool NvsConfigurationStorage::sync() {
   return ready() && nvs_commit(handle_) == ESP_OK;
 }

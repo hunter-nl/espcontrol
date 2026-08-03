@@ -29,6 +29,7 @@ class NvsConfigurationStorage final : public StorageBackend {
             size_t size) override;
   bool write(uint8_t slot, size_t offset, const uint8_t *data,
              size_t size) override;
+  bool truncate(uint8_t slot, size_t size) override;
   bool sync() override;
 
  private:

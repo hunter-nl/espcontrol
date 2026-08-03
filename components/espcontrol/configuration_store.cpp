@@ -238,6 +238,20 @@ CommitResult ConfigurationStore::commit(const uint8_t *payload,
             target_slot};
   }
 
+  // The target is safely unpublished, so reclaim any backend chunks left by
+  // an older, longer payload before writing the replacement. This prevents
+  // alternating large and small NVS documents from permanently consuming
+  // keys beyond their current logical size.
+  if (!backend_.truncate(
+          target_slot, CONFIGURATION_ENVELOPE_HEADER_SIZE + payload_size)) {
+    return {StoreStatus::WRITE_FAILED, next_generation, payload_size,
+            target_slot};
+  }
+  if (!backend_.sync()) {
+    return {StoreStatus::SYNC_FAILED, next_generation, payload_size,
+            target_slot};
+  }
+
   if (payload_size > 0 &&
       !backend_.write(target_slot, CONFIGURATION_ENVELOPE_HEADER_SIZE,
                       payload, payload_size)) {
