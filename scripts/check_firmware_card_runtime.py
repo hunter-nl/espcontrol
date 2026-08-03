@@ -427,6 +427,36 @@ def check_root(root: Path) -> list[str]:
                 f"components/espcontrol/{SLIDERS_HEADER}: map the final direct slider value before sending its Home Assistant action"
             )
 
+        light_temp_body = function_body(text, "setup_light_temp_visual") or ""
+        if (
+            "LV_EVENT_PRESSED" not in light_temp_body
+            or "LV_EVENT_PRESSING" not in light_temp_body
+            or "LV_EVENT_RELEASED" not in light_temp_body
+            or light_temp_body.count("slider_apply_vertical_pointer_value") < 3
+        ):
+            failures.append(
+                f"components/espcontrol/{SLIDERS_HEADER}: apply light-temperature endpoint mapping on press, drag, and release"
+            )
+        light_temp_release_event = light_temp_body.rfind("LV_EVENT_RELEASED")
+        light_temp_release_callback = light_temp_body.rfind(
+            "lv_obj_add_event_cb", 0, light_temp_release_event
+        )
+        light_temp_final_map = light_temp_body.rfind(
+            "slider_apply_vertical_pointer_value", 0, light_temp_release_event
+        )
+        light_temp_send_action = light_temp_body.rfind(
+            "send_light_temp_action", 0, light_temp_release_event
+        )
+        if (
+            light_temp_release_callback < 0
+            or light_temp_final_map < light_temp_release_callback
+            or light_temp_send_action < 0
+            or light_temp_final_map > light_temp_send_action
+        ):
+            failures.append(
+                f"components/espcontrol/{SLIDERS_HEADER}: map the final light-temperature value before sending its Home Assistant action"
+            )
+
         if (
             "lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN)" not in text
             or "lv_obj_set_style_pad_bottom(slider, 0, LV_PART_MAIN)" not in text
@@ -992,6 +1022,16 @@ inline void setup_slider_visual() {
   slider_apply_vertical_pointer_value();
   send_slider_action();
 }
+inline void setup_light_temp_visual() {
+  slider_apply_vertical_pointer_value();
+  LV_EVENT_PRESSED;
+  slider_apply_vertical_pointer_value();
+  LV_EVENT_PRESSING;
+  lv_obj_add_event_cb();
+  slider_apply_vertical_pointer_value();
+  send_light_temp_action();
+  LV_EVENT_RELEASED;
+}
 """
     cases: tuple[tuple[dict[str, str], tuple[str, ...]], ...] = (
         (
@@ -1005,6 +1045,33 @@ inline void setup_slider_visual() {
         (
             {"button_grid_sliders.h": valid_slider_runtime.replace("LV_EVENT_PRESSING;", "")},
             ("apply direct vertical slider endpoint mapping",),
+        ),
+        (
+            {
+                "button_grid_sliders.h": valid_slider_runtime.replace(
+                    "inline void setup_light_temp_visual() {\n  slider_apply_vertical_pointer_value();\n  LV_EVENT_PRESSED;\n",
+                    "inline void setup_light_temp_visual() {\n  slider_apply_vertical_pointer_value();\n",
+                )
+            },
+            ("apply light-temperature endpoint mapping",),
+        ),
+        (
+            {
+                "button_grid_sliders.h": valid_slider_runtime.replace(
+                    "  slider_apply_vertical_pointer_value();\n  send_light_temp_action();",
+                    "  send_light_temp_action();\n  slider_apply_vertical_pointer_value();",
+                )
+            },
+            ("map the final light-temperature value",),
+        ),
+        (
+            {
+                "button_grid_sliders.h": valid_slider_runtime.replace(
+                    "  lv_obj_add_event_cb();\n  slider_apply_vertical_pointer_value();\n  send_light_temp_action();",
+                    "  slider_apply_vertical_pointer_value();\n  lv_obj_add_event_cb();\n  send_light_temp_action();",
+                )
+            },
+            ("map the final light-temperature value",),
         ),
         (
             {

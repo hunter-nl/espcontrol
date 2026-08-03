@@ -2936,6 +2936,16 @@ inline void setup_light_temp_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_
   lv_obj_set_user_data(slider, (void *)ctx);
   slider_bind_geometry_refresh(s.btn, slider);
 
+  lv_obj_add_event_cb(slider, [](lv_event_t *e) {
+    lv_obj_t *sl = static_cast<lv_obj_t *>(lv_event_get_target(e));
+    slider_apply_vertical_pointer_value(sl);
+  }, LV_EVENT_PRESSED, nullptr);
+
+  lv_obj_add_event_cb(slider, [](lv_event_t *e) {
+    lv_obj_t *sl = static_cast<lv_obj_t *>(lv_event_get_target(e));
+    slider_apply_vertical_pointer_value(sl);
+  }, LV_EVENT_PRESSING, nullptr);
+
   if (kcolor && fill) {
     int mid_k = min_k + (max_k - min_k) / 2;
     lv_obj_set_style_bg_color(fill, kelvin_to_fill_color(mid_k, min_k, max_k), LV_PART_MAIN);
@@ -2943,6 +2953,7 @@ inline void setup_light_temp_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_
 
   lv_obj_add_event_cb(slider, [](lv_event_t *e) {
     lv_obj_t *sl = static_cast<lv_obj_t *>(lv_event_get_target(e));
+    if (!sl) return;
     SliderCtx *c = (SliderCtx *)lv_obj_get_user_data(sl);
     if (!c) return;
     int val = lv_slider_get_value(sl);
@@ -2963,6 +2974,8 @@ inline void setup_light_temp_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_
 
   lv_obj_add_event_cb(slider, [](lv_event_t *e) {
     lv_obj_t *sl = static_cast<lv_obj_t *>(lv_event_get_target(e));
+    if (!sl) return;
+    slider_apply_vertical_pointer_value(sl);
     SliderCtx *c = (SliderCtx *)lv_obj_get_user_data(sl);
     if (c) {
       c->light_temp_dragging = false;
