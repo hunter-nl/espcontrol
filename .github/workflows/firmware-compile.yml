@@ -178,15 +178,21 @@ jobs:
               -v "${build_cache}:/config/${BUILD_INPUT_DIR}/.esphome" \
               "${ESPHOME_IMAGE}" \
               compile "/config/${BUILD_INPUT_DIR}/${config_file}")
-            if ! ${DOCKER} cp "${SOURCE_DIR}/." "${container}:/config"; then
+            cleanup_container() {
               ${DOCKER} rm -f "${container}" >/dev/null 2>&1 || true
+            }
+            trap cleanup_container EXIT
+            if ! ${DOCKER} cp "${SOURCE_DIR}/." "${container}:/config"; then
+              cleanup_container
+              trap - EXIT
               return 1
             fi
             set +e
             ${DOCKER} start -a "${container}"
             status=$?
             set -e
-            ${DOCKER} rm -f "${container}" >/dev/null 2>&1 || true
+            cleanup_container
+            trap - EXIT
             return "${status}"
           }
           compile_config "${{ matrix.slug }}.factory.yaml" "${BUILD_CACHE}"
