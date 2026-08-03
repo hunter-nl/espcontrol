@@ -3204,7 +3204,7 @@ inline const char *espcontrol_i18n_ru(const char *text) {
   if (std::strcmp(text, "Presence") == 0) return "Присутствие";
   if (std::strcmp(text, "Preset") == 0) return "Пресет";
   if (std::strcmp(text, "Previous") == 0) return "Предыдущий";
-  if (std::strcmp(text, "Push") == 0) return "Толчковый";
+  if (std::strcmp(text, "Push") == 0) return "Нажать";
   if (std::strcmp(text, "Quiet") == 0) return "Тихо";
   if (std::strcmp(text, "Rainy") == 0) return "Дождь";
   if (std::strcmp(text, "Relay") == 0) return "Реле";
@@ -7850,7 +7850,7 @@ inline const char *espcontrol_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "presence") == 0) return "Присутствие";
   if (std::strcmp(key, "preset") == 0) return "Пресет";
   if (std::strcmp(key, "previous") == 0) return "Предыдущий";
-  if (std::strcmp(key, "push") == 0) return "Толчковый";
+  if (std::strcmp(key, "push") == 0) return "Нажать";
   if (std::strcmp(key, "quiet") == 0) return "Тихо";
   if (std::strcmp(key, "rainy") == 0) return "Дождь";
   if (std::strcmp(key, "relay") == 0) return "Реле";
