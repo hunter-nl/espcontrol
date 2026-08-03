@@ -154,6 +154,68 @@ bool partial_and_duplicate_documents_are_rejected() {
                            document.data(), duplicate_result.document_size);
 }
 
+bool changed_entity_sets_are_reconciled() {
+  FakeRegistry old_registry;
+  old_registry.entities = {
+      {ConfigurationEntityDomain::TEXT, "kept", "saved-value"},
+      {ConfigurationEntityDomain::TEXT, "removed", "old-value"},
+      {ConfigurationEntityDomain::SELECT, "changed-domain", "old-option"},
+  };
+  EntityConfigurationAdapter old_adapter(old_registry);
+  std::array<uint8_t, 512> stored{};
+  const LegacyLoadResult loaded =
+      old_adapter.load(stored.data(), stored.size());
+  if (loaded.status != LegacyStatus::OK) return false;
+
+  FakeRegistry current_registry;
+  current_registry.entities = {
+      {ConfigurationEntityDomain::TEXT, "kept", "current-value"},
+      {ConfigurationEntityDomain::TEXT, "added", "new-default"},
+      {ConfigurationEntityDomain::TEXT, "changed-domain", "new-default"},
+  };
+  EntityConfigurationAdapter current_adapter(current_registry);
+  std::array<uint8_t, 512> reconciled{};
+  const EntityDocumentResult result = current_adapter.reconcile(
+      loaded.document_version, stored.data(), loaded.document_size,
+      reconciled.data(), reconciled.size());
+  if (!result.ok() || result.record_count != current_registry.size() ||
+      !current_adapter.mirror(loaded.document_version, reconciled.data(),
+                              result.document_size)) {
+    return false;
+  }
+
+  return current_registry.applied.size() == 3 &&
+         current_registry.applied[0].object_id == "kept" &&
+         current_registry.applied[0].value == "saved-value" &&
+         current_registry.applied[1].object_id == "added" &&
+         current_registry.applied[1].value == "new-default" &&
+         current_registry.applied[2].object_id == "changed-domain" &&
+         current_registry.applied[2].value == "new-default";
+}
+
+bool reconciliation_rejects_ambiguous_documents() {
+  FakeRegistry registry;
+  registry.entities = {
+      {ConfigurationEntityDomain::TEXT, "button_order", "1"},
+  };
+  ConfigurationEntityView entity;
+  if (!registry.read(0, &entity)) return false;
+
+  std::array<uint8_t, 256> stored{};
+  ConfigurationEntityDocumentBuilder duplicate(stored.data(), stored.size());
+  if (!duplicate.append(entity) || !duplicate.append(entity)) return false;
+  const EntityDocumentResult duplicate_result = duplicate.finish();
+  if (!duplicate_result.ok()) return false;
+
+  EntityConfigurationAdapter adapter(registry);
+  std::array<uint8_t, 256> output{};
+  return adapter
+             .reconcile(CURRENT_CONFIGURATION_DOCUMENT_VERSION, stored.data(),
+                        duplicate_result.document_size, output.data(),
+                        output.size())
+             .status == EntityDocumentStatus::INVALID_DOCUMENT;
+}
+
 }  // namespace
 
 int main() {
@@ -161,7 +223,9 @@ int main() {
                  required_capacity_is_reported_without_partial_output() &&
                  invalid_or_unknown_documents_never_apply_partially() &&
                  malformed_records_are_rejected() &&
-                 partial_and_duplicate_documents_are_rejected()
+                 partial_and_duplicate_documents_are_rejected() &&
+                 changed_entity_sets_are_reconciled() &&
+                 reconciliation_rejects_ambiguous_documents()
              ? EXIT_SUCCESS
              : EXIT_FAILURE;
 }

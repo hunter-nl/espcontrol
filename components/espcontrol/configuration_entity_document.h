@@ -102,6 +102,14 @@ class EntityConfigurationAdapter final : public LegacyConfigurationAdapter {
   LegacyLoadResult load(uint8_t *output, size_t output_capacity) override;
   bool validate(uint16_t document_version, const uint8_t *document,
                 size_t document_size) const;
+  // Rebuilds a stored document against the current registry. Values for
+  // identities that still exist are preserved, newly added identities use
+  // their current/default value, and identities removed by newer firmware are
+  // dropped. The input and output buffers must not overlap.
+  EntityDocumentResult reconcile(uint16_t document_version,
+                                 const uint8_t *document,
+                                 size_t document_size, uint8_t *output,
+                                 size_t output_capacity) const;
   bool mirror(uint16_t document_version, const uint8_t *document,
               size_t document_size) override;
 

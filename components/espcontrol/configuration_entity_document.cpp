@@ -45,6 +45,14 @@ bool valid_domain(ConfigurationEntityDomain domain) {
   return false;
 }
 
+bool same_identity(const ConfigurationEntityView &left,
+                   const ConfigurationEntityView &right) {
+  return left.domain == right.domain &&
+         left.object_id_size == right.object_id_size &&
+         std::memcmp(left.object_id, right.object_id, left.object_id_size) ==
+             0;
+}
+
 }  // namespace
 
 ConfigurationEntityDocumentBuilder::ConfigurationEntityDocumentBuilder(
@@ -223,6 +231,60 @@ bool EntityConfigurationAdapter::mirror(uint16_t document_version,
   return applier.finished();
 }
 
+EntityDocumentResult EntityConfigurationAdapter::reconcile(
+    uint16_t document_version, const uint8_t *document, size_t document_size,
+    uint8_t *output, size_t output_capacity) const {
+  if (document_version != CURRENT_CONFIGURATION_DOCUMENT_VERSION) {
+    return {EntityDocumentStatus::UNSUPPORTED_FORMAT, 0, document_size};
+  }
+  ConfigurationEntityDocumentReader stored(document, document_size);
+  const EntityDocumentResult inspected = stored.inspect();
+  if (!inspected.ok()) return inspected;
+
+  // Reject ambiguous stored identities before selectively retaining values.
+  ConfigurationEntityView stored_entity;
+  while (stored.next(&stored_entity)) {
+    size_t matches = 0;
+    ConfigurationEntityDocumentReader duplicate_scan(document, document_size);
+    ConfigurationEntityView candidate;
+    while (duplicate_scan.next(&candidate)) {
+      if (same_identity(stored_entity, candidate)) ++matches;
+    }
+    if (!duplicate_scan.finished() || matches != 1) {
+      return {EntityDocumentStatus::INVALID_DOCUMENT,
+              inspected.record_count, document_size};
+    }
+  }
+  if (!stored.finished()) {
+    return {EntityDocumentStatus::INVALID_DOCUMENT, inspected.record_count,
+            document_size};
+  }
+
+  ConfigurationEntityDocumentBuilder builder(output, output_capacity);
+  const size_t current_count = registry_.size();
+  for (size_t index = 0; index < current_count; ++index) {
+    ConfigurationEntityView current;
+    if (!registry_.read(index, &current) || !registry_.can_apply(current)) {
+      return {EntityDocumentStatus::REGISTRY_FAILED,
+              static_cast<uint16_t>(index), 0};
+    }
+
+    ConfigurationEntityView retained = current;
+    ConfigurationEntityDocumentReader candidate_scan(document, document_size);
+    ConfigurationEntityView candidate;
+    while (candidate_scan.next(&candidate)) {
+      if (same_identity(current, candidate) && registry_.can_apply(candidate)) {
+        retained = candidate;
+        break;
+      }
+    }
+    if (!builder.append(retained)) {
+      return builder.finish();
+    }
+  }
+  return builder.finish();
+}
+
 bool EntityConfigurationAdapter::validate(uint16_t document_version,
                                           const uint8_t *document,
                                           size_t document_size) const {
@@ -243,10 +305,7 @@ bool EntityConfigurationAdapter::validate(uint16_t document_version,
     ConfigurationEntityDocumentReader duplicate_scan(document, document_size);
     ConfigurationEntityView candidate;
     while (duplicate_scan.next(&candidate)) {
-      if (candidate.domain == entity.domain &&
-          candidate.object_id_size == entity.object_id_size &&
-          std::memcmp(candidate.object_id, entity.object_id,
-                      entity.object_id_size) == 0) {
+      if (same_identity(candidate, entity)) {
         ++matches;
       }
     }

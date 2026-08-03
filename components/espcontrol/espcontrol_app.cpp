@@ -1,6 +1,7 @@
 #include "espcontrol_app.h"
 
 #include <cstdio>
+#include <cstring>
 #include <new>
 
 #include "configuration_document_api.h"
@@ -105,6 +106,39 @@ void EspControlApp::bootstrap_configuration() {
     configuration_->retry_at = now + CONFIGURATION_RETRY_DELAY_MS;
     return;
   }
+
+  const configuration::EntityDocumentResult reconciled =
+      configuration_->legacy.reconcile(
+          snapshot.document_version, configuration_->scratch,
+          snapshot.document_size, configuration_->upload,
+          configuration_->document_api.maximum_document_size());
+  if (!reconciled.ok()) {
+    ESP_LOGW(TAG, "Configuration reconciliation failed; retrying later");
+    configuration_->retry_at = now + CONFIGURATION_RETRY_DELAY_MS;
+    return;
+  }
+
+  const bool registry_changed =
+      reconciled.document_size != snapshot.document_size ||
+      std::memcmp(configuration_->upload, configuration_->scratch,
+                  snapshot.document_size) != 0;
+  if (registry_changed) {
+    const configuration::ServiceSaveResult migrated =
+        configuration_->service.save_current_if_revision(
+            snapshot.revision, configuration_->upload,
+            reconciled.document_size);
+    if (!migrated.ok()) {
+      ESP_LOGW(TAG, "Configuration migration failed; retrying later");
+      configuration_->retry_at = now + CONFIGURATION_RETRY_DELAY_MS;
+      return;
+    }
+    configuration_->ready = true;
+    ESP_LOGI(TAG, "Configuration registry migrated to revision %u (%u bytes)",
+             static_cast<unsigned>(migrated.generation),
+             static_cast<unsigned>(reconciled.document_size));
+    return;
+  }
+
   if (!configuration_->legacy.mirror(snapshot.document_version,
                                      configuration_->scratch,
                                      snapshot.document_size)) {
