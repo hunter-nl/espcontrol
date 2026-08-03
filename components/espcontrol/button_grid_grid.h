@@ -2273,6 +2273,10 @@ inline void grid_phase3(
     std::function<void()> sleep_callback,
     std::function<bool()> clock_bar_temperature_visible_callback = nullptr) {
   ESP_LOGI("sensors", "Phase 3: temp/presence/media subscriptions start (%lu ms)", esphome::millis());
+  // Phase 3 can run again after a live configuration apply. Release only its
+  // previous leases so the newly configured temperature, presence, and media
+  // entities replace the old bindings without disturbing card subscriptions.
+  ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3);
   bool has_clock_bar_entities = configure_clock_bar_temperature_entities(
       temperature_entities, temperature_labels, temperature_label_count,
       main_page_obj, clock_bar_visible_callback,

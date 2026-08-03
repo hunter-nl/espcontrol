@@ -1378,6 +1378,35 @@ def firmware_media_sleep_prevention_subscription_errors(paths: tuple[Path, ...],
     return errors
 
 
+def firmware_phase3_live_rebind_errors(
+    firmware_dir: Path, core_infra_path: Path, root: Path
+) -> list[str]:
+    errors: list[str] = []
+    grid_path = firmware_dir / "button_grid_grid.h"
+    grid_text = grid_path.read_text(encoding="utf-8")
+    if "ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3);" not in grid_text:
+        errors.append(
+            f"{grid_path.relative_to(root)}: replace previous phase-3 Home Assistant leases before rebinding"
+        )
+
+    core_text = core_infra_path.read_text(encoding="utf-8")
+    apply_match = re.search(
+        r'(?ms)    name: "Apply Configuration".*?(?=\nselect:)', core_text
+    )
+    if not apply_match:
+        errors.append(f"{core_infra_path.relative_to(root)}: missing Apply Configuration action")
+        return errors
+    apply_body = apply_match.group(0)
+    refresh_index = apply_body.find("- script.execute: refresh_button_grid")
+    wait_index = apply_body.find("- script.wait: refresh_button_grid")
+    phase3_index = apply_body.find("grid_phase3(")
+    if not (0 <= refresh_index < wait_index < phase3_index):
+        errors.append(
+            f"{core_infra_path.relative_to(root)}: refresh phase-3 subscriptions after the live grid rebuild completes"
+        )
+    return errors
+
+
 def firmware_media_control_low_heap_metadata_errors(firmware_dir: Path, root: Path) -> list[str]:
     path = firmware_dir / "button_grid_media.h"
     if not path.exists():
@@ -3012,6 +3041,7 @@ def run_scan() -> int:
     errors.extend(firmware_media_sleep_prevention_errors(BACKLIGHT_PATH, DISPLAY_CONFIG_PATH, COVER_ART_PATH, ROOT))
     errors.extend(firmware_touch_cover_art_delay_errors(DEVICE_TOUCH_PATHS, ROOT))
     errors.extend(firmware_media_sleep_prevention_subscription_errors(DEVICE_SENSOR_PATHS, ROOT))
+    errors.extend(firmware_phase3_live_rebind_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_media_control_low_heap_metadata_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_cover_art_low_heap_progress_errors(FIRMWARE_DIR, COVER_ART_PATH, ROOT))
     errors.extend(firmware_cover_art_progress_visibility_errors(COVER_ART_PATH, ROOT))
