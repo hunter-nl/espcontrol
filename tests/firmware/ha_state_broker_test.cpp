@@ -167,6 +167,32 @@ bool one_shot_get_channel_survives_until_pruned() {
   return broker.channel_count() == 0 && broker.transport().close_calls == 1;
 }
 
+bool pending_gets_can_be_cancelled_before_callback_targets_are_released() {
+  Broker broker;
+  int persistent_calls = 0;
+  int stale_get_calls = 0;
+  auto persistent = broker.subscribe(
+      "media_player.room", "media_artist",
+      [&](std::string) { ++persistent_calls; });
+  if (!persistent.valid() ||
+      !broker.get("camera.room", "entity_picture",
+                  [&](std::string) { ++stale_get_calls; }) ||
+      broker.subscriber_count() != 2) {
+    return false;
+  }
+
+  broker.cancel_gets();
+  if (broker.subscriber_count() != 1 || broker.channel_count() != 2) {
+    return false;
+  }
+  broker.transport().publish(1, "/late.jpg");
+  broker.transport().publish(0, "Artist");
+  broker.prune();
+  return stale_get_calls == 0 && persistent_calls == 1 &&
+         broker.subscriber_count() == 1 && broker.channel_count() == 1 &&
+         broker.transport().close_calls == 1;
+}
+
 bool generations_swap_leases_atomically() {
   using Scoped = espcontrol::ha::ScopedStateSubscriptions<Broker, 4>;
   Broker broker;
@@ -267,6 +293,7 @@ int main() {
                  churn_returns_to_zero_active_storage() &&
                  capacity_failure_does_not_disturb_active_leases() &&
                  one_shot_get_channel_survives_until_pruned() &&
+                 pending_gets_can_be_cancelled_before_callback_targets_are_released() &&
                  generations_swap_leases_atomically() &&
                  failed_generation_keeps_previous_leases() &&
                  destructive_failed_generation_discards_previous_leases() &&

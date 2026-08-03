@@ -280,11 +280,14 @@ inline void ha_reset_subscription_callbacks(uint32_t scope = HA_SUBSCRIPTION_SCO
 #define ESPCONTROL_HA_SUBSCRIPTION_HELPERS_DEFINED 1
 
 inline void ha_reset_deferred_state_requests() {
-  // Reads are one-shot broker subscribers and need no unbounded deferred queue.
+  ha_state_broker().cancel_gets();
 }
 #define ESPCONTROL_HA_DEFERRED_HELPERS_DEFINED 1
 
 inline void bump_ha_subscription_generation() {
+  // One-shot reads can capture card-owned runtime contexts. Cancel them before
+  // the caller releases those contexts during a live grid rebuild.
+  ha_reset_deferred_state_requests();
   ha_state_subscriptions().begin_generation(
       HA_SUBSCRIPTION_SCOPE_DEFAULT | HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS);
 }

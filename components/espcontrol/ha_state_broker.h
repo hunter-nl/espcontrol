@@ -130,6 +130,18 @@ class StateBroker {
   // state. The lifecycle owner calls prune() after a generation is committed.
   void prune() { sweep(true); }
 
+  // Cancel pending broker-owned reads before their callback targets are torn
+  // down. Persistent leases are unaffected and their channels remain available
+  // for the replacement generation to reuse.
+  void cancel_gets() {
+    for (auto &subscriber : subscribers_) {
+      if (!subscriber.active || !subscriber.once) continue;
+      subscriber.active = false;
+      subscriber.once = false;
+    }
+    if (dispatch_depth_ == 0) sweep(false);
+  }
+
   std::size_t channel_count() const {
     std::size_t count = 0;
     for (const auto &channel : channels_) {
