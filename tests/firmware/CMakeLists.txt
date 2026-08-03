@@ -47,6 +47,12 @@ target_compile_options(media_volume_capability_test PRIVATE -Wall -Wextra -Werro
 target_include_directories(media_volume_capability_test PRIVATE ../../components/espcontrol)
 add_test(NAME media_volume_capability_test COMMAND media_volume_capability_test)
 
+add_executable(slider_geometry_test slider_geometry_test.cpp)
+target_compile_features(slider_geometry_test PRIVATE cxx_std_17)
+target_compile_options(slider_geometry_test PRIVATE -Wall -Wextra -Werror)
+target_include_directories(slider_geometry_test PRIVATE ../../components/espcontrol)
+add_test(NAME slider_geometry_test COMMAND slider_geometry_test)
+
 add_executable(display_mode_controller_test display_mode_controller_test.cpp)
 target_compile_features(display_mode_controller_test PRIVATE cxx_std_17)
 target_compile_options(display_mode_controller_test PRIVATE -Wall -Wextra -Werror)

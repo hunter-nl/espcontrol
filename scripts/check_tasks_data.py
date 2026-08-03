@@ -86,6 +86,7 @@ TASKS = (
              "components/espcontrol/configuration_service.*",
              "components/espcontrol/configuration_store.*",
              "components/espcontrol/button_grid_limits.h",
+             "components/espcontrol/button_grid_slider_geometry.h",
              "components/espcontrol/button_grid_string.h",
              "components/espcontrol/button_grid_config_parser.h",
              "components/espcontrol/button_grid_subpages.h",
