@@ -1,10 +1,18 @@
 #pragma once
 
 #include <cstddef>
+#include <string_view>
 
 #include "configuration_entity_document.h"
 
 namespace espcontrol::configuration {
+
+// Some ESPHome entities use the config category only for UI placement even
+// though their state is operational and deliberately transient. They must not
+// become part of the durable configuration document.
+constexpr bool is_durable_configuration_object_id(std::string_view object_id) {
+  return object_id != "speaker_amplifier_enable";
+}
 
 // ESPHome adapter for every entity marked entity_category: config. Values are
 // addressed by the existing object IDs, so documents remain compatible with

@@ -27,8 +27,15 @@ namespace espcontrol::configuration {
 namespace {
 
 bool is_configuration_entity(const esphome::EntityBase *entity) {
-  return entity != nullptr &&
-         entity->get_entity_category() == esphome::ENTITY_CATEGORY_CONFIG;
+  if (entity == nullptr ||
+      entity->get_entity_category() != esphome::ENTITY_CATEGORY_CONFIG) {
+    return false;
+  }
+  char object_id_buffer[esphome::OBJECT_ID_MAX_LEN];
+  const esphome::StringRef object_id =
+      entity->get_object_id_to(object_id_buffer);
+  return is_durable_configuration_object_id(
+      std::string_view(object_id.c_str(), object_id.size()));
 }
 
 bool same_object_id(const esphome::EntityBase *entity,

@@ -196,12 +196,6 @@ function resolveWaiters(value: unknown): void {
   for (const waiter of settled) waiter.resolve(value);
 }
 
-function rejectWaiters(reason: unknown): void {
-  const settled = waiters;
-  waiters = [];
-  for (const waiter of settled) waiter.reject(reason);
-}
-
 function scheduleSave(delay = SAVE_DEBOUNCE_MS): void {
   if (saveTimer !== null || saveActive) return;
   saveTimer = window.setTimeout(() => {
@@ -247,6 +241,21 @@ async function flushConfiguration(): Promise<void> {
   }
 }
 
+function retryConfigurationPost(
+  domain: ConfigurationDomain,
+  name: string,
+  objectIds: string[],
+  value: string,
+  fallback: FallbackPost,
+  error: unknown,
+): Promise<unknown> {
+  console.warn("Configuration snapshot is busy; retaining edit for retry", error);
+  showBanner("Waiting to save configuration…", "offline");
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, RETRY_DELAY_MS);
+  }).then(() => postConfigurationValue(domain, name, objectIds, value, fallback));
+}
+
 export function postConfigurationValue(
   domain: ConfigurationDomain,
   name: string,
@@ -259,20 +268,22 @@ export function postConfigurationValue(
   // device queue's current throttle instead of deferring enqueueing until a
   // microtask after callers have restored the normal throttle.
   if (configurationProbeDeferred()) return Promise.resolve(fallback());
-  return initializeConfigurationTransaction().then((available) => {
-    if (!available) return fallback();
-    const record = findRecord(domain, name, objectIds);
-    if (!record) return fallback();
-    const key = configurationRecordKey(record.domain, record.objectId);
-    record.value = value;
-    pendingValues.set(key, value);
-    scheduleSave();
-    return new Promise((resolve, reject) => {
-      waiters.push({ resolve, reject });
-    });
-  }).catch((error: unknown) => {
-    if (supported !== true) return fallback();
-    rejectWaiters(error);
-    throw error;
-  });
+  return initializeConfigurationTransaction().then(
+    (available) => {
+      if (!available) return fallback();
+      const record = findRecord(domain, name, objectIds);
+      if (!record) return fallback();
+      const key = configurationRecordKey(record.domain, record.objectId);
+      record.value = value;
+      pendingValues.set(key, value);
+      scheduleSave();
+      return new Promise((resolve, reject) => {
+        waiters.push({ resolve, reject });
+      });
+    },
+    (error: unknown) => {
+      if (supported !== true) return fallback();
+      return retryConfigurationPost(domain, name, objectIds, value, fallback, error);
+    },
+  );
 }

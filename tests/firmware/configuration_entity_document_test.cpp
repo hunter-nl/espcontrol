@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "configuration_entity_document.h"
+#include "esphome_configuration_registry.h"
 
 namespace {
 
@@ -216,6 +217,12 @@ bool reconciliation_rejects_ambiguous_documents() {
              .status == EntityDocumentStatus::INVALID_DOCUMENT;
 }
 
+bool transient_hardware_controls_are_not_durable_configuration() {
+  return !is_durable_configuration_object_id("speaker_amplifier_enable") &&
+         is_durable_configuration_object_id("wake_sound") &&
+         is_durable_configuration_object_id("screen__clock_bar");
+}
+
 }  // namespace
 
 int main() {
@@ -225,7 +232,8 @@ int main() {
                  malformed_records_are_rejected() &&
                  partial_and_duplicate_documents_are_rejected() &&
                  changed_entity_sets_are_reconciled() &&
-                 reconciliation_rejects_ambiguous_documents()
+                 reconciliation_rejects_ambiguous_documents() &&
+                 transient_hardware_controls_are_not_durable_configuration()
              ? EXIT_SUCCESS
              : EXIT_FAILURE;
 }
