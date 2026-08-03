@@ -64,6 +64,7 @@ FAN_CONTROL_DRIVER_HEADER = "button_grid_fan_control_driver.h"
 CLIMATE_CONTROL_DRIVER_HEADER = "button_grid_climate_control_driver.h"
 ALARM_DRIVER_HEADER = "button_grid_alarm_driver.h"
 CARDS_HEADER = "button_grid_cards.h"
+SLIDERS_HEADER = "button_grid_sliders.h"
 
 
 def service_mapping_line_allowed(line: str) -> bool:
@@ -393,6 +394,48 @@ def check_root(root: Path) -> list[str]:
                     failures.append(
                         f"components/espcontrol/{ACTION_HEADER}: broad legacy action fallback must remain retired ({retired_fallback})"
                     )
+    sliders_header = root / "components" / "espcontrol" / SLIDERS_HEADER
+    if sliders_header.exists():
+        text = sliders_header.read_text(encoding="utf-8")
+        pointer_body = function_body(text, "slider_apply_vertical_pointer_value") or ""
+        pointer_required = (
+            "lv_indev_active()",
+            "LV_INDEV_TYPE_POINTER",
+            "lv_indev_get_point",
+            "lv_obj_get_coords",
+            "vertical_pointer_percent",
+            "LV_EVENT_VALUE_CHANGED",
+        )
+        if any(needle not in pointer_body for needle in pointer_required):
+            failures.append(
+                f"components/espcontrol/{SLIDERS_HEADER}: map direct vertical slider pointer input through the safe endpoint track"
+            )
+
+        setup_body = function_body(text, "setup_slider_visual") or ""
+        if (
+            "LV_EVENT_PRESSED" not in setup_body
+            or "LV_EVENT_PRESSING" not in setup_body
+            or setup_body.count("slider_apply_vertical_pointer_value") < 3
+        ):
+            failures.append(
+                f"components/espcontrol/{SLIDERS_HEADER}: apply direct vertical slider endpoint mapping on press, drag, and release"
+            )
+        final_map = setup_body.rfind("slider_apply_vertical_pointer_value")
+        send_action = setup_body.rfind("send_slider_action")
+        if final_map < 0 or send_action < 0 or final_map > send_action:
+            failures.append(
+                f"components/espcontrol/{SLIDERS_HEADER}: map the final direct slider value before sending its Home Assistant action"
+            )
+
+        if (
+            "lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN)" not in text
+            or "lv_obj_set_style_pad_bottom(slider, 0, LV_PART_MAIN)" not in text
+            or "lv_obj_set_style_pad_top(slider, edge_inset" in text
+            or "lv_obj_set_style_pad_bottom(slider, edge_inset" in text
+        ):
+            failures.append(
+                f"components/espcontrol/{SLIDERS_HEADER}: keep LVGL's direct slider range unpadded"
+            )
     image_header = root / "components" / "espcontrol" / IMAGE_HEADER
     if image_header.exists():
         text = image_header.read_text(encoding="utf-8")
@@ -928,7 +971,50 @@ def check_root(root: Path) -> list[str]:
 
 
 def run_self_test() -> None:
+    valid_slider_runtime = """
+inline bool slider_apply_vertical_pointer_value() {
+  lv_indev_active();
+  LV_INDEV_TYPE_POINTER;
+  lv_indev_get_point();
+  lv_obj_get_coords();
+  vertical_pointer_percent();
+  LV_EVENT_VALUE_CHANGED;
+}
+inline void slider_fit_to_button() {
+  lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_bottom(slider, 0, LV_PART_MAIN);
+}
+inline void setup_slider_visual() {
+  slider_apply_vertical_pointer_value();
+  LV_EVENT_PRESSED;
+  slider_apply_vertical_pointer_value();
+  LV_EVENT_PRESSING;
+  slider_apply_vertical_pointer_value();
+  send_slider_action();
+}
+"""
     cases: tuple[tuple[dict[str, str], tuple[str, ...]], ...] = (
+        (
+            {"button_grid_sliders.h": valid_slider_runtime},
+            (),
+        ),
+        (
+            {"button_grid_sliders.h": valid_slider_runtime.replace("lv_indev_get_point();", "")},
+            ("map direct vertical slider pointer input",),
+        ),
+        (
+            {"button_grid_sliders.h": valid_slider_runtime.replace("LV_EVENT_PRESSING;", "")},
+            ("apply direct vertical slider endpoint mapping",),
+        ),
+        (
+            {
+                "button_grid_sliders.h": valid_slider_runtime.replace(
+                    "lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN);",
+                    "lv_obj_set_style_pad_top(slider, edge_inset, LV_PART_MAIN);",
+                )
+            },
+            ("keep LVGL's direct slider range unpadded",),
+        ),
         (
             {"button_grid_actions.h": "return card_contract_media_mode_valid(mode);\n"},
             ("access generated card contract through button_grid_card_runtime.h",),
