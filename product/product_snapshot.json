@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 6,
     "cardTypes": 40,
-    "entityNames": 94,
+    "entityNames": 95,
     "icons": 323,
     "structuralIcons": 16,
     "compatibilityFixtureGroups": 2
@@ -510,7 +510,6 @@
         },
         "display": {
           "wrapTallLabels": true,
-          "imageCardDiagnostics": true,
           "subpageChevronX": 4,
           "subpageChevronY": -2,
           "modal": {
@@ -607,7 +606,7 @@
         "imageSlots": 6
       },
       "public": {
-        "name": "Guition JC8012P4A1 new panel (2624+)",
+        "name": "Guition JC8012P4A1 new panel (2628+)",
         "docsPath": "/screens/jc8012p4a1-v2",
         "screenSize": "10.1 inches",
         "resolution": "1280 x 800",
@@ -704,7 +703,6 @@
         },
         "display": {
           "wrapTallLabels": true,
-          "imageCardDiagnostics": true,
           "subpageChevronX": 4,
           "subpageChevronY": -2,
           "modal": {
@@ -6405,11 +6403,24 @@
         ]
       },
       {
-        "key": "screen_automatic_brightness",
-        "domain": "switch",
-        "name": "Screen: Automatic Brightness",
+        "key": "display_backlight",
+        "domain": "light",
+        "name": "Display Backlight",
         "objectIds": [
-          "screen__automatic_brightness"
+          "display_backlight"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_brightness_mode",
+        "domain": "select",
+        "name": "Screen: Brightness Mode",
+        "objectIds": [
+          "screen__brightness_mode",
+          "screen_brightness_mode",
+          "brightness_mode"
         ],
         "groups": [
           "settings"

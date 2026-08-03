@@ -3162,7 +3162,7 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
   }
   row->selected = media_control_group_contains(ctx, entity_id);
   row->row = lv_btn_create(ui.speaker_list);
-  lv_obj_set_size(row->row, 118, 118);
+  lv_obj_set_size(row->row, lv_obj_get_width(ui.speaker_list), 118);
   lv_obj_set_style_radius(row->row, control_modal_card_radius(ctx->btn), LV_PART_MAIN);
   lv_obj_set_style_border_width(row->row, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(row->row, 0, LV_PART_MAIN);

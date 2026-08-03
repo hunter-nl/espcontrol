@@ -273,7 +273,6 @@ declare global {
   var beginNewCardDraft: any;
   var bindTextPost: any;
   var btnDisplayName: any;
-  var buildApplyBar: any;
   var buildClipboardEntry: any;
   var buildCoverArtSettingsCard: any;
   var buildHeader: any;
@@ -765,6 +764,7 @@ declare global {
   var normalizeAlarmDelayAnnouncement: any;
   var normalizeAlarmDelayBeepVolume: any;
   var normalizeAlarmDelayFinalCountdown: any;
+  var normalizeBrightnessMode: any;
   var normalizeMediaVolumeMax: any;
   var normalizeNetworkTransport: any;
   var normalizeNtpServer: any;
@@ -785,6 +785,7 @@ declare global {
   var normalizeSubpageOptions: any;
   var normalizeSwitchConfirmationOptions: any;
   var normalizeTabList: any;
+  var brightnessModeOption: any;
   var normalizeTemperatureUnit: any;
   var normalizeTimeOfDay: any;
   var normalizeTodoCountDisplay: any;
@@ -830,7 +831,8 @@ declare global {
   var pollFirmwareInstallRefresh: any;
   var positionMenu: any;
   var post: any;
-  var postAutomaticBrightnessEnabled: any;
+  var postBrightnessMode: any;
+  var postDisplayBacklightBrightness: any;
   var postBrightnessDawnTime: any;
   var postBrightnessDuskTime: any;
   var postButtonPress: any;
@@ -866,6 +868,7 @@ declare global {
   var postNumberWithObjectId: any;
   var postNumberWithObjectIds: any;
   var postOptional: any;
+  var postOptionalTextWithObjectIds: any;
   var postPresenceSensorEntity: any;
   var postQueueHadError: any;
   var postQueueIdle: any;
