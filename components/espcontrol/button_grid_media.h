@@ -81,7 +81,7 @@ struct MediaSpeakerRowState {
   std::string friendly_name;
   int volume_pct = 0;
   bool volume_known = false;
-  bool available = true;
+  bool available = false;
   bool selected = false;
   bool pending = false;
   bool previous_selected = false;
@@ -152,6 +152,23 @@ constexpr uint32_t MEDIA_GROUP_REFRESH_INTERVAL_MS = 2000;
 inline MediaControlModalUi &media_control_modal_ui() {
   static MediaControlModalUi ui;
   return ui;
+}
+
+inline void media_control_store_group_volume(MediaControlCtx *ctx,
+                                              const std::string &entity_id,
+                                              int volume_pct,
+                                              bool volume_known,
+                                              bool available) {
+  if (!ctx || entity_id.empty()) return;
+  for (MediaGroupVolumeState &member : ctx->group_volume_states) {
+    if (member.entity_id != entity_id) continue;
+    member.volume_pct = volume_pct;
+    member.volume_known = volume_known;
+    member.available = available;
+    return;
+  }
+  ctx->group_volume_states.push_back(
+    {entity_id, volume_pct, volume_known, available});
 }
 
 inline bool media_control_modal_mode(const std::string &mode) {
@@ -1177,20 +1194,10 @@ inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
       ctx->volume_known = true;
       media_control_set_volume_value(ctx, pct);
     }
-    bool found_group_volume = false;
-    for (MediaGroupVolumeState &member : ctx->group_volume_states) {
-      if (member.entity_id != ctx->entity_id) continue;
-      member.volume_pct = state->volume_pct;
-      member.volume_known = true;
-      member.available = state->available;
-      found_group_volume = true;
-      break;
-    }
-    if (!found_group_volume) {
-      ctx->group_volume_states.push_back(
-        {ctx->entity_id, state->volume_pct, true, state->available});
-    }
   }
+  media_control_store_group_volume(
+    ctx, ctx->entity_id, state->volume_pct,
+    state->volume_known, state->available);
 
   set_card_checked_state(ctx->btn, ctx->available &&
     (ctx->group_only ? media_control_group_size(ctx) > 1
@@ -1534,7 +1541,11 @@ inline void media_playback_subscribe_volume(MediaPlaybackState *state) {
       [state, generation](esphome::StringRef val) {
         if (!media_playback_generation_valid(state, generation)) return;
         float level = 0.0f;
-        if (!parse_float_ref(val, level)) return;
+        if (!parse_float_ref(val, level) || !std::isfinite(level)) {
+          state->volume_known = false;
+          media_playback_apply_volume_consumers(state);
+          return;
+        }
         state->volume_known = true;
         state->volume_pct = media_clamp_percent((int)(level * 100.0f + 0.5f));
         media_playback_apply_volume_consumers(state);
@@ -3261,6 +3272,9 @@ inline void media_control_refresh_speaker_state(MediaControlCtx *ctx,
     MediaSpeakerRowState *row = media_control_find_speaker_row(entity_id);
     if (!row) return;
     row->available = !ha_state_unavailable_ref(value);
+    media_control_store_group_volume(
+      ctx, row->entity_id, row->volume_pct,
+      row->volume_known, row->available);
     media_control_refresh_speaker_row(ctx, row);
     media_control_refresh_group_volume(ctx);
   };
@@ -3281,6 +3295,9 @@ inline void media_control_refresh_speaker_state(MediaControlCtx *ctx,
     float level = 0.0f;
     if (!parse_float_ref(value, level) || !std::isfinite(level)) {
       row->volume_known = false;
+      media_control_store_group_volume(
+        ctx, row->entity_id, row->volume_pct,
+        row->volume_known, row->available);
       media_control_refresh_speaker_row(ctx, row);
       media_control_refresh_group_volume(ctx);
       return;
@@ -3288,6 +3305,9 @@ inline void media_control_refresh_speaker_state(MediaControlCtx *ctx,
     row->volume_known = true;
     row->volume_pct = std::max(
       0, std::min(100, static_cast<int>(level * 100.0f + 0.5f)));
+    media_control_store_group_volume(
+      ctx, row->entity_id, row->volume_pct,
+      row->volume_known, row->available);
     media_control_refresh_speaker_row(ctx, row);
     media_control_refresh_group_volume(ctx);
   };
@@ -3351,6 +3371,7 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
       media_control_find_speaker_row(entity_id)) return;
   MediaSpeakerRowState *row = new MediaSpeakerRowState();
   row->entity_id = entity_id;
+  if (entity_id == ctx->entity_id) row->available = ctx->available;
   for (const MediaGroupDiscoveryItem &item : ctx->speaker_discovery) {
     if (item.entity_id != entity_id) continue;
     row->friendly_name = item.friendly_name;
@@ -3378,7 +3399,8 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
     MediaControlModalUi &ui = media_control_modal_ui();
     if (esphome::millis() - ui.speaker_last_scroll_ms < 250) return;
     MediaControlCtx *ctx = ui.active;
-    if (!ctx || !row || row->pending || row->entity_id == ctx->entity_id) return;
+    if (!ctx || !row || !row->available || row->pending ||
+        row->entity_id == ctx->entity_id) return;
     media_control_toggle_speaker(ctx, row, !row->selected);
   }, LV_EVENT_CLICKED, nullptr);
 

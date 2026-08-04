@@ -2293,7 +2293,11 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   assert(await page.getByText("Speaker Discovery Entity (optional)", { exact: true }).isVisible(), `${label}: speaker discovery field should render`);
   await page.waitForSelector('.sp-main [data-slot="4"].sp-media-group-active');
   assert(await page.locator('.sp-main [data-slot="4"].sp-media-group-active').count(), `${label}: speaker group preview should use active styling`);
-  assert.strictEqual(await page.locator('.sp-main [data-slot="4"] .sp-media-group-count').textContent(), "3", `${label}: speaker group preview should show a member count`);
+  assert.strictEqual(await page.locator('.sp-main [data-slot="4"] .sp-media-group-count').count(), 0, `${label}: speaker group preview should not invent a member count`);
+  await page.locator("#sp-inp-icon").fill("Home");
+  await page.locator("#sp-inp-icon").dispatchEvent("change");
+  await page.waitForSelector('.sp-main [data-slot="4"] .mdi-home');
+  assert(await page.locator('.sp-main [data-slot="4"] .mdi-home').count(), `${label}: speaker group preview should use its selected icon`);
   await helper.fill("");
   await page.getByRole("button", { name: "Save" }).click();
   await waitForPost(
@@ -2307,8 +2311,8 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   );
   assert.strictEqual(
     String(saved && saved.value || "").split(";")[2],
-    "Auto",
-    `${label}: changing to speaker group should clear a stale media icon`,
+    "Home",
+    `${label}: speaker group should save the selected icon`,
   );
   await page.waitForFunction(() => {
     var overlay = document.querySelector(".sp-settings-overlay");

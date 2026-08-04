@@ -106,6 +106,43 @@ inline void media_group_json_skip_ws(const std::string &raw, size_t &pos) {
   while (pos < raw.size() && std::isspace(static_cast<unsigned char>(raw[pos]))) pos++;
 }
 
+inline bool media_group_json_hex4(const std::string &raw, size_t &pos,
+                                  uint32_t &codepoint) {
+  if (pos + 4 > raw.size()) return false;
+  codepoint = 0;
+  for (int i = 0; i < 4; i++) {
+    char digit = raw[pos++];
+    codepoint <<= 4;
+    if (digit >= '0' && digit <= '9') codepoint |= digit - '0';
+    else if (digit >= 'a' && digit <= 'f') codepoint |= digit - 'a' + 10;
+    else if (digit >= 'A' && digit <= 'F') codepoint |= digit - 'A' + 10;
+    else return false;
+  }
+  return true;
+}
+
+inline bool media_group_json_append_utf8(std::string &value,
+                                         uint32_t codepoint) {
+  if (codepoint > 0x10FFFF ||
+      (codepoint >= 0xD800 && codepoint <= 0xDFFF)) return false;
+  if (codepoint <= 0x7F) {
+    value.push_back(static_cast<char>(codepoint));
+  } else if (codepoint <= 0x7FF) {
+    value.push_back(static_cast<char>(0xC0 | (codepoint >> 6)));
+    value.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+  } else if (codepoint <= 0xFFFF) {
+    value.push_back(static_cast<char>(0xE0 | (codepoint >> 12)));
+    value.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+    value.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+  } else {
+    value.push_back(static_cast<char>(0xF0 | (codepoint >> 18)));
+    value.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
+    value.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+    value.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+  }
+  return true;
+}
+
 inline bool media_group_json_string(const std::string &raw, size_t &pos,
                                     std::string &value) {
   media_group_json_skip_ws(raw, pos);
@@ -128,26 +165,19 @@ inline bool media_group_json_string(const std::string &raw, size_t &pos,
       case 'r': value.push_back('\r'); break;
       case 't': value.push_back('\t'); break;
       case 'u': {
-        if (pos + 4 > raw.size()) return false;
         uint32_t codepoint = 0;
-        for (int i = 0; i < 4; i++) {
-          char digit = raw[pos++];
-          codepoint <<= 4;
-          if (digit >= '0' && digit <= '9') codepoint |= digit - '0';
-          else if (digit >= 'a' && digit <= 'f') codepoint |= digit - 'a' + 10;
-          else if (digit >= 'A' && digit <= 'F') codepoint |= digit - 'A' + 10;
-          else return false;
+        if (!media_group_json_hex4(raw, pos, codepoint)) return false;
+        if (codepoint >= 0xD800 && codepoint <= 0xDBFF) {
+          if (pos + 2 > raw.size() || raw[pos] != '\\' || raw[pos + 1] != 'u')
+            return false;
+          pos += 2;
+          uint32_t low_surrogate = 0;
+          if (!media_group_json_hex4(raw, pos, low_surrogate) ||
+              low_surrogate < 0xDC00 || low_surrogate > 0xDFFF) return false;
+          codepoint = 0x10000 + ((codepoint - 0xD800) << 10) +
+            (low_surrogate - 0xDC00);
         }
-        if (codepoint <= 0x7F) {
-          value.push_back(static_cast<char>(codepoint));
-        } else if (codepoint <= 0x7FF) {
-          value.push_back(static_cast<char>(0xC0 | (codepoint >> 6)));
-          value.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-        } else {
-          value.push_back(static_cast<char>(0xE0 | (codepoint >> 12)));
-          value.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-          value.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-        }
+        if (!media_group_json_append_utf8(value, codepoint)) return false;
         break;
       }
       default: return false;

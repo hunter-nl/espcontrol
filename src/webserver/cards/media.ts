@@ -845,10 +845,10 @@ export function registerMediaCardTypes(): GlobalDescriptors {
                 };
             }
             if (mode === "speaker_group") {
+                var groupIcon: any = b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : info.icon;
                 return {
                     buttonClass: "sp-media-group-active",
-                    iconHtml: '<span class="sp-btn-icon mdi mdi-speaker-multiple"></span>' +
-                        '<span class="sp-media-group-count">3</span>',
+                    iconHtml: '<span class="sp-btn-icon mdi mdi-' + groupIcon + '"></span>',
                     labelHtml: cardBadgeLabelHtml(helpers, label, MEDIA_CARD_METADATA.preview.badge),
                 };
             }

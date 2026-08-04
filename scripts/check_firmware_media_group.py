@@ -128,6 +128,14 @@ int main() {
   assert(discovered_v2[0].volume_known && discovered_v2[0].volume_pct == 14);
   assert(discovered_v2[1].friendly_name == u8"Küche");
   assert(!discovered_v2[1].volume_known);
+  auto discovered_emoji = media_group_parse_discovery_items(
+    "v2|[[\"media_player.office\",\"Office \\uD83D\\uDD0A\",0.14]]");
+  assert(discovered_emoji.size() == 1);
+  assert(discovered_emoji[0].friendly_name == "Office \xF0\x9F\x94\x8A");
+  assert(media_group_parse_discovery_items(
+    "v2|[[\"media_player.office\",\"Office \\uD83D\",0.14]]").empty());
+  assert(media_group_parse_discovery_items(
+    "v2|[[\"media_player.office\",\"Office \\uDD0A\",0.14]]").empty());
   assert(media_group_parse_discovery_items("v2|[[\"media_player.office\"]]").empty());
   assert(media_group_parse_discovery_items("v2|not-json").empty());
   assert(media_group_parse_discovery_items("unknown").empty());
@@ -239,6 +247,10 @@ def main() -> int:
         raise SystemExit("Speaker tab must track discovery availability")
     if "lv_event_get_target(event) != lv_event_get_current_target(event)" not in media_header:
         raise SystemExit("Speaker card must ignore clicks bubbled from its volume controls")
+    if "bool available = false;" not in media_header:
+        raise SystemExit("Speaker rows must remain disabled until availability is hydrated")
+    if media_header.count("media_control_store_group_volume(") < 5:
+        raise SystemExit("Primary and polled speaker volumes must persist in the group cache")
     print("Firmware media-group checks passed.")
     return 0
 
