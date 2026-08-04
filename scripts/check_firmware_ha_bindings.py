@@ -1560,6 +1560,16 @@ def firmware_media_group_lifecycle_errors(firmware_dir: Path, root: Path) -> lis
             errors.append(
                 f"{rel}: defer live speaker reads until after LVGL finishes constructing the list"
             )
+        low_heap_marker = "#ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL"
+        full_heap_marker = "#else"
+        if low_heap_marker not in add_body or full_heap_marker not in add_body:
+            errors.append(f"{rel}: keep a compact speaker-row layout for low-heap S3 displays")
+        else:
+            compact_body = add_body.split(low_heap_marker, 1)[1].split(full_heap_marker, 1)[0]
+            if "row->content_box = lv_obj_create" in compact_body or "create_volume_button" in compact_body:
+                errors.append(
+                    f"{rel}: avoid nested containers and per-row volume buttons in the S3 speaker list"
+                )
     return errors
 
 

@@ -3184,13 +3184,49 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
     media_control_toggle_speaker(ctx, row, !row->selected);
   }, LV_EVENT_CLICKED, nullptr);
 
+  ControlModalLayout speaker_layout = control_modal_calc_layout(ctx->width_compensation_percent);
+#ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL
+  // The S3 has limited internal heap. Keep its speaker rows deliberately flat:
+  // one button and three labels instead of three nested containers plus two
+  // additional buttons. The whole row remains the join/leave control.
+  const lv_coord_t compact_pad_x = control_modal_scaled_px(14, speaker_layout.short_side);
+  const lv_coord_t compact_gap = control_modal_scaled_px(10, speaker_layout.short_side);
+  lv_obj_set_style_pad_left(row->row, compact_pad_x, LV_PART_MAIN);
+  lv_obj_set_style_pad_right(row->row, compact_pad_x, LV_PART_MAIN);
+  lv_obj_set_style_pad_column(row->row, compact_gap, LV_PART_MAIN);
+  lv_obj_set_layout(row->row, LV_LAYOUT_FLEX);
+  lv_obj_set_style_flex_flow(row->row, LV_FLEX_FLOW_ROW, LV_PART_MAIN);
+  lv_obj_set_style_flex_main_place(row->row, LV_FLEX_ALIGN_START, LV_PART_MAIN);
+  lv_obj_set_style_flex_cross_place(row->row, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
+
+  row->speaker_icon = lv_label_create(row->row);
+  lv_coord_t icon_column_w = control_modal_scaled_px(32, speaker_layout.short_side);
+  if (icon_column_w < 32) icon_column_w = 32;
+  lv_obj_set_width(row->speaker_icon, icon_column_w);
+  lv_label_set_text(row->speaker_icon, find_icon("Speaker"));
+  lv_obj_set_style_text_align(row->speaker_icon, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+  if (ctx->icon_font) lv_obj_set_style_text_font(row->speaker_icon, ctx->icon_font, LV_PART_MAIN);
+  lv_obj_set_style_transform_zoom(
+    row->speaker_icon, MEDIA_CONTROL_SPEAKER_ROW_ICON_ZOOM, LV_PART_MAIN);
+
+  row->name_label = lv_label_create(row->row);
+  lv_obj_set_width(row->name_label, 0);
+  lv_obj_set_flex_grow(row->name_label, 1);
+  lv_label_set_long_mode(row->name_label, LV_LABEL_LONG_DOT);
+  lv_obj_set_style_text_align(row->name_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
+  if (ctx->label_font) lv_obj_set_style_text_font(row->name_label, ctx->label_font, LV_PART_MAIN);
+
+  row->volume_label = lv_label_create(row->row);
+  lv_obj_set_width(row->volume_label, control_modal_scaled_px(58, speaker_layout.short_side));
+  lv_obj_set_style_text_align(row->volume_label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
+  if (ctx->label_font) lv_obj_set_style_text_font(row->volume_label, ctx->label_font, LV_PART_MAIN);
+#else
   row->content_box = lv_obj_create(row->row);
   lv_obj_set_size(row->content_box, LV_PCT(100), LV_PCT(100));
   lv_obj_align(row->content_box, LV_ALIGN_CENTER, 0, 0);
   lv_obj_set_style_bg_opa(row->content_box, LV_OPA_TRANSP, LV_PART_MAIN);
   lv_obj_set_style_border_width(row->content_box, 0, LV_PART_MAIN);
   lv_obj_set_style_shadow_width(row->content_box, 0, LV_PART_MAIN);
-  ControlModalLayout speaker_layout = control_modal_calc_layout(ctx->width_compensation_percent);
   const lv_coord_t card_pad_y = control_modal_scaled_px(12, speaker_layout.short_side);
   const lv_coord_t card_pad_x = control_modal_scaled_px(18, speaker_layout.short_side);
   const lv_coord_t content_gap = control_modal_scaled_px(12, speaker_layout.short_side);
@@ -3315,6 +3351,7 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
   };
   row->volume_minus_btn = create_volume_button(find_icon("Minus"), false);
   row->volume_plus_btn = create_volume_button(find_icon("Plus"), true);
+#endif
   ui.speaker_rows.push_back(row);
   media_control_refresh_speaker_row(ctx, row);
   // Discovery already supplies the initial name and volume. Do not issue
