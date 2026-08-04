@@ -1,6 +1,5 @@
 import { state } from "../state/app_instance";
 import { liveGlobal, staticGlobal, type GlobalDescriptors } from "../runtime/globals";
-import { refreshConfigurationSnapshot } from "./configuration_transaction";
 export function installAppEventsModule(): GlobalDescriptors {
     // ── SSE ────────────────────────────────────────────────────────────────
     function connectEvents(this: any) {
@@ -9,12 +8,15 @@ export function installAppEventsModule(): GlobalDescriptors {
             _eventSource = null;
         }
         function markConnected(this: any) {
-            refreshConfigurationSnapshot();
             resetStateForConnection(state);
             orderReceived = false;
             setConfigLocked(false);
             if (els.banner)
                 els.banner.className = "sp-banner";
+            els.root.querySelectorAll(".sp-apply-btn").forEach(function (this: any, btn?: any) {
+                btn.disabled = false;
+                btn.textContent = "Apply Configuration";
+            });
             clearTimeout(migrationTimer);
             migrationTimer = setTimeout(scheduleMigration, 5000);
             clearTimeout(sliderMigrationTimer);
@@ -118,9 +120,6 @@ export function installAppEventsModule(): GlobalDescriptors {
             handleDisconnected(source);
         });
         source.addEventListener("ping", handleWebServerPingEvent);
-        source.addEventListener("espcontrol_configuration", function (this: any) {
-            refreshConfigurationSnapshot();
-        });
         source.addEventListener("state", function (this: any, e?: any) {
             var d: any = parseEntityEventData(e.data);
             if (!d)

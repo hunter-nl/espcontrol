@@ -177,6 +177,18 @@ assert.strictEqual(
   "1p",
   "portrait-large grid order serializes with its saved token"
 );
+assert.deepStrictEqual(plain(model.parseGridOrder("1l", 15, 5)), {
+  grid: [1, -1, -1, -1, 0, -1, -1, -1, -1, 0, -1, -1, -1, -1, 0],
+  sizes: { 1: 11 },
+}, "landscape-large grid order reserves four columns across three rows");
+assert.strictEqual(
+  model.serializeGridOrder(
+    [1, -1, -1, -1, 0, -1, -1, -1, -1, 0, -1, -1, -1, -1, 0],
+    { 1: model.CARD_SIZE_LANDSCAPE_LARGE },
+  ),
+  "1l",
+  "landscape-large grid order serializes with its saved token"
+);
 
 const transferCard = {
   entity: "media_player.kitchen",
@@ -275,12 +287,21 @@ assert.strictEqual(
   model.CARD_SIZE_PORTRAIT_LARGE,
   "card transfer accepts the supported 3x4 card size",
 );
+const landscapeLargeTransferCode = model.createCardTransferCode(
+  { device: "panel-a", firmware: "2026.7.0" },
+  [{ ...transferCard, type: "image", size: model.CARD_SIZE_LANDSCAPE_LARGE }],
+);
+assert.strictEqual(
+  model.parseCardTransferCode(landscapeLargeTransferCode).cards[0].size,
+  model.CARD_SIZE_LANDSCAPE_LARGE,
+  "card transfer accepts the supported 4x3 camera card size",
+);
 const maxWideSubpageCard = {
   ...transferSubpageCard,
   subpage: {
     ...transferSubpageCard.subpage,
     order: ["B", "1h"],
-    buttons: [{ ...model.cloneCardConfig(transferCard), type: "camera" }],
+    buttons: [{ ...model.cloneCardConfig(transferCard), type: "image" }],
   },
 };
 assert.deepStrictEqual(
@@ -290,6 +311,22 @@ assert.deepStrictEqual(
   )).cards[0]),
   plain(maxWideSubpageCard),
   "card transfer accepts a 3x2 camera card inside a subpage",
+);
+const landscapeLargeSubpageCard = {
+  ...transferSubpageCard,
+  subpage: {
+    ...transferSubpageCard.subpage,
+    order: ["B", "1l"],
+    buttons: [{ ...model.cloneCardConfig(transferCard), type: "camera" }],
+  },
+};
+assert.deepStrictEqual(
+  plain(model.parseCardTransferCode(model.createCardTransferCode(
+    { device: "panel-a", firmware: "2026.7.0" },
+    [landscapeLargeSubpageCard],
+  )).cards[0]),
+  plain(landscapeLargeSubpageCard),
+  "card transfer accepts a 4x3 camera card inside a subpage",
 );
 
 function assertTransferError(value, expected) {
@@ -306,7 +343,7 @@ assertTransferError({ format: "espcontrol.cards", version: 2, source: { device: 
   "newer version");
 assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [] },
   "no cards");
-assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, size: model.CARD_SIZE_PORTRAIT_LARGE + 1 }] },
+assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, size: model.CARD_SIZE_LANDSCAPE_LARGE + 1 }] },
   "invalid size");
 assertTransferError({ format: "espcontrol.cards", version: 1, source: { device: "", firmware: "" }, cards: [{ ...transferCard, options: 42 }] },
   "invalid options field");
@@ -502,6 +539,7 @@ const panelSettings = model.normalizeBackupPanelSettings({
   outdoor_temp_enable: false,
   clock_bar_temperature_entities: "sensor.porch_temperature",
   clock_bar_time: false,
+  clock_bar_night_mode: true,
   network_status_icon: false,
   voice_services: true,
   alarm_delay_audio: true,
@@ -543,6 +581,7 @@ assert.strictEqual(panelSettings.temperatureUnit, "\u00B0C", "panel temperature 
 assert.strictEqual(panelSettings.outdoorTempEnable, false, "panel clock bar temperature visibility imports");
 assert.deepStrictEqual(plain(panelSettings.clockBarTemperatureEntities), ["sensor.porch_temperature"], "panel clock bar temperature entity imports");
 assert.strictEqual(panelSettings.clockBarTime, false, "panel clock bar time imports");
+assert.strictEqual(panelSettings.clockBarNightMode, true, "panel clock bar night mode icon imports");
 assert.strictEqual(panelSettings.networkStatusIcon, false, "panel clock bar network status imports");
 assert.strictEqual(panelSettings.voiceServices, true, "panel voice services imports");
 assert.strictEqual(panelSettings.alarmDelayAudio, true, "panel alarm delay audio imports");
@@ -678,6 +717,7 @@ const legacyPanelSettings = model.normalizeBackupPanelSettings({}, {
   screenRotationOptions: ["0", "90", "180", "270"],
 });
 assert.strictEqual(legacyPanelSettings.clockBarTime, true, "legacy panel settings default clock bar time on");
+assert.strictEqual(legacyPanelSettings.clockBarNightMode, false, "legacy panel settings default clock bar night mode icon off");
 assert.strictEqual(legacyPanelSettings.voiceServices, false, "legacy panel settings default voice services off");
 assert.strictEqual(legacyPanelSettings.alarmDelayAudio, false, "legacy panel settings default alarm audio off");
 assert.strictEqual(legacyPanelSettings.alarmDelayTts, true, "legacy panel settings default alarm TTS on");

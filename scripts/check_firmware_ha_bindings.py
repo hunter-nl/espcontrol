@@ -185,9 +185,7 @@ def firmware_ha_boundary_errors(firmware_dir: Path, root: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
     coordinator_path = firmware_dir / "ha_read_coordinator.h"
     coordinator_text = coordinator_path.read_text(encoding="utf-8") if coordinator_path.exists() else ""
-    broker_path = firmware_dir / "ha_state_broker.h"
-    broker_text = broker_path.read_text(encoding="utf-8") if broker_path.exists() else ""
-    read_boundary_text = text + "\n" + coordinator_text + "\n" + broker_text
+    read_boundary_text = text + "\n" + coordinator_text
     errors: list[str] = []
 
     state_helper = STATE_HELPER_PATTERN.search(text)
@@ -226,50 +224,24 @@ def firmware_ha_boundary_errors(firmware_dir: Path, root: Path) -> list[str]:
         errors.append(f"{rel}: send Home Assistant actions only after state subscription is ready")
     elif "HA_ACTION_INTERNAL_FREE_MIN_BYTES" not in action_send_match.group("body"):
         errors.append(f"{rel}: defer Home Assistant actions when S3 internal heap is critically low")
-    uses_broker = "ha_state_broker().get(" in text
-    if uses_broker:
-        if (
-            "HA_READ_INTERNAL_FREE_MIN_BYTES" not in text
-            or 'ha_internal_heap_available("Home Assistant state request"' not in text
-        ):
-            errors.append(f"{rel}: defer one-off Home Assistant attribute reads when S3 internal heap is critically low")
-        if "deliver_cached_once()" not in broker_text or "dispatch_depth_ == 0" not in broker_text:
-            errors.append(f"{rel}: queue nested cached Home Assistant reads until the current callback returns")
-        if (
-            "ensure_channel(entity_id, attribute)" not in broker_text
-            or "channels_[channel].has_value" not in broker_text
-            or "channel.entity_id == entity_id" not in broker_text
-        ):
-            errors.append(f"{rel}: fan out duplicate Home Assistant reads through one cached channel")
-        if "ScopedStateSubscriptions" not in broker_text or "Bank pending_" not in broker_text:
-            errors.append(f"{rel}: track Home Assistant subscription leases for atomic generation cleanup")
-        if "release_matching(active_, replace_scopes_)" not in broker_text or "broker_.prune()" not in broker_text:
-            errors.append(f"{rel}: release retired Home Assistant subscription leases after generation commit")
-        if "std::array<Channel, MaxChannels>" not in broker_text or "std::array<Subscriber, MaxSubscribers>" not in broker_text:
-            errors.append(f"{rel}: keep Home Assistant broker storage fixed-capacity")
-    else:
-        if (
-            "ha_read_coordinator().get(" not in text
-            or "HA_READ_INTERNAL_FREE_MIN_BYTES" not in text
-            or 'heap_probe_.available("Home Assistant state request"' not in coordinator_text
-        ):
-            errors.append(f"{rel}: defer one-off Home Assistant attribute reads when S3 internal heap is critically low")
-        if (
-            "if (callback_depth_ != 0)" not in coordinator_text
-            or "return queue(entity_id, attribute" not in coordinator_text
-            or "return attach_get(entity_id" not in coordinator_text
-        ):
-            errors.append(f"{rel}: queue one-off Home Assistant reads until state subscription is ready")
-        if (
-            "request.callbacks.push_back(std::move(callback))" not in read_boundary_text
-            or "request.entity_id == entity_id" not in read_boundary_text
-            or "for (auto &callback : request.callbacks)" not in read_boundary_text
-        ):
-            errors.append(f"{rel}: fan out duplicate deferred Home Assistant reads")
-        if "subscriptions_.push_back({callback_ref, scope, false})" not in coordinator_text:
-            errors.append(f"{rel}: track Home Assistant subscription callbacks for generation cleanup")
-        if "release_subscriptions" not in coordinator_text or "*ref.callback = nullptr" not in coordinator_text:
-            errors.append(f"{rel}: release retired Home Assistant subscription callback bodies")
+    if (
+        "ha_read_coordinator().get(" not in text
+        or "HA_READ_INTERNAL_FREE_MIN_BYTES" not in text
+        or 'heap_probe_.available("Home Assistant state request"' not in coordinator_text
+    ):
+        errors.append(f"{rel}: defer one-off Home Assistant attribute reads when S3 internal heap is critically low")
+    if "callback_depth_ != 0 || !state_connected()" not in coordinator_text:
+        errors.append(f"{rel}: queue one-off Home Assistant reads until state subscription is ready")
+    if (
+        "request.callbacks.push_back(std::move(callback))" not in read_boundary_text
+        or "request.entity_id == entity_id" not in read_boundary_text
+        or "for (const auto &callback : *callback_refs)" not in read_boundary_text
+    ):
+        errors.append(f"{rel}: fan out duplicate deferred Home Assistant reads")
+    if "subscriptions_.push_back({callback_ref, scope})" not in coordinator_text:
+        errors.append(f"{rel}: track Home Assistant subscription callbacks for generation cleanup")
+    if "release_subscriptions" not in coordinator_text or "*ref.callback = nullptr" not in coordinator_text:
+        errors.append(f"{rel}: release retired Home Assistant subscription callback bodies")
 
     return errors
 
@@ -1378,35 +1350,6 @@ def firmware_media_sleep_prevention_subscription_errors(paths: tuple[Path, ...],
     return errors
 
 
-def firmware_phase3_live_rebind_errors(
-    firmware_dir: Path, core_infra_path: Path, root: Path
-) -> list[str]:
-    errors: list[str] = []
-    grid_path = firmware_dir / "button_grid_grid.h"
-    grid_text = grid_path.read_text(encoding="utf-8")
-    if "ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3);" not in grid_text:
-        errors.append(
-            f"{grid_path.relative_to(root)}: replace previous phase-3 Home Assistant leases before rebinding"
-        )
-
-    core_text = core_infra_path.read_text(encoding="utf-8")
-    apply_match = re.search(
-        r'(?ms)    name: "Apply Configuration".*?(?=\nselect:)', core_text
-    )
-    if not apply_match:
-        errors.append(f"{core_infra_path.relative_to(root)}: missing Apply Configuration action")
-        return errors
-    apply_body = apply_match.group(0)
-    refresh_index = apply_body.find("- script.execute: refresh_button_grid")
-    wait_index = apply_body.find("- script.wait: refresh_button_grid")
-    phase3_index = apply_body.find("grid_phase3(")
-    if not (0 <= refresh_index < wait_index < phase3_index):
-        errors.append(
-            f"{core_infra_path.relative_to(root)}: refresh phase-3 subscriptions after the live grid rebuild completes"
-        )
-    return errors
-
-
 def firmware_media_control_low_heap_metadata_errors(firmware_dir: Path, root: Path) -> list[str]:
     path = firmware_dir / "button_grid_media.h"
     if not path.exists():
@@ -1574,12 +1517,56 @@ def firmware_media_group_lifecycle_errors(firmware_dir: Path, root: Path) -> lis
                 errors.append(f"{rel}: preserve per-speaker volume controls in the S3 speaker list")
     if "inline void media_control_create_speakers_tab_content" in text:
         create_body = text.split("inline void media_control_create_speakers_tab_content", 1)[1]
-        create_body = create_body.split("\n}\n\ninline void media_control_clear_tab_content", 1)[0]
+        create_body = create_body.split("\n}\n\ninline void media_control_create_power_tab_content", 1)[0]
         layout_pos = create_body.find("lv_obj_update_layout(ui.speaker_list);")
         refresh_pos = create_body.find("media_control_refresh_speakers(ctx);")
         if layout_pos < 0 or refresh_pos < 0 or layout_pos > refresh_pos:
             errors.append(
                 f"{rel}: resolve the speaker-list layout before sizing flat S3 rows"
+            )
+    return errors
+
+
+def firmware_media_power_binding_errors(firmware_dir: Path, root: Path) -> list[str]:
+    media_path = firmware_dir / "button_grid_media.h"
+    capability_path = firmware_dir / "media_power_capability.h"
+    errors: list[str] = []
+    if not media_path.exists() or not capability_path.exists():
+        return [
+            "components/espcontrol: keep media Power capability and Home Assistant binding helpers"
+        ]
+
+    media_text = media_path.read_text(encoding="utf-8")
+    capability_text = capability_path.read_text(encoding="utf-8")
+    media_required = (
+        'std::string("supported_features")',
+        "media_playback_subscribe_volume(state)",
+        "media_control_send_power_action",
+        'send_media_player_action(ctx->entity_id, "media_player.turn_on")',
+        'send_media_player_action(ctx->entity_id, "media_player.turn_off")',
+    )
+    capability_required = (
+        "SUPPORT_TURN_ON = 128",
+        "SUPPORT_TURN_OFF = 256",
+        "power_toggle_supported",
+        "PowerCommand power_command",
+        'state == "off" ? PowerCommand::TURN_ON : PowerCommand::TURN_OFF',
+    )
+    if any(needle not in media_text for needle in media_required) or any(
+        needle not in capability_text for needle in capability_required
+    ):
+        errors.append(
+            "components/espcontrol: keep media Power gated by supported_features and dispatch explicit turn_on/turn_off actions"
+        )
+
+    match = MEDIA_CONTROL_STATE_PATTERN.search(media_text)
+    if match:
+        always_on = match.group("body").split(
+            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL", 1
+        )[0]
+        if "media_playback_subscribe_volume(state)" not in always_on:
+            errors.append(
+                "components/espcontrol/button_grid_media.h: keep media Power capabilities subscribed on low-heap displays"
             )
     return errors
 
@@ -3161,9 +3148,9 @@ def run_scan() -> int:
     errors.extend(firmware_media_sleep_prevention_errors(BACKLIGHT_PATH, DISPLAY_CONFIG_PATH, COVER_ART_PATH, ROOT))
     errors.extend(firmware_touch_cover_art_delay_errors(DEVICE_TOUCH_PATHS, ROOT))
     errors.extend(firmware_media_sleep_prevention_subscription_errors(DEVICE_SENSOR_PATHS, ROOT))
-    errors.extend(firmware_phase3_live_rebind_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_media_control_low_heap_metadata_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_group_lifecycle_errors(FIRMWARE_DIR, ROOT))
+    errors.extend(firmware_media_power_binding_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_cover_art_low_heap_progress_errors(FIRMWARE_DIR, COVER_ART_PATH, ROOT))
     errors.extend(firmware_cover_art_progress_visibility_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_image_card_entity_errors(FIRMWARE_DIR, ROOT))
@@ -3641,6 +3628,52 @@ def expect_media_control_low_heap_metadata_errors(name: str, text: str, expected
             assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
         if not expected:
             assert not errors, f"{name}: expected no errors, got {errors!r}"
+
+
+def expect_media_power_binding_errors(
+    name: str, media_text: str, capability_text: str, expected: tuple[str, ...]
+) -> None:
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        firmware_dir = root / "components" / "espcontrol"
+        firmware_dir.mkdir(parents=True)
+        (firmware_dir / "button_grid_media.h").write_text(media_text, encoding="utf-8")
+        (firmware_dir / "media_power_capability.h").write_text(
+            capability_text, encoding="utf-8"
+        )
+
+        errors = firmware_media_power_binding_errors(firmware_dir, root)
+        for item in expected:
+            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
+        if not expected:
+            assert not errors, f"{name}: expected no errors, got {errors!r}"
+
+
+def valid_media_power_binding_text() -> tuple[str, str]:
+    media_text = (
+        "inline void media_playback_subscribe_volume(MediaPlaybackState *state) {\n"
+        "  ha_subscribe_attribute(entity_id, std::string(\"supported_features\"), cb);\n"
+        "}\n"
+        "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
+        "  media_playback_subscribe_volume(state);\n"
+        "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+        "#endif\n"
+        "}\n\n"
+        "inline bool media_seek_pending_active() { return false; }\n"
+        "inline void media_control_send_power_action(MediaControlCtx *ctx) {\n"
+        "  send_media_player_action(ctx->entity_id, \"media_player.turn_on\");\n"
+        "  send_media_player_action(ctx->entity_id, \"media_player.turn_off\");\n"
+        "}\n"
+    )
+    capability_text = (
+        "constexpr int SUPPORT_TURN_ON = 128;\n"
+        "constexpr int SUPPORT_TURN_OFF = 256;\n"
+        "inline bool power_toggle_supported() {}\n"
+        "inline PowerCommand power_command() {\n"
+        "  return state == \"off\" ? PowerCommand::TURN_ON : PowerCommand::TURN_OFF;\n"
+        "}\n"
+    )
+    return media_text, capability_text
 
 
 def expect_cover_art_low_heap_progress_errors(
@@ -5665,6 +5698,24 @@ def run_self_test() -> int:
         "",
         "",
         ("keep takeover restore from showing cover art during stop grace",),
+    )
+    valid_media_power, valid_media_power_capability = valid_media_power_binding_text()
+    expect_media_power_binding_errors(
+        "media Power binding",
+        valid_media_power,
+        valid_media_power_capability,
+        (),
+    )
+    expect_media_power_binding_errors(
+        "low heap media Power subscription removed",
+        valid_media_power.replace(
+            "  media_playback_subscribe_volume(state);\n"
+            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n",
+            "#ifndef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL\n"
+            "  media_playback_subscribe_volume(state);\n",
+        ),
+        valid_media_power_capability,
+        ("low-heap displays",),
     )
     expect_media_control_low_heap_metadata_errors(
         "low heap media modal keeps title and artist",

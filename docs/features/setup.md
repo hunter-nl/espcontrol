@@ -91,9 +91,10 @@ Right-click a card and open **Size** to choose:
 - **Extra Wide** - spans three columns.
 - **Large** - spans a 2 x 2 area.
 - **Extra Large** - spans a 3 x 3 area and is available for Media cover-art cards.
-- **Max wide** - spans a 3 x 2 area and is available for Camera cards.
+- **Max Wide** - spans a 3 x 2 area and is available for Camera cards.
 - **Max tall** - spans a 2 x 3 area and is available for Camera cards.
-- **Portrait** - spans a 3 x 4 area and is available for Camera and Media cover-art cards on both 10.1-inch panels.
+- **Massive Wide (3x4)** - spans three rows by four columns and is available for Camera cards when the current screen orientation has room.
+- **Massive (4x3)** - spans four rows by three columns and is available for Camera and Media cover-art cards when the current screen orientation has room.
 
 If a card already occupies the space needed for a larger size, the setup page tries to move it to the next available slot. If there is not enough room, the size change is not applied.
 
@@ -105,9 +106,9 @@ The **Settings** tab also includes display, brightness, screensaver, backup, and
 
 Open **Settings > System > Home Assistant Settings** to change **Home Assistant Port** if your Home Assistant instance does not use the default `8123` port. Camera/image cards and media artwork downloads use this port when loading images from Home Assistant.
 
-## Changes Apply Automatically
+## Apply Configuration
 
-Edits take effect on the panel by themselves after a short delay — no apply step and no display restart. Visual changes normally appear in about one to two seconds. When a card starts using a different Home Assistant entity, the panel briefly refreshes its Home Assistant connection so the new state can arrive; state and cover art can take a few more seconds to settle.
+After making changes, tap **Apply Configuration** at the bottom of the page. The panel restarts and loads your new settings — you'll see a message while it reconnects.
 
 ## Restart From Home Assistant
 
@@ -134,4 +135,4 @@ actions:
       entity_id: button.your_panel_restart
 ```
 
-Setup-page changes apply automatically; use the Home Assistant **Restart** entity when you need to restart the display itself.
+The web setup page's **Apply Configuration** button remains separate: use it after saving web settings, and use the Home Assistant **Restart** entity when you only need to restart the display.

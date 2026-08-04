@@ -17,11 +17,15 @@ export function installClockBarPostApiModule(): GlobalDescriptors {
     function postClockBarTemperatureEntities(this: any, value?: any) {
         var name: any = entityName("clock_bar_temperature_entities");
         var objectIds: any = entityObjectIds("clock_bar_temperature_entities");
-        return postOptionalTextWithObjectIds(name, objectIds, value);
+        return postOptional(entityPostUrls("text", name, objectIds, "set?value=" + encodeURIComponent(value)));
     }
     var CLOCK_BAR_TIME_UNAVAILABLE: any = "Clock bar time setting is not available on this firmware. Update the device firmware, then reload this page.";
     function postClockBarTime(this: any, on?: any) {
         postSwitchWithObjectIds(entityName("screen_clock_bar_time"), entityObjectIds("screen_clock_bar_time"), on, CLOCK_BAR_TIME_UNAVAILABLE);
+    }
+    var CLOCK_BAR_NIGHT_MODE_UNAVAILABLE: any = "Clock bar night mode icon setting is not available on this firmware. Update the device firmware, then reload this page.";
+    function postClockBarNightMode(this: any, on?: any) {
+        postSwitchWithObjectIds(entityName("screen_clock_bar_night_mode"), entityObjectIds("screen_clock_bar_night_mode"), on, CLOCK_BAR_NIGHT_MODE_UNAVAILABLE);
     }
     var NETWORK_STATUS_ICON_UNAVAILABLE: any = "Network status icon setting is not available on this firmware. Update the device firmware, then reload this page.";
     function postNetworkStatusIcon(this: any, on?: any) {
@@ -36,7 +40,7 @@ export function installClockBarPostApiModule(): GlobalDescriptors {
         return entityPostUrls("switch", entityName("voice_services"), entityObjectIds("voice_services"), on ? "turn_on" : "turn_off");
     }
     function postVoiceServices(this: any, on?: any) {
-        return postSwitchWithObjectIds(entityName("voice_services"), entityObjectIds("voice_services"), on, VOICE_SERVICES_UNAVAILABLE);
+        post(voiceServicesPostUrls(on), null, VOICE_SERVICES_UNAVAILABLE);
     }
     function postAlarmDelayAudio(this: any, on?: any) {
         postSwitchWithObjectIds(entityName("alarm_delay_audio"), entityObjectIds("alarm_delay_audio"), on);
@@ -73,6 +77,8 @@ export function installClockBarPostApiModule(): GlobalDescriptors {
         "postClockBarTemperatureEntities": staticGlobal(postClockBarTemperatureEntities),
         "CLOCK_BAR_TIME_UNAVAILABLE": liveGlobal(() => CLOCK_BAR_TIME_UNAVAILABLE, (value?: any) => { CLOCK_BAR_TIME_UNAVAILABLE = value; }),
         "postClockBarTime": staticGlobal(postClockBarTime),
+        "CLOCK_BAR_NIGHT_MODE_UNAVAILABLE": liveGlobal(() => CLOCK_BAR_NIGHT_MODE_UNAVAILABLE, (value?: any) => { CLOCK_BAR_NIGHT_MODE_UNAVAILABLE = value; }),
+        "postClockBarNightMode": staticGlobal(postClockBarNightMode),
         "NETWORK_STATUS_ICON_UNAVAILABLE": liveGlobal(() => NETWORK_STATUS_ICON_UNAVAILABLE, (value?: any) => { NETWORK_STATUS_ICON_UNAVAILABLE = value; }),
         "postNetworkStatusIcon": staticGlobal(postNetworkStatusIcon),
         "BATTERY_STATUS_UNAVAILABLE": liveGlobal(() => BATTERY_STATUS_UNAVAILABLE, (value?: any) => { BATTERY_STATUS_UNAVAILABLE = value; }),

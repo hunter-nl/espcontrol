@@ -51,14 +51,6 @@ class StorageBackend {
                     size_t size) = 0;
   virtual bool write(uint8_t slot, size_t offset, const uint8_t *data,
                      size_t size) = 0;
-  // Discard backend data beyond the new logical record size. Contiguous
-  // backends may leave this as a no-op; chunked/key-value backends use it to
-  // reclaim obsolete chunks before the replacement payload is written.
-  virtual bool truncate(uint8_t slot, size_t size) {
-    (void) slot;
-    (void) size;
-    return true;
-  }
   virtual bool sync() = 0;
 };
 
@@ -69,9 +61,6 @@ class ConfigurationStore {
  public:
   explicit ConfigurationStore(StorageBackend &backend) : backend_(backend) {}
 
-  // Inspect the newest valid slot without copying its payload. This is used by
-  // revision-aware writers before committing a replacement document.
-  LoadResult inspect();
   LoadResult load(uint8_t *output, size_t output_capacity);
   CommitResult commit(const uint8_t *payload, size_t payload_size);
 

@@ -90,6 +90,8 @@ All Controls opens playback controls and volume in a popup. The parent card uses
 
 When the main player reports Home Assistant's grouping capability and speaker discovery returns at least one valid player, All Controls includes a fourth **Speakers** tab. By default, EspControl reads the compatible-speaker inventory from `sensor.speaker_group`. If that sensor is missing or empty, the tab stays hidden instead of showing an unusable list.
 
+When Home Assistant reports that the media player supports both power-on and power-off actions, the popup also includes a Power tab. Media players without both capabilities do not show the tab.
+
 ## Speaker Groups
 
 Speaker Group opens the same speaker panel directly, without the playback, progress, and single-player volume tabs. It lets you join and unjoin compatible speakers and control the volume of speakers that are currently grouped.

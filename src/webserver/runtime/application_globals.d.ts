@@ -42,6 +42,7 @@ declare global {
   var CARD_SIZE_EXTRA_LARGE: any;
   var CARD_SIZE_EXTRA_TALL: any;
   var CARD_SIZE_EXTRA_WIDE: any;
+  var CARD_SIZE_LANDSCAPE_LARGE: any;
   var CARD_SIZE_LARGE: any;
   var CARD_SIZE_MAX_TALL: any;
   var CARD_SIZE_MAX_WIDE: any;
@@ -55,6 +56,7 @@ declare global {
   var CLIMATE_LABEL_DISPLAY_OPTION: any;
   var CLIMATE_NUMBER_DISPLAY_OPTION: any;
   var CLIMATE_TEMPERATURE_STEP_OPTION: any;
+  var CLOCK_BAR_NIGHT_MODE_UNAVAILABLE: any;
   var CLOCK_BAR_TIME_UNAVAILABLE: any;
   var CLOCK_BAR_UNAVAILABLE: any;
   var COVER_CONTROL_TABS_OPTION: any;
@@ -247,6 +249,7 @@ declare global {
   var appendTimezoneOption: any;
   var applyButtonConfigStateEvent: any;
   var applyButtonOrderValue: any;
+  var applyDeferredButtonOrderValue: any;
   var applyCardMetadataFields: any;
   var applyClockBarStateValue: any;
   var applyClockBarTemperatureEntities: any;
@@ -265,6 +268,8 @@ declare global {
   var backupEmptyButtonConfig: any;
   var backupExportFileDate: any;
   var backupExportFileName: any;
+  var normalizeImportedPanelSettings: any;
+  var gridColsForImportedSettings: any;
   var backupExportScreenSizeSlug: any;
   var backupNormalizeButtonConfig: any;
   var backupOrderUsedSlots: any;
@@ -273,6 +278,7 @@ declare global {
   var beginNewCardDraft: any;
   var bindTextPost: any;
   var btnDisplayName: any;
+  var buildApplyBar: any;
   var buildClipboardEntry: any;
   var buildCoverArtSettingsCard: any;
   var buildHeader: any;
@@ -281,6 +287,7 @@ declare global {
   var buildScreenScheduleSettingsCard: any;
   var buildSettingsPage: any;
   var buildSubpageGrid: any;
+  var buildSubpageGridAndNormalizeOrder: any;
   var buildSystemSettingsCards: any;
   var buildUI: any;
   var buttonConfigChangedByNormalize: any;
@@ -325,6 +332,7 @@ declare global {
   var cardContractOptions: any;
   var cardContractPickerKey: any;
   var cardRequiresSquareSize: any;
+  var cardSupportsLandscapeLargeSize: any;
   var cardSupportsMaxSize: any;
   var cardSupportsPortraitLargeSize: any;
   var cardContractSubpageTypeCode: any;
@@ -744,6 +752,7 @@ declare global {
   var normalizeHexColor: any;
   var normalizeHomeAssistantArtworkPort: any;
   var normalizeHomeAssistantArtworkProtocol: any;
+  var normalizeGridSpansForLayout: any;
   var normalizeHour: any;
   var normalizeImageModalMode: any;
   var normalizeImageOptions: any;
@@ -840,6 +849,7 @@ declare global {
   var postC6FirmwareAutoUpdate: any;
   var postC6FirmwareUpdateInstall: any;
   var postClockBar: any;
+  var postClockBarNightMode: any;
   var postClockBarTemperatureEntities: any;
   var postClockBarTime: any;
   var postClockBrightnessDay: any;
@@ -868,7 +878,6 @@ declare global {
   var postNumberWithObjectId: any;
   var postNumberWithObjectIds: any;
   var postOptional: any;
-  var postOptionalTextWithObjectIds: any;
   var postPresenceSensorEntity: any;
   var postQueueHadError: any;
   var postQueueIdle: any;

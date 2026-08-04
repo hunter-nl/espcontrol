@@ -20,7 +20,6 @@ DISPLAY_COLOR_HEADER = ROOT / "components" / "espcontrol" / "display_color.h"
 SCREEN_LOCK_STATE_HEADER = ROOT / "components" / "espcontrol" / "screen_lock_state.h"
 CONTRACT_HEADER = ROOT / "components" / "espcontrol" / "button_grid_contract_generated.h"
 CARD_RUNTIME_HEADER = ROOT / "components" / "espcontrol" / "button_grid_card_runtime.h"
-CARD_RECONCILER_HEADER = ROOT / "components" / "espcontrol" / "card_reconciler.h"
 CARD_REGISTRY_HEADER = ROOT / "components" / "espcontrol" / "button_grid_card_registry.h"
 SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_vacuum_generated.h"
 SAVED_CONFIG_SENSOR_HEADER = ROOT / "components" / "espcontrol" / "button_grid_saved_config_sensor_generated.h"
@@ -205,6 +204,8 @@ int main() {
   assert(row_span == 1 && col_span == 3);
   grid_token_spans('p', row_span, col_span);
   assert(row_span == 4 && col_span == 3);
+  grid_token_spans('l', row_span, col_span);
+  assert(row_span == 3 && col_span == 4);
   grid_token_spans('q', row_span, col_span);
   assert(row_span == 3 && col_span == 3);
   grid_token_spans('h', row_span, col_span);
@@ -214,6 +215,8 @@ int main() {
   assert(grid_token_has_span_suffix('q'));
   assert(grid_token_has_span_suffix('h'));
   assert(grid_token_has_span_suffix('v'));
+  assert(grid_token_has_span_suffix('p'));
+  assert(grid_token_has_span_suffix('l'));
 
   assert(clock_bar_equal_fr_track_size(434, 3, 0) == 145);
   assert(clock_bar_equal_fr_track_size(434, 3, 1) == 145);
@@ -283,6 +286,40 @@ int main() {
   assert(lv_obj_has_flag(&display_time, LV_OBJ_FLAG_HIDDEN));
   assert(lv_obj_has_flag(&network_status_button, LV_OBJ_FLAG_HIDDEN));
   set_clock_bar_temperature_value_count(0);
+
+  // Right-side icons pack leftwards by glyph edges, so each visible icon sits
+  // one gap from its neighbour regardless of the surrounding tap-target width.
+  auto right_icons = clock_bar_right_icons_begin(4, 8);
+  assert(!right_icons.has_glyph);
+  clock_bar_right_icons_seed(right_icons, 48, 26);
+  assert(right_icons.has_glyph);
+  assert(right_icons.cursor == 41);
+  // Box right edge sits 11px inside the glyph it centres, so -38 puts the glyph
+  // exactly 8px left of the network glyph.
+  assert(clock_bar_right_icons_next_x(right_icons, 48, 26) == -38);
+  assert(right_icons.cursor == 75);
+  // A second icon packs against the first rather than skipping a slot.
+  assert(clock_bar_right_icons_next_x(right_icons, 48, 26) == -72);
+  // With no network anchor, the first visible optional icon takes the normal
+  // rightmost position and the next icon packs against it.
+  auto no_network_icons = clock_bar_right_icons_begin(4, 8);
+  assert(!no_network_icons.has_glyph);
+  assert(no_network_icons.cursor == 0);
+  assert(clock_bar_right_icons_next_x(no_network_icons, 48, 26) == -4);
+  assert(no_network_icons.has_glyph);
+  assert(no_network_icons.cursor == 41);
+  assert(clock_bar_right_icons_next_x(no_network_icons, 48, 26) == -38);
+  // Hidden optional icons do not call next_x and therefore consume no space.
+  auto hidden_optional_icons = clock_bar_right_icons_begin(6, 8);
+  assert(!hidden_optional_icons.has_glyph);
+  assert(hidden_optional_icons.cursor == 0);
+  // A glyph as wide as its box needs no lead.
+  auto flush_icons = clock_bar_right_icons_begin(8, 6);
+  clock_bar_right_icons_seed(flush_icons, 40, 40);
+  assert(flush_icons.cursor == 48);
+  assert(clock_bar_right_icons_next_x(flush_icons, 40, 40) == -54);
+  // A missing label falls back to the tap-target width rather than crowding.
+  assert(clock_bar_glyph_width(nullptr, 38) == 38);
 
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 0) == "light.kitchen");
   assert(cfg_field("light.kitchen;Kitchen;Auto;Lightbulb", 3) == "Lightbulb");
@@ -658,7 +695,7 @@ int main() {
   assert(rise_h == 6 && rise_m == 0 && set_h == 18 && set_m == 0);
 
   OrderResult parsed;
-  parse_order_string("1,2d,3w,4b,5t,6x,7h,8v,99", 9, parsed);
+  parse_order_string("1,2d,3w,4b,5t,6x,7h,8v,9l,99", 10, parsed);
   assert(parsed.positions[0] == 1);
   assert(parsed.positions[1] == 2);
   assert(parsed.row_span[1] == 2 && parsed.col_span[1] == 1);
@@ -668,6 +705,7 @@ int main() {
   assert(parsed.row_span[5] == 1 && parsed.col_span[5] == 3);
   assert(parsed.row_span[6] == 2 && parsed.col_span[6] == 3);
   assert(parsed.row_span[7] == 3 && parsed.col_span[7] == 2);
+  assert(parsed.row_span[8] == 3 && parsed.col_span[8] == 4);
 
   OrderResult overlap;
   parse_order_string("1b,2,3,4,5,6", 9, overlap);
@@ -836,7 +874,6 @@ def main() -> int:
         shutil.copy2(SCREEN_LOCK_STATE_HEADER, tmp_path / "screen_lock_state.h")
         shutil.copy2(CONTRACT_HEADER, tmp_path / "button_grid_contract_generated.h")
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
-        shutil.copy2(CARD_RECONCILER_HEADER, tmp_path / "card_reconciler.h")
         shutil.copy2(CARD_REGISTRY_HEADER, tmp_path / "button_grid_card_registry.h")
         shutil.copy2(SAVED_CONFIG_VACUUM_HEADER, tmp_path / "button_grid_saved_config_vacuum_generated.h")
         shutil.copy2(SAVED_CONFIG_SENSOR_HEADER, tmp_path / "button_grid_saved_config_sensor_generated.h")
