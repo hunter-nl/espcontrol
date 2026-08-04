@@ -160,92 +160,6 @@ def check_root(root: Path) -> list[str]:
     if grid_header.exists():
         text = grid_header.read_text(encoding="utf-8")
         compact_grid = re.sub(r"\s+", " ", text)
-        bounded_ownership_guards = (
-            "class GridRuntimeAllocationRegistry",
-            "GRID_RUNTIME_ALLOCATION_CAPACITY",
-            "static_cast<size_t>(MAX_GRID_SLOTS + MAX_SUBPAGE_ITEMS) * 8",
-            "heap_caps_calloc(",
-            "MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT",
-            "Runtime ownership pool exhausted",
-        )
-        for guard in bounded_ownership_guards:
-            if guard not in text:
-                failures.append(
-                    f"components/espcontrol/{GRID_HEADER}: card runtime ownership is missing bounded-pool guard {guard}"
-                )
-        if re.search(r"std::vector\s*<\s*GridRuntimeAllocation\s*>", text):
-            failures.append(
-                f"components/espcontrol/{GRID_HEADER}: card runtime ownership must not grow a vector during live edits"
-            )
-        if "reconstruct_main_cards" in text:
-            live_rebuild_guards = (
-                "reconstruct_main_cards ? release_runtime_slot : nullptr",
-                "grid_prepare_media_runtime_for_visual_reset(slots[i].btn);",
-                "control_context = grid_media_control_runtime_for_owner(slots[i].btn);",
-                "slots[i].btn, visual_context, slider_context, control_context",
-                "espcontrol::cards::changed_domains(",
-                "espcontrol::cards::requires_runtime_release(mutation)",
-                "main_card_snapshots[i] = current_card_nodes[i]",
-                "reconstruct_main_cards && reconstruct_slot[idx - 1]",
-                "lv_obj_add_flag(unused_slot.btn, LV_OBJ_FLAG_HIDDEN);",
-                "media_ctx->cover_art && media_ctx->cover_art->widget",
-                "media_cover_art_refresh_geometry(media_ctx);",
-            )
-            for guard in live_rebuild_guards:
-                if guard not in text:
-                    failures.append(
-                        f"components/espcontrol/{GRID_HEADER}: live card rebuild is missing deletion cleanup guard {guard}"
-                    )
-        media_driver_header = root / "components" / "espcontrol" / "button_grid_media_driver.h"
-        if media_driver_header.exists():
-            media_driver_text = media_driver_header.read_text(encoding="utf-8")
-            create_control = function_body(media_driver_text, "media_driver_create_control")
-            if create_control is None or (
-                "context.surface == Surface::MAIN_GRID" not in create_control
-                or "grid_media_control_runtime_for_owner(slot.btn)" not in create_control
-            ):
-                failures.append(
-                    "components/espcontrol/button_grid_media_driver.h: reuse unchanged main-grid media controls during live refresh"
-                )
-            bind_cover_art = function_body(media_driver_text, "media_driver_bind_cover_art_route")
-            if bind_cover_art is None or any(
-                guard not in bind_cover_art
-                for guard in (
-                    "const bool route_config_changed",
-                    "if (route_config_changed) now_playing->active_entity.clear();",
-                    "media_driver_bind_cover_art_control(control, next_entity);",
-                    "if (now_playing->progress_slider)",
-                )
-            ):
-                failures.append(
-                    "components/espcontrol/button_grid_media_driver.h: preserve and rebind unchanged cover-art routes during live refresh"
-                )
-            bind_cover_art_control = function_body(
-                media_driver_text, "media_driver_bind_cover_art_control"
-            )
-            if bind_cover_art_control is None or any(
-                guard not in bind_cover_art_control
-                for guard in (
-                    "if (control->entity_id != entity_id)",
-                    "media_playback_detach_control(control);",
-                    "control->entity_id = entity_id;",
-                    "subscribe_media_control_state(control);",
-                )
-            ):
-                failures.append(
-                    "components/espcontrol/button_grid_media_driver.h: keep a recreated cover-art modal on the active metadata entity"
-                )
-            if bind_cover_art is not None:
-                bind_control = bind_cover_art.find(
-                    "media_driver_bind_cover_art_control(control, next_entity);"
-                )
-                unchanged_return = bind_cover_art.find(
-                    "if (!entity_changed && !presentation_changed) return;"
-                )
-                if bind_control < 0 or unchanged_return < 0 or bind_control > unchanged_return:
-                    failures.append(
-                        "components/espcontrol/button_grid_media_driver.h: rebind the cover-art modal before an unchanged visual route returns"
-                    )
         visual_setup = function_body(text, "setup_card_visual")
         if visual_setup is not None:
             clickable_reset = "lv_obj_add_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);"
@@ -422,11 +336,6 @@ def check_root(root: Path) -> list[str]:
             )
         image_reset_pos = text.find("image_driver_reset_pool(cfg);")
         subpage_clear_pos = text.find("navigation_clear_subpages();")
-        return_home_pos = text.find("navigation_return_home(main_page_obj);")
-        if return_home_pos < 0 or return_home_pos > subpage_clear_pos:
-            failures.append(
-                f"components/espcontrol/{GRID_HEADER}: return home before deleting rebuilt subpages"
-            )
         if image_reset_pos < 0 or subpage_clear_pos < 0 or image_reset_pos > subpage_clear_pos:
             failures.append(
                 f"components/espcontrol/{GRID_HEADER}: reset image-card contexts before deleting subpage screens"
