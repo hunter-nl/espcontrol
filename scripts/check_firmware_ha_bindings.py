@@ -1566,10 +1566,12 @@ def firmware_media_group_lifecycle_errors(firmware_dir: Path, root: Path) -> lis
             errors.append(f"{rel}: keep a compact speaker-row layout for low-heap S3 displays")
         else:
             compact_body = add_body.split(low_heap_marker, 1)[1].split(full_heap_marker, 1)[0]
-            if "row->content_box = lv_obj_create" in compact_body or "create_volume_button" in compact_body:
+            if "row->content_box = lv_obj_create" in compact_body or "row->text_box = lv_obj_create" in compact_body:
                 errors.append(
-                    f"{rel}: avoid nested containers and per-row volume buttons in the S3 speaker list"
+                    f"{rel}: avoid nested containers in the S3 speaker list"
                 )
+            if "media_control_create_speaker_volume_button" not in compact_body:
+                errors.append(f"{rel}: preserve per-speaker volume controls in the S3 speaker list")
     return errors
 
 

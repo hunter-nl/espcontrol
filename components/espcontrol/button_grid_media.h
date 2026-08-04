@@ -2827,6 +2827,12 @@ inline void media_control_refresh_speaker_row(MediaControlCtx *ctx,
       ? media_control_speaker_fallback_name(row->entity_id) : row->friendly_name;
     lv_label_set_text(row->name_label, name.c_str());
     lv_obj_set_style_text_color(row->name_label, lv_color_hex(text_color), LV_PART_MAIN);
+#ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL
+    lv_obj_set_style_translate_y(
+      row->name_label,
+      show_volume ? -(lv_obj_get_height(row->name_label) / 2) : 0,
+      LV_PART_MAIN);
+#endif
   }
   if (row->speaker_icon) {
     lv_label_set_text(
@@ -2839,6 +2845,18 @@ inline void media_control_refresh_speaker_row(MediaControlCtx *ctx,
     if (show_volume) lv_obj_clear_flag(row->volume_controls, LV_OBJ_FLAG_HIDDEN);
     else lv_obj_add_flag(row->volume_controls, LV_OBJ_FLAG_HIDDEN);
   }
+#ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL
+  // Compact rows place the volume buttons directly on the card instead of in
+  // a nested container, so their visibility is managed individually.
+  if (row->volume_minus_btn) {
+    if (show_volume) lv_obj_clear_flag(row->volume_minus_btn, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(row->volume_minus_btn, LV_OBJ_FLAG_HIDDEN);
+  }
+  if (row->volume_plus_btn) {
+    if (show_volume) lv_obj_clear_flag(row->volume_plus_btn, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(row->volume_plus_btn, LV_OBJ_FLAG_HIDDEN);
+  }
+#endif
   const bool volume_enabled = show_volume && row->available && row->volume_known;
   media_volume_set_button_enabled(row->volume_minus_btn, volume_enabled && row->volume_pct > 0);
   media_volume_set_button_enabled(
@@ -2855,6 +2873,10 @@ inline void media_control_refresh_speaker_row(MediaControlCtx *ctx,
     else std::strncpy(value, "--", sizeof(value));
     value[sizeof(value) - 1] = '\0';
     lv_label_set_text(row->volume_label, value);
+#ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL
+    lv_obj_set_style_translate_y(
+      row->volume_label, lv_obj_get_height(row->volume_label) / 2, LV_PART_MAIN);
+#endif
   }
 }
 
@@ -3146,6 +3168,54 @@ inline void media_control_refresh_speaker_state(MediaControlCtx *ctx,
   ha_get_attribute(entity_id, std::string("volume_level"), volume_callback);
 }
 
+inline lv_obj_t *media_control_create_speaker_volume_button(
+    MediaControlCtx *ctx, MediaSpeakerRowState *row, lv_obj_t *parent,
+    lv_coord_t size, const char *icon, bool increase) {
+  if (!ctx || !row || !parent) return nullptr;
+  lv_obj_t *btn = lv_btn_create(parent);
+  lv_obj_set_size(btn, size, size);
+  lv_obj_set_style_radius(btn, size / 2, LV_PART_MAIN);
+  lv_obj_set_style_bg_color(btn, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
+  lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
+  lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(btn, 0, LV_PART_MAIN);
+  control_modal_apply_pressed_fill(btn);
+  lv_obj_t *label = lv_label_create(btn);
+  lv_label_set_text(label, icon);
+  if (ctx->icon_font) lv_obj_set_style_text_font(label, ctx->icon_font, LV_PART_MAIN);
+  lv_obj_set_style_text_color(label, lv_color_hex(ctx->accent_color), LV_PART_MAIN);
+  lv_obj_center(label);
+  lv_obj_set_user_data(btn, row);
+  lv_obj_add_event_cb(btn, [](lv_event_t *event) {
+    MediaSpeakerRowState *row = static_cast<MediaSpeakerRowState *>(
+      lv_obj_get_user_data(static_cast<lv_obj_t *>(lv_event_get_target(event))));
+    if (!row || !row->available || !row->volume_known) return;
+    const bool increase = reinterpret_cast<uintptr_t>(lv_event_get_user_data(event)) != 0;
+    MediaControlCtx *ctx = media_control_modal_ui().active;
+    if (!ctx) return;
+    row->volume_pct = media_group_step_volume(
+      row->volume_pct, increase, media_control_volume_max_pct(ctx));
+    bool stored = false;
+    for (MediaGroupVolumeState &known : ctx->group_volume_states) {
+      if (known.entity_id != row->entity_id) continue;
+      known.volume_pct = row->volume_pct;
+      known.volume_known = true;
+      known.available = row->available;
+      stored = true;
+      break;
+    }
+    if (!stored) {
+      ctx->group_volume_states.push_back(
+        {row->entity_id, row->volume_pct, true, row->available});
+    }
+    send_media_volume_action(row->entity_id, row->volume_pct);
+    media_control_refresh_speaker_row(ctx, row);
+    media_control_refresh_group_volume(ctx);
+  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(increase)));
+  return btn;
+}
+
 inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
                                                 const std::string &entity_id) {
   MediaControlModalUi &ui = media_control_modal_ui();
@@ -3186,18 +3256,11 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
 
   ControlModalLayout speaker_layout = control_modal_calc_layout(ctx->width_compensation_percent);
 #ifdef ESPCONTROL_LOW_HEAP_MEDIA_CONTROL
-  // The S3 has limited internal heap. Keep its speaker rows deliberately flat:
-  // one button and three labels instead of three nested containers plus two
-  // additional buttons. The whole row remains the join/leave control.
+  // Keep the original speaker-card design and controls on the S3 while making
+  // its LVGL tree flat. This avoids three nested flex containers per row without
+  // removing the icon, name, volume, or per-speaker volume buttons.
   const lv_coord_t compact_pad_x = control_modal_scaled_px(14, speaker_layout.short_side);
   const lv_coord_t compact_gap = control_modal_scaled_px(10, speaker_layout.short_side);
-  lv_obj_set_style_pad_left(row->row, compact_pad_x, LV_PART_MAIN);
-  lv_obj_set_style_pad_right(row->row, compact_pad_x, LV_PART_MAIN);
-  lv_obj_set_style_pad_column(row->row, compact_gap, LV_PART_MAIN);
-  lv_obj_set_layout(row->row, LV_LAYOUT_FLEX);
-  lv_obj_set_style_flex_flow(row->row, LV_FLEX_FLOW_ROW, LV_PART_MAIN);
-  lv_obj_set_style_flex_main_place(row->row, LV_FLEX_ALIGN_START, LV_PART_MAIN);
-  lv_obj_set_style_flex_cross_place(row->row, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
 
   row->speaker_icon = lv_label_create(row->row);
   lv_coord_t icon_column_w = control_modal_scaled_px(32, speaker_layout.short_side);
@@ -3208,18 +3271,41 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
   if (ctx->icon_font) lv_obj_set_style_text_font(row->speaker_icon, ctx->icon_font, LV_PART_MAIN);
   lv_obj_set_style_transform_zoom(
     row->speaker_icon, MEDIA_CONTROL_SPEAKER_ROW_ICON_ZOOM, LV_PART_MAIN);
+  lv_obj_align(row->speaker_icon, LV_ALIGN_LEFT_MID, compact_pad_x, 0);
 
   row->name_label = lv_label_create(row->row);
-  lv_obj_set_width(row->name_label, 0);
-  lv_obj_set_flex_grow(row->name_label, 1);
+  lv_coord_t volume_button_size = control_modal_scaled_px(46, speaker_layout.short_side);
+  if (volume_button_size < 46) volume_button_size = 46;
+  lv_coord_t volume_button_gap = control_modal_scaled_px(7, speaker_layout.short_side);
+  if (volume_button_gap < 7) volume_button_gap = 7;
+  const lv_coord_t text_x = compact_pad_x + icon_column_w + compact_gap;
+  lv_coord_t text_width = lv_obj_get_width(ui.speaker_list) - text_x - compact_pad_x -
+    compact_gap - volume_button_size * 2 - volume_button_gap;
+  if (text_width < 80) text_width = 80;
+  lv_obj_set_width(row->name_label, text_width);
   lv_label_set_long_mode(row->name_label, LV_LABEL_LONG_DOT);
   lv_obj_set_style_text_align(row->name_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   if (ctx->label_font) lv_obj_set_style_text_font(row->name_label, ctx->label_font, LV_PART_MAIN);
+  const lv_coord_t speaker_text_h = ctx->label_font && ctx->label_font->line_height > 0
+    ? ctx->label_font->line_height : 24;
+  lv_obj_set_height(row->name_label, speaker_text_h);
+  lv_obj_align(row->name_label, LV_ALIGN_LEFT_MID, text_x, 0);
 
   row->volume_label = lv_label_create(row->row);
-  lv_obj_set_width(row->volume_label, control_modal_scaled_px(58, speaker_layout.short_side));
-  lv_obj_set_style_text_align(row->volume_label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
+  lv_obj_set_width(row->volume_label, text_width);
+  lv_obj_set_height(row->volume_label, speaker_text_h);
+  lv_obj_set_style_text_align(row->volume_label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   if (ctx->label_font) lv_obj_set_style_text_font(row->volume_label, ctx->label_font, LV_PART_MAIN);
+  lv_obj_align(row->volume_label, LV_ALIGN_LEFT_MID, text_x, 0);
+
+  row->volume_plus_btn = media_control_create_speaker_volume_button(
+    ctx, row, row->row, volume_button_size, find_icon("Plus"), true);
+  lv_obj_align(row->volume_plus_btn, LV_ALIGN_RIGHT_MID, -compact_pad_x, 0);
+  row->volume_minus_btn = media_control_create_speaker_volume_button(
+    ctx, row, row->row, volume_button_size, find_icon("Minus"), false);
+  lv_obj_align(
+    row->volume_minus_btn, LV_ALIGN_RIGHT_MID,
+    -(compact_pad_x + volume_button_size + volume_button_gap), 0);
 #else
   row->content_box = lv_obj_create(row->row);
   lv_obj_set_size(row->content_box, LV_PCT(100), LV_PCT(100));
@@ -3305,52 +3391,10 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
   lv_obj_set_style_flex_cross_place(row->volume_controls, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_clear_flag(row->volume_controls, LV_OBJ_FLAG_SCROLLABLE);
 
-  auto create_volume_button = [&](const char *icon, bool increase) {
-    lv_obj_t *btn = lv_btn_create(row->volume_controls);
-    lv_obj_set_size(btn, volume_button_size, volume_button_size);
-    lv_obj_set_style_radius(btn, volume_button_size / 2, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(btn, lv_color_hex(DARK_TEXT_PRIMARY), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(btn, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(btn, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(btn, 0, LV_PART_MAIN);
-    control_modal_apply_pressed_fill(btn);
-    lv_obj_t *label = lv_label_create(btn);
-    lv_label_set_text(label, icon);
-    if (ctx->icon_font) lv_obj_set_style_text_font(label, ctx->icon_font, LV_PART_MAIN);
-    lv_obj_set_style_text_color(label, lv_color_hex(ctx->accent_color), LV_PART_MAIN);
-    lv_obj_center(label);
-    lv_obj_set_user_data(btn, row);
-    lv_obj_add_event_cb(btn, [](lv_event_t *event) {
-      MediaSpeakerRowState *row = static_cast<MediaSpeakerRowState *>(
-        lv_obj_get_user_data(static_cast<lv_obj_t *>(lv_event_get_target(event))));
-      if (!row || !row->available || !row->volume_known) return;
-      const bool increase = reinterpret_cast<uintptr_t>(lv_event_get_user_data(event)) != 0;
-      MediaControlCtx *ctx = media_control_modal_ui().active;
-      if (!ctx) return;
-      row->volume_pct = media_group_step_volume(
-        row->volume_pct, increase, media_control_volume_max_pct(ctx));
-      bool stored = false;
-      for (MediaGroupVolumeState &known : ctx->group_volume_states) {
-        if (known.entity_id != row->entity_id) continue;
-        known.volume_pct = row->volume_pct;
-        known.volume_known = true;
-        known.available = row->available;
-        stored = true;
-        break;
-      }
-      if (!stored) {
-        ctx->group_volume_states.push_back(
-          {row->entity_id, row->volume_pct, true, row->available});
-      }
-      send_media_volume_action(row->entity_id, row->volume_pct);
-      media_control_refresh_speaker_row(ctx, row);
-      media_control_refresh_group_volume(ctx);
-    }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(increase)));
-    return btn;
-  };
-  row->volume_minus_btn = create_volume_button(find_icon("Minus"), false);
-  row->volume_plus_btn = create_volume_button(find_icon("Plus"), true);
+  row->volume_minus_btn = media_control_create_speaker_volume_button(
+    ctx, row, row->volume_controls, volume_button_size, find_icon("Minus"), false);
+  row->volume_plus_btn = media_control_create_speaker_volume_button(
+    ctx, row, row->volume_controls, volume_button_size, find_icon("Plus"), true);
 #endif
   ui.speaker_rows.push_back(row);
   media_control_refresh_speaker_row(ctx, row);
