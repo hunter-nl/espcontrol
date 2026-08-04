@@ -383,7 +383,7 @@ inline std::vector<int> media_group_delta_volumes(
   out.reserve(members.size());
   for (const MediaGroupVolumeState &member : members) {
     int value = member.volume_pct + delta;
-    value = std::max(0, std::min(maximum_volume, value));
+    value = std::max(0, std::min(delta > 0 ? maximum_volume : 100, value));
     out.push_back(value);
   }
   return out;

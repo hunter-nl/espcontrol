@@ -193,7 +193,8 @@ int main() {
     {"media_player.two", 20, true, true},
   };
   assert(media_group_mean_volume(above_max, &mean) && mean == 50);
-  assert((media_group_delta_volumes(above_max, 40, 50) == std::vector<int>{50, 10}));
+  assert((media_group_delta_volumes(above_max, 49, 50) == std::vector<int>{79, 19}));
+  assert((media_group_delta_volumes(above_max, 40, 50) == std::vector<int>{70, 10}));
   volumes[1].volume_known = false;
   assert(!media_group_mean_volume(volumes, &mean));
   assert(media_group_delta_volumes(volumes, 35, 100).empty());
@@ -258,6 +259,8 @@ def main() -> int:
     ):
         if reset not in media_header:
             raise SystemExit("Media route changes must clear stale speaker discovery data")
+    if 'media_control_set_speaker_status(espcontrol_i18n("Updating speakers"), false, true);' not in media_header:
+        raise SystemExit("Pending speaker group changes must show their status")
     print("Firmware media-group checks passed.")
     return 0
 
