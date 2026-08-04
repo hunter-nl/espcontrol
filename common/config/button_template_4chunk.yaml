@@ -21,9 +21,6 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_button
-    on_value:
-      then:
-        - script.execute: schedule_card_config_refresh
 
   - platform: template
     name: "${entity_subpage_config_prefix}${num}${entity_subpage_config_suffix}"
@@ -40,9 +37,6 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_button
-    on_value:
-      then:
-        - script.execute: schedule_card_config_refresh
 
   - platform: template
     name: "${entity_subpage_config_ext_prefix}${num}${entity_subpage_config_ext_suffix}"
@@ -59,9 +53,6 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_button
-    on_value:
-      then:
-        - script.execute: schedule_card_config_refresh
 
   - platform: template
     name: "${entity_subpage_config_ext_2_prefix}${num}${entity_subpage_config_ext_2_suffix}"
@@ -78,9 +69,6 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_button
-    on_value:
-      then:
-        - script.execute: schedule_card_config_refresh
 
   - platform: template
     name: "${entity_subpage_config_ext_3_prefix}${num}${entity_subpage_config_ext_3_suffix}"
@@ -97,6 +85,3 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_button
-    on_value:
-      then:
-        - script.execute: schedule_card_config_refresh
