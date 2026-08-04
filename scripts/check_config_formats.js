@@ -132,6 +132,7 @@ function assertNormalizationFixtures(hooks, groups) {
 const hooks = loadHooks();
 const tenInchHooks = loadHooks("?device=guition-esp32-p4-jc8012p4a1");
 const fourInchHooks = loadHooks("?device=esp32-p4-86");
+const fourPointThreeInchHooks = loadHooks("?device=guition-esp32-p4-jc4880p443");
 const s3Hooks = loadHooks("?device=guition-esp32-s3-4848s040");
 const fixtures = JSON.parse(fs.readFileSync(COMPAT_FIXTURES, "utf8"));
 const cardNormalizationFixtures = JSON.parse(fs.readFileSync(CARD_NORMALIZATION_FIXTURES, "utf8"));
@@ -357,6 +358,11 @@ assert.strictEqual(
   Array.from(hooks.cardSizeMenuOptions({ type: "image" })).some((option) => option.size === 11 && option.label === "Landscape (4x3)"),
   true,
   "7-inch camera size menu exposes Landscape (4x3)",
+);
+assert.strictEqual(
+  Array.from(fourPointThreeInchHooks.cardSizeMenuOptions({ type: "media", sensor: "cover_art" })).some((option) => option.size === 7),
+  false,
+  "4.3-inch cover art size menu hides Extra Large (3x3)",
 );
 const transferredSensor = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "sensor", entity: "sensor.office", label: "Office", size: 10 }],
