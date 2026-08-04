@@ -3317,7 +3317,10 @@ inline void media_control_add_speaker_candidate(MediaControlCtx *ctx,
   row->volume_plus_btn = create_volume_button(find_icon("Plus"), true);
   ui.speaker_rows.push_back(row);
   media_control_refresh_speaker_row(ctx, row);
-  media_control_refresh_speaker_state(ctx, row);
+  // Discovery already supplies the initial name and volume. Do not issue
+  // cached Home Assistant reads while LVGL is still constructing the list:
+  // those callbacks can run immediately and re-enter the partially-built UI.
+  // The modal timer performs the first live refresh after construction.
 }
 
 inline void media_control_sync_speaker_candidates(
@@ -3374,6 +3377,12 @@ inline void media_control_refresh_speakers(MediaControlCtx *ctx) {
 inline void media_control_create_speakers_tab_content(MediaControlCtx *ctx) {
   MediaControlModalUi &ui = media_control_modal_ui();
   if (!ctx || !ui.content_box || ui.speakers_box) return;
+#ifdef ESP_PLATFORM
+  ESP_LOGI("media_group", "Opening speaker controls: candidates=%u internal_free=%u largest=%u",
+           (unsigned) ctx->speaker_helper_members.size(),
+           (unsigned) heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+           (unsigned) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL));
+#endif
   ui.speakers_box = ui.content_box;
   lv_obj_set_flex_flow(ui.speakers_box, LV_FLEX_FLOW_COLUMN);
   lv_obj_set_style_pad_row(ui.speakers_box, 8, LV_PART_MAIN);
@@ -3403,6 +3412,12 @@ inline void media_control_create_speakers_tab_content(MediaControlCtx *ctx) {
   ui.speaker_last_refresh_ms = esphome::millis();
 
   media_control_refresh_speakers(ctx);
+#ifdef ESP_PLATFORM
+  ESP_LOGI("media_group", "Speaker controls ready: rows=%u internal_free=%u largest=%u",
+           (unsigned) ui.speaker_rows.size(),
+           (unsigned) heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+           (unsigned) heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL));
+#endif
 }
 
 inline void media_control_clear_tab_content() {

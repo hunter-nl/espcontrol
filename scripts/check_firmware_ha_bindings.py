@@ -1553,6 +1553,13 @@ def firmware_media_group_lifecycle_errors(firmware_dir: Path, root: Path) -> lis
             or "row->volume_known = false" not in subscribe_body
         ):
             errors.append(f"{rel}: disable group volume when a speaker reports an invalid volume")
+    if "inline void media_control_add_speaker_candidate" in text:
+        add_body = text.split("inline void media_control_add_speaker_candidate", 1)[1]
+        add_body = add_body.split("\n}\n\ninline void media_control_sync_speaker_candidates", 1)[0]
+        if "media_control_refresh_speaker_state(ctx, row)" in add_body:
+            errors.append(
+                f"{rel}: defer live speaker reads until after LVGL finishes constructing the list"
+            )
     return errors
 
 
