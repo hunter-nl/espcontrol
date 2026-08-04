@@ -2298,7 +2298,7 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   assert.strictEqual(await page.locator("#sp-inp-label").inputValue(), "Whole House", `${label}: speaker group should expose its preserved custom label`);
   await page.locator("#sp-inp-icon").fill("Home");
   await page.locator("#sp-inp-icon").press("Enter");
-  await page.waitForSelector('.sp-main [data-slot="4"] .mdi-home');
+  await page.waitForSelector('.sp-main [data-slot="4"] .mdi-home', { state: "attached" });
   assert(await page.locator('.sp-main [data-slot="4"] .mdi-home').count(), `${label}: speaker group preview should use its selected icon`);
   await helper.fill("");
   await page.getByRole("button", { name: "Save" }).click();
