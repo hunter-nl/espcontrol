@@ -252,7 +252,19 @@ inline void media_driver_bind_cover_art_route(
     const bool entity_changed = next_entity != now_playing->active_entity;
     const bool presentation_changed =
       external_source_fallback != now_playing->external_source_fallback;
-    if (next_entity.empty() || (!entity_changed && !presentation_changed)) return;
+    if (next_entity.empty()) return;
+
+    // Reused cover-art routes still need to attach the current generation's
+    // control context. Returning before this point leaves the modal visible,
+    // but skips its grouping and speaker-discovery subscriptions.
+    if (control) {
+      if (control->entity_id != next_entity) {
+        media_playback_detach_control(control);
+        control->entity_id = next_entity;
+      }
+      subscribe_media_control_state(control);
+    }
+    if (!entity_changed && !presentation_changed) return;
 
     ESP_LOGI("media_card", "Cover art entity switched from %s to %s",
              now_playing->active_entity.empty() ? "<none>" : now_playing->active_entity.c_str(),
@@ -286,15 +298,6 @@ inline void media_driver_bind_cover_art_route(
       }
     }
 
-    if (control) {
-      // A newly bound or reused control may already target this entity. Only
-      // detach it when the active route genuinely switches to another one.
-      if (entity_changed && control->entity_id != next_entity) {
-        media_playback_detach_control(control);
-        control->entity_id = next_entity;
-      }
-      subscribe_media_control_state(control);
-    }
   };
   now_playing->refresh_entity_route();
   media_playback_apply_state_to_now_playing(primary, now_playing);
