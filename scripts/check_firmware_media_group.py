@@ -251,6 +251,13 @@ def main() -> int:
         raise SystemExit("Speaker rows must remain disabled until availability is hydrated")
     if media_header.count("media_control_store_group_volume(") < 5:
         raise SystemExit("Primary and polled speaker volumes must persist in the group cache")
+    for reset in (
+        "ctx->speaker_helper_members.clear();",
+        "ctx->speaker_discovery.clear();",
+        "ctx->speaker_discovery_available = false;",
+    ):
+        if reset not in media_header:
+            raise SystemExit("Media route changes must clear stale speaker discovery data")
     print("Firmware media-group checks passed.")
     return 0
 

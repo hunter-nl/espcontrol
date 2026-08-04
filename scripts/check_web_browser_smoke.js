@@ -2285,6 +2285,7 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
   await page.locator("#sp-inp-media-mode").selectOption("next");
+  await page.locator("#sp-inp-label").fill("Whole House");
   await page.locator("#sp-inp-icon").fill("Home");
   const before = posts.length;
   await page.locator("#sp-inp-media-mode").selectOption("speaker_group");
@@ -2294,8 +2295,9 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   await page.waitForSelector('.sp-main [data-slot="4"].sp-media-group-active');
   assert(await page.locator('.sp-main [data-slot="4"].sp-media-group-active').count(), `${label}: speaker group preview should use active styling`);
   assert.strictEqual(await page.locator('.sp-main [data-slot="4"] .sp-media-group-count').count(), 0, `${label}: speaker group preview should not invent a member count`);
+  assert.strictEqual(await page.locator("#sp-inp-label").inputValue(), "Whole House", `${label}: speaker group should expose its preserved custom label`);
   await page.locator("#sp-inp-icon").fill("Home");
-  await page.locator("#sp-inp-icon").dispatchEvent("change");
+  await page.locator("#sp-inp-icon").press("Enter");
   await page.waitForSelector('.sp-main [data-slot="4"] .mdi-home');
   assert(await page.locator('.sp-main [data-slot="4"] .mdi-home').count(), `${label}: speaker group preview should use its selected icon`);
   await helper.fill("");

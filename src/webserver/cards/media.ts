@@ -653,7 +653,6 @@ export function registerMediaCardTypes(): GlobalDescriptors {
             if (b.sensor !== "now_playing" &&
                 b.sensor !== "cover_art" &&
                 b.sensor !== "control_modal" &&
-                b.sensor !== "speaker_group" &&
                 b.sensor !== "playlist" &&
                 (b.sensor !== "play_pause" || b.precision !== "state") &&
                 (b.sensor !== "position" || b.precision !== "state")) {

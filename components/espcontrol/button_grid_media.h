@@ -1116,17 +1116,25 @@ inline void media_playback_apply_state_to_control(MediaPlaybackState *state,
       break;
     }
   }
+  const bool discovery_changed = discovery
+    ? (ctx->speaker_helper_members != discovery->members ||
+       ctx->speaker_discovery_available != discovery->available)
+    : (!ctx->speaker_helper_members.empty() ||
+       !ctx->speaker_discovery.empty() ||
+       ctx->speaker_discovery_available);
   bool grouping_changed = ctx->grouping_supported != media_grouping_supported(state->supported_features) ||
                           ctx->group_members != state->group_members ||
-                          (discovery &&
-                           (ctx->speaker_helper_members != discovery->members ||
-                            ctx->speaker_discovery_available != discovery->available));
+                          discovery_changed;
   ctx->grouping_supported = media_grouping_supported(state->supported_features);
   ctx->group_members = state->group_members;
   if (discovery) {
     ctx->speaker_helper_members = discovery->members;
     ctx->speaker_discovery = discovery->items;
     ctx->speaker_discovery_available = discovery->available;
+  } else {
+    ctx->speaker_helper_members.clear();
+    ctx->speaker_discovery.clear();
+    ctx->speaker_discovery_available = false;
   }
   ctx->duration = state->duration;
   ctx->volume_known = state->volume_known;
