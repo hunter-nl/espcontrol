@@ -1,6 +1,5 @@
 import { state } from "../state/app_instance";
 import { liveGlobal, staticGlobal, type GlobalDescriptors } from "../runtime/globals";
-import { postConfigurationValue } from "./configuration_transaction";
 export function installApiModule(): GlobalDescriptors {
     // ── POST queue ─────────────────────────────────────────────────────────
     var _deviceApi: any = createDeviceApi(function (this: any, url?: any, init?: any) { return fetch(url, init); });
@@ -66,43 +65,21 @@ export function installApiModule(): GlobalDescriptors {
             return result.value;
         });
     }
-    function postConfiguration(this: any, domain?: any, name?: any, objectIds?: any, value?: any, fallback?: any) {
-        _postQueue = postConfigurationValue(domain, name, objectIds || [], String(value), fallback).catch(function (this: any, error?: any) {
-            _postQueueHadError = true;
-            showBanner("Could not save configuration. The device will retry when it reconnects.", "error");
-            console.warn("Configuration save failed", error);
-            return null;
-        });
-        return _postQueue;
-    }
     function postText(this: any, name?: any, value?: any) {
         var encodedValue: any = encodeURIComponent(value);
-        return postConfiguration("text", name, [], value, function (this: any) {
-            return post(entityPostUrls("text", name, [], "set?value=" + encodedValue));
-        });
+        return post(entityPostUrls("text", name, [], "set?value=" + encodedValue));
     }
     function postTextWithObjectIds(this: any, name?: any, objectIds?: any, value?: any, errorMessage?: any) {
-        return postConfiguration("text", name, objectIds, value, function (this: any) {
-            return postWithObjectIds("text", name, objectIds, "set?value=" + encodeURIComponent(value), errorMessage);
-        });
-    }
-    function postOptionalTextWithObjectIds(this: any, name?: any, objectIds?: any, value?: any) {
-        return postConfiguration("text", name, objectIds, value, function (this: any) {
-            return postOptional(entityPostUrls("text", name, objectIds, "set?value=" + encodeURIComponent(value)));
-        });
+        return postWithObjectIds("text", name, objectIds, "set?value=" + encodeURIComponent(value), errorMessage);
     }
     function postSelect(this: any, name?: any, option?: any) {
-        return postConfiguration("select", name, [], option, function (this: any) {
-            return post(entityPostUrls("select", name, [], "set?option=" + encodeURIComponent(option)));
-        });
+        return post(entityPostUrls("select", name, [], "set?option=" + encodeURIComponent(option)));
     }
     function postButtonPress(this: any, name?: any) {
         return post(entityPostUrls("button", name, [], "press"));
     }
     function postSwitch(this: any, name?: any, on?: any) {
-        return postConfiguration("switch", name, [], on ? "1" : "0", function (this: any) {
-            return post(entityPostUrls("switch", name, [], on ? "turn_on" : "turn_off"));
-        });
+        return post(entityPostUrls("switch", name, [], on ? "turn_on" : "turn_off"));
     }
     function postScreensaverMode(this: any, value?: any) {
         return postTextWithObjectIds(entityName("screensaver_mode"), entityObjectIds("screensaver_mode"), value);
@@ -117,9 +94,7 @@ export function installApiModule(): GlobalDescriptors {
         return postSelectWithObjectIds(entityName("firmware_update_frequency"), entityObjectIds("firmware_update_frequency"), value);
     }
     function postNumber(this: any, name?: any, value?: any) {
-        return postConfiguration("number", name, [], value, function (this: any) {
-            return post(entityPostUrls("number", name, [], "set?value=" + encodeURIComponent(value)));
-        });
+        return post(entityPostUrls("number", name, [], "set?value=" + encodeURIComponent(value)));
     }
     function postWithObjectId(this: any, domain?: any, name?: any, objectId?: any, action?: any, errorMessage?: any) {
         postWithObjectIds(domain, name, [objectId], action, errorMessage);
@@ -128,24 +103,16 @@ export function installApiModule(): GlobalDescriptors {
         return post(entityPostUrls(domain, name, objectIds, action), null, errorMessage);
     }
     function postNumberWithObjectId(this: any, name?: any, objectId?: any, value?: any, errorMessage?: any) {
-        return postConfiguration("number", name, [objectId], value, function (this: any) {
-            return postWithObjectId("number", name, objectId, "set?value=" + encodeURIComponent(value), errorMessage);
-        });
+        postWithObjectId("number", name, objectId, "set?value=" + encodeURIComponent(value), errorMessage);
     }
     function postNumberWithObjectIds(this: any, name?: any, objectIds?: any, value?: any, errorMessage?: any) {
-        return postConfiguration("number", name, objectIds, value, function (this: any) {
-            return postWithObjectIds("number", name, objectIds, "set?value=" + encodeURIComponent(value), errorMessage);
-        });
+        postWithObjectIds("number", name, objectIds, "set?value=" + encodeURIComponent(value), errorMessage);
     }
     function postSelectWithObjectId(this: any, name?: any, objectId?: any, option?: any, errorMessage?: any) {
-        return postConfiguration("select", name, [objectId], option, function (this: any) {
-            return postWithObjectId("select", name, objectId, "set?option=" + encodeURIComponent(option), errorMessage);
-        });
+        postWithObjectId("select", name, objectId, "set?option=" + encodeURIComponent(option), errorMessage);
     }
     function postSelectWithObjectIds(this: any, name?: any, objectIds?: any, option?: any, errorMessage?: any) {
-        return postConfiguration("select", name, objectIds, option, function (this: any) {
-            return postWithObjectIds("select", name, objectIds, "set?option=" + encodeURIComponent(option), errorMessage);
-        });
+        postWithObjectIds("select", name, objectIds, "set?option=" + encodeURIComponent(option), errorMessage);
     }
     function postScreensaverTimeout(this: any, value?: any) {
         if (!screensaverTimeoutSupported(value)) {
@@ -166,14 +133,10 @@ export function installApiModule(): GlobalDescriptors {
         postNumberWithObjectIds(entityName("home_screen_timeout"), entityObjectIds("home_screen_timeout"), value);
     }
     function postSwitchWithObjectId(this: any, name?: any, objectId?: any, on?: any, errorMessage?: any) {
-        return postConfiguration("switch", name, [objectId], on ? "1" : "0", function (this: any) {
-            return postWithObjectId("switch", name, objectId, on ? "turn_on" : "turn_off", errorMessage);
-        });
+        postWithObjectId("switch", name, objectId, on ? "turn_on" : "turn_off", errorMessage);
     }
     function postSwitchWithObjectIds(this: any, name?: any, objectIds?: any, on?: any, errorMessage?: any) {
-        return postConfiguration("switch", name, objectIds, on ? "1" : "0", function (this: any) {
-            return postWithObjectIds("switch", name, objectIds, on ? "turn_on" : "turn_off", errorMessage);
-        });
+        postWithObjectIds("switch", name, objectIds, on ? "turn_on" : "turn_off", errorMessage);
     }
     function getJsonQuietly(this: any, path?: any, callback?: any) {
         return _deviceApi.getJson(path).then(function (this: any, result?: any) {
@@ -223,7 +186,6 @@ export function installApiModule(): GlobalDescriptors {
         "postFirstAvailable": staticGlobal(postFirstAvailable),
         "postText": staticGlobal(postText),
         "postTextWithObjectIds": staticGlobal(postTextWithObjectIds),
-        "postOptionalTextWithObjectIds": staticGlobal(postOptionalTextWithObjectIds),
         "postSelect": staticGlobal(postSelect),
         "postButtonPress": staticGlobal(postButtonPress),
         "postSwitch": staticGlobal(postSwitch),
