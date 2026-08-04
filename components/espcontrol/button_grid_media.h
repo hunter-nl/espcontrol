@@ -3492,6 +3492,11 @@ inline void media_control_create_speakers_tab_content(MediaControlCtx *ctx) {
   ui.speaker_action_timer = lv_timer_create(media_control_speaker_action_timer_cb, 500, nullptr);
   ui.speaker_last_refresh_ms = esphome::millis();
 
+  // The flat S3 rows calculate the space left between the speaker icon and
+  // volume buttons. Resolve the flex layout before creating those rows so the
+  // calculation uses the real modal width instead of LVGL's initial 100 px
+  // object width (which truncated names such as "Play Room" to "Play R...").
+  lv_obj_update_layout(ui.speaker_list);
   media_control_refresh_speakers(ctx);
 #ifdef ESP_PLATFORM
   ESP_LOGI("media_group", "Speaker controls ready: rows=%u internal_free=%u largest=%u",

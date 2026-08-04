@@ -1572,6 +1572,15 @@ def firmware_media_group_lifecycle_errors(firmware_dir: Path, root: Path) -> lis
                 )
             if "media_control_create_speaker_volume_button" not in compact_body:
                 errors.append(f"{rel}: preserve per-speaker volume controls in the S3 speaker list")
+    if "inline void media_control_create_speakers_tab_content" in text:
+        create_body = text.split("inline void media_control_create_speakers_tab_content", 1)[1]
+        create_body = create_body.split("\n}\n\ninline void media_control_clear_tab_content", 1)[0]
+        layout_pos = create_body.find("lv_obj_update_layout(ui.speaker_list);")
+        refresh_pos = create_body.find("media_control_refresh_speakers(ctx);")
+        if layout_pos < 0 or refresh_pos < 0 or layout_pos > refresh_pos:
+            errors.append(
+                f"{rel}: resolve the speaker-list layout before sizing flat S3 rows"
+            )
     return errors
 
 
