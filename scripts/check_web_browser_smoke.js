@@ -2299,6 +2299,97 @@ async function assertInternalControlsPanel(page, posts, label) {
   );
 }
 
+async function assertWebhookSettingsPanel(page, posts, label) {
+  await page.getByRole("tab", { name: "Screen" }).click();
+  await page.waitForSelector("#sp-screen.sp-page.active");
+  const emptyCell = page
+    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
+    .first();
+  if ((await emptyCell.count()) === 0) return;
+  const before = posts.length;
+  await emptyCell.click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  await page.getByRole("button", { name: "Switch card type" }).click();
+  await page.locator("#sp-inp-type").selectOption("webhook");
+
+  const webhookSettingsButton = page.getByRole("button", {
+    name: "Webhook Settings",
+    exact: true,
+  });
+  assert(
+    await webhookSettingsButton.isVisible(),
+    `${label}: Webhook card should show a Webhook Settings panel`,
+  );
+  assert.strictEqual(
+    await webhookSettingsButton.getAttribute("aria-expanded"),
+    "false",
+    `${label}: Webhook Settings should start collapsed`,
+  );
+  assert.deepStrictEqual(
+    await page
+      .locator(".sp-settings-modal .sp-panel > .sp-disclosure > .sp-disclosure-button > span:first-child")
+      .evaluateAll((headings) => headings.map((heading) => heading.textContent)),
+    ["Webhook Settings", "Card Settings"],
+    `${label}: Webhook groups should show Webhook Settings before Card Settings`,
+  );
+  for (const fieldId of ["#sp-inp-webhook-method", "#sp-inp-webhook-url"]) {
+    assert.strictEqual(
+      await page.locator(fieldId).evaluate((element) => {
+        const disclosure = element.closest(".sp-disclosure");
+        const heading = disclosure && disclosure.querySelector(".sp-disclosure-button > span:first-child");
+        return heading && heading.textContent;
+      }),
+      "Webhook Settings",
+      `${label}: ${fieldId} should be inside Webhook Settings`,
+    );
+  }
+
+  await webhookSettingsButton.click();
+  assert(
+    await page.locator("#sp-inp-webhook-headers").isVisible(),
+    `${label}: Webhook Settings should contain Headers`,
+  );
+  await page.locator("#sp-inp-webhook-method").selectOption("POST");
+  assert.strictEqual(
+    await webhookSettingsButton.getAttribute("aria-expanded"),
+    "false",
+    `${label}: rerendered Webhook Settings should start collapsed`,
+  );
+  await webhookSettingsButton.click();
+  assert(
+    await page.locator("#sp-inp-webhook-body").isVisible(),
+    `${label}: POST Body should remain inside Webhook Settings`,
+  );
+  assert(
+    await page.locator("#sp-inp-webhook-headers").isVisible(),
+    `${label}: POST Headers should remain inside Webhook Settings`,
+  );
+
+  await webhookSettingsButton.click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  assert.strictEqual(
+    await webhookSettingsButton.getAttribute("aria-expanded"),
+    "true",
+    `${label}: missing URL validation should open Webhook Settings`,
+  );
+  assert.strictEqual(
+    await page.locator("#sp-inp-webhook-url").getAttribute("aria-invalid"),
+    "true",
+    `${label}: missing webhook URL should remain visibly invalid`,
+  );
+
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => {
+    const overlay = document.querySelector(".sp-settings-overlay");
+    return overlay && !overlay.classList.contains("sp-visible");
+  });
+  assert.strictEqual(
+    posts.length,
+    before,
+    `${label}: Webhook Settings audit should not save a card`,
+  );
+}
+
 async function assertCoverSettingsPanels(page, label) {
   await page.getByRole("tab", { name: "Screen" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
@@ -4268,6 +4359,7 @@ async function runCase(browser, testCase) {
     if (testCase.exerciseInteractions) {
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
+      await assertWebhookSettingsPanel(page, posts, testCase.name);
     }
     await assertInternalControlsPanel(page, posts, testCase.name);
     await assertEmptyCellSettings(page, posts, testCase.name);
