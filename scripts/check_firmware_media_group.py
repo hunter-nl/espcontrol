@@ -116,18 +116,25 @@ int main() {
   assert(discovered[0].entity_id == "media_player.office");
   assert(discovered[0].friendly_name == "Office");
   assert(discovered[0].volume_known && discovered[0].volume_pct == 14);
+  assert(discovered[0].available);
   assert(discovered[1].entity_id == "media_player.kitchen");
   assert(discovered[1].friendly_name == "Kitchen");
   assert(discovered[1].volume_known && discovered[1].volume_pct == 25);
+  assert(discovered[1].available);
   auto discovered_v2 = media_group_parse_discovery_items(
-    "v2|[[\"media_player.office\",\"Office, Upstairs\",0.14],"
-    "[\"media_player.kitchen\",\"K\\u00fcche\",null]]");
+    "v2|[[\"media_player.office\",\"Office, Upstairs\",0.14,true],"
+    "[\"media_player.kitchen\",\"K\\u00fcche\",null,false]]");
   assert(discovered_v2.size() == 2);
   assert(discovered_v2[0].entity_id == "media_player.office");
   assert(discovered_v2[0].friendly_name == "Office, Upstairs");
   assert(discovered_v2[0].volume_known && discovered_v2[0].volume_pct == 14);
+  assert(discovered_v2[0].available);
   assert(discovered_v2[1].friendly_name == u8"Küche");
   assert(!discovered_v2[1].volume_known);
+  assert(!discovered_v2[1].available);
+  auto discovered_v2_legacy = media_group_parse_discovery_items(
+    "v2|[[\"media_player.office\",\"Office\",0.14]]");
+  assert(discovered_v2_legacy.size() == 1 && discovered_v2_legacy[0].available);
   auto discovered_emoji = media_group_parse_discovery_items(
     "v2|[[\"media_player.office\",\"Office \\uD83D\\uDD0A\",0.14]]");
   assert(discovered_emoji.size() == 1);
@@ -246,12 +253,34 @@ def main() -> int:
         raise SystemExit("Grouped volume arc must defer actions until release")
     if "speaker_discovery_available" not in media_header:
         raise SystemExit("Speaker tab must track discovery availability")
-    if "lv_event_get_target(event) != lv_event_get_current_target(event)" not in media_header:
-        raise SystemExit("Speaker card must ignore clicks bubbled from its volume controls")
-    if "bool available = false;" not in media_header:
-        raise SystemExit("Speaker rows must remain disabled until availability is hydrated")
-    if media_header.count("media_control_store_group_volume(") < 5:
-        raise SystemExit("Primary and polled speaker volumes must persist in the group cache")
+    if "media_control_speaker_event_from_volume_controls" not in media_header:
+        raise SystemExit("Speaker cards must distinguish volume-control taps from membership taps")
+    if "lv_obj_get_user_data(row_obj)" not in media_header:
+        raise SystemExit("Speaker membership taps must resolve row state from the row event target")
+    if "row->available = item.available;" not in media_header:
+        raise SystemExit("Speaker rows must use availability from the discovery helper")
+    add_speaker = media_header.split(
+        "inline void media_control_add_speaker_candidate", 1
+    )[1].split("\n}\n\ninline void media_control_sync_speaker_candidates", 1)[0]
+    if "(listed_by_helper || row->selected)" not in add_speaker:
+        raise SystemExit("Live group members missing from discovery must remain removable")
+    apply_control = media_header.split(
+        "inline void media_playback_apply_state_to_control", 1
+    )[1].split("\n}\n\ninline void media_playback_apply_state_to_controls", 1)[0]
+    if "media_control_refresh_group_member_volumes(ctx);" not in apply_control:
+        raise SystemExit("Discovery updates must refresh the grouped-volume cache")
+    refresh_volumes = media_header.split(
+        "inline void media_control_refresh_group_member_volumes(MediaControlCtx *ctx) {", 1
+    )[1].split("\n}\n\ninline bool media_control_group_volume_percent", 1)[0]
+    if "ctx->current_pct" in refresh_volumes:
+        raise SystemExit("Grouped-volume refresh must preserve the primary raw volume")
+    refresh_speakers = media_header.split(
+        "inline void media_control_refresh_speakers(MediaControlCtx *ctx) {", 1
+    )[1].split("\n}\n\ninline void media_control_create_speakers_tab_content", 1)[0]
+    if "row->volume_known = item.volume_known;" not in refresh_speakers:
+        raise SystemExit("Discovery updates must clear stale unknown speaker volumes")
+    if media_header.count("media_control_store_group_volume(") < 4:
+        raise SystemExit("Primary and discovered speaker volumes must persist in the group cache")
     for reset in (
         "ctx->speaker_helper_members.clear();",
         "ctx->speaker_discovery.clear();",
@@ -259,8 +288,10 @@ def main() -> int:
     ):
         if reset not in media_header:
             raise SystemExit("Media route changes must clear stale speaker discovery data")
-    if 'media_control_set_speaker_status(espcontrol_i18n("Updating speakers"), false, true);' not in media_header:
-        raise SystemExit("Pending speaker group changes must show their status")
+    if 'media_control_set_speaker_status(espcontrol_i18n("Updating speakers"), false, true);' in media_header:
+        raise SystemExit("Pending speaker group changes must not show temporary status text")
+    if "media_control_refresh_speaker_state(ctx, row);" in media_header:
+        raise SystemExit("Speaker rows must not depend on late one-shot Home Assistant reads")
     print("Firmware media-group checks passed.")
     return 0
 
