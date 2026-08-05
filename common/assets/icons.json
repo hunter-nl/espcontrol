@@ -279,6 +279,11 @@
       "mdi": "bathtub"
     },
     {
+      "name": "Bathtub Outline",
+      "codepoint": "F1819",
+      "mdi": "bathtub-outline"
+    },
+    {
       "name": "Bed",
       "codepoint": "F02E3",
       "mdi": "bed"
@@ -374,6 +379,11 @@
       "mdi": "ceiling-light-multiple"
     },
     {
+      "name": "Ceiling Light Multiple Outline",
+      "codepoint": "F18DE",
+      "mdi": "ceiling-light-multiple-outline"
+    },
+    {
       "name": "Chandelier",
       "codepoint": "F1793",
       "mdi": "chandelier"
@@ -457,6 +467,16 @@
       "name": "Desk Lamp",
       "codepoint": "F095F",
       "mdi": "desk-lamp"
+    },
+    {
+      "name": "Desk Lamp Off",
+      "codepoint": "F1B1F",
+      "mdi": "desk-lamp-off"
+    },
+    {
+      "name": "Desk Lamp On",
+      "codepoint": "F1B20",
+      "mdi": "desk-lamp-on"
     },
     {
       "name": "Dishwasher",
@@ -684,6 +704,16 @@
       "mdi": "home"
     },
     {
+      "name": "Home Lightbulb",
+      "codepoint": "F1251",
+      "mdi": "home-lightbulb"
+    },
+    {
+      "name": "Home Lightbulb Outline",
+      "codepoint": "F1252",
+      "mdi": "home-lightbulb-outline"
+    },
+    {
       "name": "Heat Pump",
       "codepoint": "F1A43",
       "mdi": "heat-pump"
@@ -802,6 +832,16 @@
       "name": "Lightbulb",
       "codepoint": "F0335",
       "mdi": "lightbulb"
+    },
+    {
+      "name": "Lightbulb Auto",
+      "codepoint": "F1800",
+      "mdi": "lightbulb-auto"
+    },
+    {
+      "name": "Lightbulb Auto Outline",
+      "codepoint": "F1801",
+      "mdi": "lightbulb-auto-outline"
     },
     {
       "name": "Lightbulb Group",
@@ -1314,6 +1354,11 @@
       "mdi": "sprinkler"
     },
     {
+      "name": "Sprinkler Variant",
+      "codepoint": "F1060",
+      "mdi": "sprinkler-variant"
+    },
+    {
       "name": "Stop",
       "codepoint": "F04DB",
       "mdi": "stop"
@@ -1442,6 +1487,16 @@
       "name": "Toilet",
       "codepoint": "F09AB",
       "mdi": "toilet"
+    },
+    {
+      "name": "Track Light",
+      "codepoint": "F0914",
+      "mdi": "track-light"
+    },
+    {
+      "name": "Track Light Off",
+      "codepoint": "F1B01",
+      "mdi": "track-light-off"
     },
     {
       "name": "Transmission Tower",
