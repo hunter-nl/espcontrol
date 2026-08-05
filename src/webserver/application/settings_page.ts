@@ -227,7 +227,7 @@ export function installSettingsPageModule(): GlobalDescriptors {
         var batteryStatusCard: any = null;
         if (CFG.features && CFG.features.battery) {
             var batteryStatusBody: any = document.createElement("div");
-            var batteryStatus: any = toggleRow("Show Battery Icon (Experimental)", "sp-set-battery-status", state.batteryStatusOn);
+            var batteryStatus: any = toggleRow("Enable battery support", "sp-set-battery-status", state.batteryStatusOn);
             batteryStatusBody.appendChild(batteryStatus.row);
             els.setBatteryStatusToggle = batteryStatus.input;
             batteryStatus.input.addEventListener("change", function (this: any) {
@@ -422,7 +422,6 @@ export function installSettingsPageModule(): GlobalDescriptors {
             backlightCard,
             idleCard,
             clockBarCard,
-            batteryStatusCard,
             rotationCard,
         ]);
         appendSettingsSection(config, "Voice & Sounds", [
@@ -443,6 +442,7 @@ export function installSettingsPageModule(): GlobalDescriptors {
             systemSettingsCards.backupCard,
             systemSettingsCards.firmwareCard,
             systemSettingsCards.homeAssistantSettingsCard,
+            batteryStatusCard,
         ]);
         page.appendChild(config);
         page.appendChild(buildApplyBar());

@@ -807,6 +807,18 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     settingsPlacement.Backlight?.index + 1,
     `${label}: idle settings should appear immediately below Backlight`,
   );
+  if (options.slug === "guition-esp32-p4-jc8012p4a1") {
+    assert.strictEqual(
+      settingsPlacement.Battery?.section,
+      "System",
+      `${label}: battery settings should be grouped with system controls`,
+    );
+    assert.strictEqual(
+      await page.locator("label[for='sp-set-battery-status']").textContent(),
+      "Enable battery support",
+      `${label}: battery support should use its stable settings label`,
+    );
+  }
   const firmwareCard = page
     .locator("#sp-settings .card")
     .filter({
