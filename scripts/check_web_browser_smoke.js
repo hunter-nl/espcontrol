@@ -68,7 +68,7 @@ const BUTTON_FIXTURES = [
   "light.kitchen;Kitchen;Lightbulb;Lightbulb",
   "sensor.energy;Energy;Gauge;Auto;sensor.energy;W;sensor;0",
   "climate.hall;Hall;Thermostat;Auto;;;climate;;",
-  "media_player.living;Living Artwork;Auto;Auto;cover_art;;media;;cover_art_action=control_modal%2Ccover_art_details",
+  "media_player.living;Living Artwork;Auto;Auto;cover_art;;media;;cover_art_action=control_modal,cover_art_details",
   "cover.office_blind;Blind;Blinds Open;Blinds;modal;;cover;;cover_tabs=controls%7Cposition%7Ctilt",
   "alarm_control_panel.house;Alarm;Security;Auto;;;alarm;;",
 ];
