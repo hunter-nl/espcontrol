@@ -2184,6 +2184,19 @@ async function assertAllCardSettingsGrouped(page, posts, label) {
     await page.locator("#sp-inp-type").selectOption(cardOption.value);
     await assertGrouped(cardOption.label);
 
+    if (cardOption.value === "screen_lock") {
+      assert.strictEqual(
+        await page.locator("#sp-inp-entity").count(),
+        0,
+        `${label}: Screen Lock should not show an unused Entity field`,
+      );
+      assert.strictEqual(
+        await page.locator(".sp-settings-modal .sp-panel > .sp-disclosure").count(),
+        0,
+        `${label}: Screen Lock should not show unused generic Card Settings`,
+      );
+    }
+
     const typeSelect = page.locator(
       '.sp-settings-modal .sp-panel > [data-sp-card-primary="type"] select',
     );
