@@ -1900,6 +1900,43 @@ async function assertEmptyCellSettings(page, posts, label) {
   await page.locator("#sp-inp-action").selectOption({ label: "Run Script" });
   await page.locator("#sp-inp-type").selectOption({ label: "Switch" });
   await page.locator("#sp-inp-entity").waitFor({ state: "visible" });
+  const switchCardSettings = page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first();
+  assert(
+    await switchCardSettings.isVisible(),
+    `${label}: Switch should show a Card Settings panel`,
+  );
+  assert(
+    !(await switchCardSettings.getAttribute("class")).includes("sp-open"),
+    `${label}: Switch Card Settings should start collapsed`,
+  );
+  assert.strictEqual(
+    await page
+      .locator("#sp-inp-entity")
+      .evaluate((el) => !!el.closest(".sp-disclosure")),
+    false,
+    `${label}: Switch entity should sit outside Card Settings`,
+  );
+  for (const [selector, fieldLabel] of [
+    ["#sp-inp-label", "Label"],
+    ["#sp-inp-icon", "Off Icon"],
+    ["#sp-inp-icon_on", "On Icon"],
+    ["#sp-inp-sensor-when-on-toggle", "Active Display"],
+    ["#sp-inp-confirm-toggle", "Confirmation Required"],
+  ]) {
+    assert.strictEqual(
+      await page.locator(selector).evaluate((el) => !!el.closest(".sp-disclosure")),
+      true,
+      `${label}: Switch ${fieldLabel} should sit inside Card Settings`,
+    );
+  }
+  await switchCardSettings.locator(".sp-disclosure-button").click();
+  assert(
+    await page.locator("#sp-inp-label").isVisible(),
+    `${label}: opening Switch Card Settings should reveal its controls`,
+  );
   assert.strictEqual(
     await page.locator("#sp-inp-label").inputValue(),
     "Keep this label",
@@ -2013,6 +2050,12 @@ async function assertEmptyCellSettings(page, posts, label) {
   await page.locator(`.sp-main [data-pos="${pos}"]`).click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
   await page.getByRole("button", { name: "Switch card type" }).click();
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator(".sp-disclosure-button")
+    .click();
   await page.locator("#sp-inp-label").fill("New Card");
   await page.locator("#sp-inp-entity").fill("switch.new_card");
   await page.getByRole("button", { name: "Save" }).click();
@@ -2893,6 +2936,12 @@ async function assertEditSmoke(page, posts, errors) {
     !switchSuggestions.includes("media_player.living"),
     "switch card suggestions exclude recently used media players",
   );
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator(".sp-disclosure-button")
+    .click();
   await page.locator("#sp-inp-label").fill("Kitchen Main");
   await page.locator("#sp-inp-entity").fill("switch.kitchen_main");
   await page.getByRole("button", { name: "Save" }).click();
