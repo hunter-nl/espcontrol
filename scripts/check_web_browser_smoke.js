@@ -2527,6 +2527,11 @@ async function assertAlarmSettingsPanels(page, label) {
   assert(!(await cardSettings.getAttribute("class")).includes("sp-open"), `${label}: alarm card settings panel should start collapsed`);
   assert(!(await modalSettings.getAttribute("class")).includes("sp-open"), `${label}: alarm modal settings panel should start collapsed`);
   assert.strictEqual(
+    await page.locator("#sp-inp-alarm-card-type option:checked").textContent(),
+    "All Controls",
+    `${label}: alarm combined mode should be labelled All Controls`,
+  );
+  assert.strictEqual(
     await page.locator("#sp-inp-alarm-card-type").evaluate((el) => !!el.closest(".sp-disclosure")),
     false,
     `${label}: alarm type selector should sit outside collapsible panels`
