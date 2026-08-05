@@ -2,7 +2,7 @@ import { liveGlobal, staticGlobal, type GlobalDescriptors } from "../runtime/glo
 export function registerFanCardTypes(): GlobalDescriptors {
     // Fan cards: grouped controls for Home Assistant fan entities.
     var FAN_CONTROL_TYPE_OPTIONS: any = [
-        ["fan_control", "Control Modal"],
+        ["fan_control", "All Controls"],
         ["fan_switch", "Switch"],
         ["fan_speed", "Speed"],
         ["fan_oscillate", "Oscillation"],

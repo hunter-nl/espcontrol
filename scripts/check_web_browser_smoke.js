@@ -2188,6 +2188,15 @@ async function assertAllCardSettingsGrouped(page, posts, label) {
       '.sp-settings-modal .sp-panel > [data-sp-card-primary="type"] select',
     );
     if ((await typeSelect.count()) > 0) {
+      if (cardOption.value === "fan_speed") {
+        assert.deepStrictEqual(
+          await typeSelect.locator("option").evaluateAll((options) =>
+            options.map((option) => option.textContent),
+          ),
+          ["All Controls", "Switch", "Speed", "Oscillation", "Direction", "Preset"],
+          `${label}: Fans should label the complete fan modal All Controls`,
+        );
+      }
       const typeOptions = await typeSelect
         .locator("option:not([disabled])")
         .evaluateAll((options) => options.map((option) => option.value));
