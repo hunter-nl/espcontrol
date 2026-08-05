@@ -68,7 +68,7 @@ const BUTTON_FIXTURES = [
   "light.kitchen;Kitchen;Lightbulb;Lightbulb",
   "sensor.energy;Energy;Gauge;Auto;sensor.energy;W;sensor;0",
   "climate.hall;Hall;Thermostat;Auto;;;climate;;",
-  "media_player.living;Media;Auto;Auto;play_pause;;media;;",
+  "media_player.living;Living Artwork;Auto;Auto;cover_art;;media;;cover_art_action=control_modal%2Ccover_art_details",
   "cover.office_blind;Blind;Blinds Open;Blinds;modal;;cover;;cover_tabs=controls%7Cposition%7Ctilt",
   "alarm_control_panel.house;Alarm;Security;Auto;;;alarm;;",
 ];
@@ -2447,7 +2447,19 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
   await page.locator('.sp-main [data-slot="4"]').click();
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page.locator("#sp-inp-type").selectOption("media_cover_art");
+  assert.strictEqual(
+    await page.locator('#sp-inp-type option[value="media_cover_art"]').count(),
+    0,
+    `${label}: Cover Art should not appear as a top-level card type`,
+  );
+  assert.strictEqual(await page.locator("#sp-inp-type").inputValue(), "media", `${label}: existing Cover Art card should open as Media`);
+  assert.strictEqual(await page.locator("#sp-inp-media-mode").inputValue(), "cover_art", `${label}: existing Cover Art card should retain its subtype`);
+  assert.strictEqual(await page.locator("#sp-inp-entity").inputValue(), "media_player.living", `${label}: existing Cover Art card should retain its entity`);
+  assert.strictEqual(
+    await page.locator("#sp-inp-media-mode").locator('option[value="cover_art"]').textContent(),
+    "Cover Art",
+    `${label}: Media should offer Cover Art in its Type selector`,
+  );
 
   const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({
     has: page.locator("#sp-inp-media-cover-art-card-settings"),
@@ -2485,6 +2497,7 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
   );
 
   await cardSettings.locator("> .sp-disclosure-button").click();
+  assert(await page.locator("#sp-inp-media-cover-art-details").isChecked(), `${label}: existing Cover Art details setting should be retained`);
   assert(
     await cardSettings.getByText("Press Action", { exact: true }).isVisible(),
     `${label}: Cover Art Card Settings should reveal Press Action`,

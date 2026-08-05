@@ -398,7 +398,7 @@ export function installButtonSettingsModule(): GlobalDescriptors {
             newType = defaultButtonTypeForPicker(newType);
             var wasNewDraftWithoutType: any = isNewDraft && state.settingsDraft &&
                 state.settingsDraft.key === draftKey && !state.settingsDraft.typeSelected;
-            var keepMediaEntity: any = (pickerType === "media_control" || pickerType === "media_cover_art") && b.type === "media";
+            var keepMediaEntity: any = pickerType === "media_control" && b.type === "media";
             clearAutomaticTypeDefaults();
             if (isNewDraft && b.type === "action" && newType !== "action") {
                 b.sensor = "";
@@ -421,15 +421,6 @@ export function installButtonSettingsModule(): GlobalDescriptors {
                 b.unit = "";
                 b.precision = "";
                 b.options = "";
-            }
-            if (pickerType === "media_cover_art") {
-                b.sensor = "cover_art";
-                b.label = "Cover Art";
-                b.icon = "Auto";
-                b.icon_on = "Auto";
-                b.unit = "";
-                b.precision = "";
-                b.options = normalizeMediaOptions(b.options, b.sensor);
             }
             if (wasNewDraftWithoutType && state.settingsDraft && state.settingsDraft.key === draftKey) {
                 state.settingsDraft.autoSelectedButton = cloneButtonConfig(b);
@@ -581,8 +572,6 @@ export function installButtonSettingsModule(): GlobalDescriptors {
             var selectedTypeKey: any = isNewDraftWithoutType
                 ? null
                 : buttonTypeRegistryValue(rawTypeDef, "pickerKey", "") || (b.type || "");
-            if (!isNewDraftWithoutType && b.type === "media" && mediaEditorMode(b.sensor) === "cover_art")
-                selectedTypeKey = "media_cover_art";
             var typeOpts: any = buttonTypePickerOptionList(c.isSub, selectedTypeKey);
             if (isNewDraftWithoutType) {
                 if (settingsModal)
