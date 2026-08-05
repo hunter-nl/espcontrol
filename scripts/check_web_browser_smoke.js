@@ -1895,6 +1895,12 @@ async function assertEmptyCellSettings(page, posts, label) {
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
   await page.getByRole("button", { name: "Action card type" }).click();
   await page.locator("#sp-inp-type").waitFor({ state: "visible" });
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator(".sp-disclosure-button")
+    .click();
   await page.locator("#sp-inp-label").fill("Keep this label");
   await page.locator("#sp-inp-entity").fill("switch.keep_this_entity");
   await page.locator("#sp-inp-action").selectOption({ label: "Run Script" });
@@ -1967,6 +1973,12 @@ async function assertEmptyCellSettings(page, posts, label) {
     `${label}: unsaved new card keeps Delete hidden after type selection`,
   );
   await page.locator("#sp-inp-type").selectOption({ label: "Sensor" });
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator(".sp-disclosure-button")
+    .click();
   const sensorTypeOptions = await page.locator("#sp-inp-sensor-type option").allTextContents();
   assert.deepStrictEqual(
     sensorTypeOptions,
@@ -2022,6 +2034,12 @@ async function assertEmptyCellSettings(page, posts, label) {
     `${label}: switching away from Time clears its manual input unit`,
   );
   await page.getByRole("button", { name: "Local Sensor", exact: true }).click();
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator(".sp-disclosure-button")
+    .click();
   assert.strictEqual(
     await page.locator("#sp-inp-sensor-type").count(),
     0,
@@ -2079,6 +2097,125 @@ async function assertEmptyCellSettings(page, posts, label) {
     ],
     `${label}: saving new card posts card config`,
     before,
+  );
+}
+
+async function assertAllCardSettingsGrouped(page, posts, label) {
+  await page.getByRole("tab", { name: "Screen" }).click();
+  await page.waitForSelector("#sp-screen.sp-page.active");
+  const emptyCell = page
+    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
+    .first();
+  if ((await emptyCell.count()) === 0) return;
+  const before = posts.length;
+  await emptyCell.click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  await page.getByRole("button", { name: "Switch card type" }).click();
+
+  async function assertGrouped(context) {
+    const result = await page.evaluate(() => {
+      const panel = document.querySelector(".sp-settings-modal .sp-panel");
+      if (!panel) return null;
+      const direct = Array.from(panel.children).filter(
+        (child) => !child.classList.contains("sp-btn-row"),
+      );
+      const ungrouped = direct
+        .filter(
+          (child) =>
+            !child.classList.contains("sp-disclosure") &&
+            !child.hasAttribute("data-sp-card-primary"),
+        )
+        .map((child) => ({
+          className: child.className,
+          text: String(child.textContent || "").trim().slice(0, 80),
+        }));
+      const primaryKinds = direct
+        .map((child) => child.getAttribute("data-sp-card-primary"))
+        .filter(Boolean);
+      const cardSettings = direct.find((child) => {
+        if (!child.classList.contains("sp-disclosure")) return false;
+        const button = child.querySelector(".sp-disclosure-button");
+        const heading = button && button.firstElementChild;
+        return String((heading && heading.textContent) || "").trim() === "Card Settings";
+      });
+      return {
+        ungrouped,
+        primaryKinds,
+        cardSettingsOpen:
+          !!cardSettings && cardSettings.classList.contains("sp-open"),
+      };
+    });
+    assert(result, `${label}: ${context} should render a settings panel`);
+    assert.deepStrictEqual(
+      result.ungrouped,
+      [],
+      `${label}: ${context} should not leave controls outside a group`,
+    );
+    assert.strictEqual(
+      result.primaryKinds.filter((kind) => kind === "card").length,
+      1,
+      `${label}: ${context} should keep exactly one Card field outside groups`,
+    );
+    assert(
+      result.primaryKinds.every((kind) =>
+        ["card", "type", "entity"].includes(kind),
+      ),
+      `${label}: ${context} should only expose Card, Type, and Entity primary fields`,
+    );
+    for (const kind of ["type", "entity"]) {
+      assert(
+        result.primaryKinds.filter((value) => value === kind).length <= 1,
+        `${label}: ${context} should expose at most one ${kind} field outside groups`,
+      );
+    }
+    assert.strictEqual(
+      result.cardSettingsOpen,
+      false,
+      `${label}: ${context} Card Settings should start collapsed`,
+    );
+  }
+
+  const cardOptions = await page
+    .locator("#sp-inp-type option:not([disabled])")
+    .evaluateAll((options) =>
+      options.map((option) => ({ value: option.value, label: option.textContent })),
+    );
+  for (const cardOption of cardOptions) {
+    await page.locator("#sp-inp-type").selectOption(cardOption.value);
+    await assertGrouped(cardOption.label);
+
+    const typeSelect = page.locator(
+      '.sp-settings-modal .sp-panel > [data-sp-card-primary="type"] select',
+    );
+    if ((await typeSelect.count()) > 0) {
+      const typeOptions = await typeSelect
+        .locator("option:not([disabled])")
+        .evaluateAll((options) => options.map((option) => option.value));
+      for (const typeValue of typeOptions) {
+        await typeSelect.selectOption(typeValue);
+        await assertGrouped(`${cardOption.label} / ${typeValue || "default"}`);
+      }
+    }
+
+    const typeButtons = page.locator(
+      '.sp-settings-modal .sp-panel > [data-sp-card-primary="type"] button',
+    );
+    const typeButtonCount = await typeButtons.count();
+    for (let index = 0; index < typeButtonCount; index += 1) {
+      await typeButtons.nth(index).click();
+      await assertGrouped(`${cardOption.label} / type button ${index + 1}`);
+    }
+  }
+
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => {
+    const overlay = document.querySelector(".sp-settings-overlay");
+    return overlay && !overlay.classList.contains("sp-visible");
+  });
+  assert.strictEqual(
+    posts.length,
+    before,
+    `${label}: grouping audit should not save a card`,
   );
 }
 
@@ -2152,7 +2289,7 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
   assert(!(await cardSettings.getAttribute("class")).includes("sp-open"), `${label}: Cover Art card settings should start collapsed`);
   assert(!(await externalSources.getAttribute("class")).includes("sp-open"), `${label}: Cover Art external sources should start collapsed`);
   assert(
-    await externalSources.getByText("External sources", { exact: true }).isVisible(),
+    await externalSources.getByText("External Sources", { exact: true }).isVisible(),
     `${label}: Cover Art external sources panel should use the shared title`,
   );
   assert.strictEqual(
@@ -2173,7 +2310,7 @@ async function assertMediaCoverArtSettingsPanels(page, label) {
   assert.strictEqual(
     await externalSources.locator("#sp-inp-media-cover-art-secondary-entity").count(),
     1,
-    `${label}: Cover Art secondary entity should be inside External sources`,
+    `${label}: Cover Art secondary entity should be inside External Sources`,
   );
 
   await cardSettings.locator("> .sp-disclosure-button").click();
@@ -2348,10 +2485,22 @@ async function assertSpeakerGroupEditorAndPreview(page, posts, label) {
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
   await page.locator("#sp-inp-media-mode").selectOption("next");
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator("> .sp-disclosure-button")
+    .click();
   await page.locator("#sp-inp-label").fill("Whole House");
   await page.locator("#sp-inp-icon").fill("Home");
   const before = posts.length;
   await page.locator("#sp-inp-media-mode").selectOption("speaker_group");
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator("> .sp-disclosure-button")
+    .click();
   const helper = page.locator("#sp-inp-speaker-group-entity");
   await helper.waitFor({ state: "visible" });
   assert(await page.getByText("Speaker Discovery Entity (optional)", { exact: true }).isVisible(), `${label}: speaker discovery field should render`);
@@ -2959,6 +3108,12 @@ async function assertEditSmoke(page, posts, errors) {
 
   await page.locator('.sp-main [data-slot="2"]').click();
   await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator(".sp-disclosure-button")
+    .click();
   await page.locator("#sp-inp-label").fill("Energy Usage");
   await page.getByRole("button", { name: "Save" }).click();
   await waitForPost(
@@ -2975,6 +3130,12 @@ async function assertEditSmoke(page, posts, errors) {
 
   await page.locator('.sp-main [data-slot="4"]').click();
   await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page
+    .locator(".sp-settings-modal .sp-disclosure")
+    .filter({ hasText: "Card Settings" })
+    .first()
+    .locator(".sp-disclosure-button")
+    .click();
   await page.locator("#sp-inp-label").fill("Living Media");
   await page.getByRole("button", { name: "Save" }).click();
   await waitForPost(
@@ -4026,6 +4187,7 @@ async function runCase(browser, testCase) {
     await assertSpeakerGroupEditorAndPreview(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
+      await assertAllCardSettingsGrouped(page, posts, testCase.name);
     }
     await assertEmptyCellSettings(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {

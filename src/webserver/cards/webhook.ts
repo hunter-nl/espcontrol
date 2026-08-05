@@ -46,7 +46,7 @@ export function registerWebhookCardTypes(): GlobalDescriptors {
             placeholder: "e.g. http://jeedom.local/core/api/jeeApi.php?...",
         },
         method: {
-            label: "Method",
+            label: "Type",
             idSuffix: "webhook-method",
             options: WEBHOOK_METHODS,
         },
@@ -87,11 +87,13 @@ export function registerWebhookCardTypes(): GlobalDescriptors {
                 renderButtonSettings();
             });
             panel.appendChild(methodField.field);
+            helpers.markCardPrimaryField(methodField.field, "type");
         },
         renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
             normalizeWebhookConfig(b);
             var urlField: any = helpers.textField(WEBHOOK_CARD_METADATA.url.label, helpers.idPrefix + WEBHOOK_CARD_METADATA.url.idSuffix, b.entity, WEBHOOK_CARD_METADATA.url.placeholder, "entity", true);
             panel.appendChild(urlField.field);
+            helpers.markCardPrimaryField(urlField.field, "entity");
             helpers.requireField(urlField.input, "Add a webhook URL before saving.");
             if (b.sensor !== "GET" && b.sensor !== "DELETE") {
                 var bodyField: any = helpers.textField("Body", helpers.idPrefix + "webhook-body", b.unit, "e.g. {\"value1\":\"Gate\"}", "unit", false);

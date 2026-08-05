@@ -65,10 +65,12 @@ export function registerInternalCardTypes(): GlobalDescriptors {
             helpers.saveField("entity", b.entity);
         });
         panel.appendChild(relayField.field);
+        helpers.markCardPrimaryField(relayField.field, "entity");
     }
     var INTERNAL_CARD_METADATA: any = {
         mode: {
-            label: "Mode",
+            label: "Type",
+            primary: true,
             inputId: "internal-mode",
             options: [
                 ["switch", "Switch"],

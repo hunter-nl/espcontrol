@@ -611,6 +611,7 @@ export function installButtonSettingsModule(): GlobalDescriptors {
             });
             tf.appendChild(typeSelect);
             panel.appendChild(tf);
+            markCardPrimaryField(tf, "card");
         }
         var typeHelpers: any = {
             makeIconPicker: makeIconPicker,
@@ -622,6 +623,7 @@ export function installButtonSettingsModule(): GlobalDescriptors {
             segmentControl: segmentControl,
             toggleSection: toggleSection,
             disclosureSection: disclosureSection,
+            markCardPrimaryField: markCardPrimaryField,
             precisionField: precisionField,
             fieldLabel: fieldLabel,
             textInput: textInput,
@@ -676,6 +678,7 @@ export function installButtonSettingsModule(): GlobalDescriptors {
             ]);
             ef.appendChild(entityInp);
             panel.appendChild(ef);
+            markCardPrimaryField(ef, "entity");
             bindField(entityInp, "entity", true);
             requireField(entityInp, "Add an entity before saving.");
             panel.appendChild(makeIconPicker(idPrefix + "icon-picker", idPrefix + "icon", b.icon || "Auto", function (this: any, opt?: any) {
@@ -693,6 +696,7 @@ export function installButtonSettingsModule(): GlobalDescriptors {
             });
             panel.appendChild(patternField.field);
         }
+        groupCardSettingsFields(panel, idPrefix);
         var saveRow: any = document.createElement("div");
         saveRow.className = "sp-btn-row sp-btn-row--save";
         if (!isNewDraft) {
