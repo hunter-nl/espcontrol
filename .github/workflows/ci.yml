@@ -34,9 +34,7 @@ env:
   ESPCONTROL_NPM_CACHE_MAX_MB: 512
 
 permissions:
-  checks: write
   contents: read
-  statuses: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -235,47 +233,6 @@ jobs:
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      # The branch protection rule predates GitHub Actions check runs and
-      # requires this legacy commit-status context in addition to the job.
-      - name: Publish branch-protection status
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const passed =
-              "${{ needs.pr-process.result }}" === "success" &&
-              "${{ needs.validate.result }}" === "success" &&
-              "${{ needs.docs.result }}" === "success";
-            // Protected branches can evaluate the test merge commit while
-            // pull-request checks are attached to the head commit. Publish
-            // the same legacy context to both targets.
-            const targetShas = [...new Set([
-              context.sha,
-              context.payload.pull_request.head.sha,
-            ])];
-            for (const sha of targetShas) {
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha,
-                state: passed ? "success" : "failure",
-                context: "CI Gate",
-                description: passed ? "Required CI jobs passed." : "Required CI jobs did not pass.",
-              });
-            }
-            // GitHub also checks the merge commit for Actions check runs when
-            // the branch rule is tied to the GitHub Actions app.
-            await github.rest.checks.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: "CI Gate",
-              head_sha: context.sha,
-              status: "completed",
-              conclusion: passed ? "success" : "failure",
-              output: {
-                title: "CI Gate",
-                summary: passed ? "Required CI jobs passed." : "Required CI jobs did not pass.",
-              },
-            });
       - name: Verify required CI jobs passed
         run: |
           if [ "${{ needs.pr-process.result }}" != "success" ] ||
