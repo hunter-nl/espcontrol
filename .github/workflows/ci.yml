@@ -244,14 +244,23 @@ jobs:
               "${{ needs.pr-process.result }}" === "success" &&
               "${{ needs.validate.result }}" === "success" &&
               "${{ needs.docs.result }}" === "success";
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: context.payload.pull_request.head.sha,
-              state: passed ? "success" : "failure",
-              context: "CI Gate",
-              description: passed ? "Required CI jobs passed." : "Required CI jobs did not pass.",
-            });
+            // Protected branches can evaluate the test merge commit while
+            // pull-request checks are attached to the head commit. Publish
+            // the same legacy context to both targets.
+            const targetShas = [...new Set([
+              context.sha,
+              context.payload.pull_request.head.sha,
+            ])];
+            for (const sha of targetShas) {
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha,
+                state: passed ? "success" : "failure",
+                context: "CI Gate",
+                description: passed ? "Required CI jobs passed." : "Required CI jobs did not pass.",
+              });
+            }
       - name: Verify required CI jobs passed
         run: |
           if [ "${{ needs.pr-process.result }}" != "success" ] ||
