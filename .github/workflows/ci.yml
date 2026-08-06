@@ -34,6 +34,7 @@ env:
   ESPCONTROL_NPM_CACHE_MAX_MB: 512
 
 permissions:
+  checks: write
   contents: read
   statuses: write
 
@@ -261,6 +262,20 @@ jobs:
                 description: passed ? "Required CI jobs passed." : "Required CI jobs did not pass.",
               });
             }
+            // GitHub also checks the merge commit for Actions check runs when
+            // the branch rule is tied to the GitHub Actions app.
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: "CI Gate",
+              head_sha: context.sha,
+              status: "completed",
+              conclusion: passed ? "success" : "failure",
+              output: {
+                title: "CI Gate",
+                summary: passed ? "Required CI jobs passed." : "Required CI jobs did not pass.",
+              },
+            });
       - name: Verify required CI jobs passed
         run: |
           if [ "${{ needs.pr-process.result }}" != "success" ] ||
