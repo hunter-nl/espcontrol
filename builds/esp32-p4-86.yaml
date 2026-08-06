@@ -19,6 +19,25 @@ substitutions:
 
 esphome:
   name_add_mac_suffix: true
+  on_boot:
+    - priority: 800
+      then:
+        - if:
+            condition:
+              lambda: 'return !id(factory_wifi_reset_done);'
+            then:
+              - lambda: |-
+                  if (wifi::global_wifi_component != nullptr) {
+                    wifi::global_wifi_component->clear_sta();
+                  }
+                  id(factory_wifi_reset_done) = true;
+                  global_preferences->sync();
+
+globals:
+  - id: factory_wifi_reset_done
+    type: bool
+    restore_value: true
+    initial_value: 'false'
 
 packages:
   espcontrol: !include ../devices/esp32-p4-86/packages.yaml
