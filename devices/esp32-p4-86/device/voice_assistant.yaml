@@ -13,8 +13,6 @@
 external_components:
   - source: github://n-IA-hane/esphome-audio-stack@3c30b96ad2540f676eadd30bdbb93104b105dee0
     components: [esp_audio_stack, esp_afe]
-  - source: github://esphome/esphome@dev
-    components: [sendspin]
 
 esp_afe:
   id: voice_afe_processor
