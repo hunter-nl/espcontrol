@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <inttypes.h>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -288,7 +289,7 @@ int JpegDecoder::decode_hardware_(uint8_t *buffer, size_t size) {
   }
 
   this->decoded_bytes_ = size;
-  ESP_LOGI(TAG, "ESP32-P4 hardware JPEG decoded %ux%u in %lu ms (PPA scale: %s)",
+  ESP_LOGI(TAG, "ESP32-P4 hardware JPEG decoded %" PRIu32 "x%" PRIu32 " in %lu ms (PPA scale: %s)",
            info.width, info.height, static_cast<unsigned long>(millis() - started_at),
            ppa_scaled ? "yes" : "no");
   return static_cast<int>(size);
