@@ -266,6 +266,9 @@ inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
   if (lines <= 0) return;
   lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
   lv_obj_set_width(label, lv_pct(100));
+  const lv_font_t *font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+  lv_coord_t line_height = font && font->line_height > 0 ? font->line_height : 16;
+  lv_obj_set_height(label, line_height * lines);
   lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 }
 

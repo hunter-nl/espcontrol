@@ -165,6 +165,14 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
         assert f'device_slug: "{slug}"' in package, f"{slug}: packages.yaml missing device slug"
         assert f'firmware_manifest_slug: "{slug}"' in package, f"{slug}: packages.yaml missing manifest slug"
         assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
+        label_lines = profile["web"]["btn"]["labelLines"]
+        label_lines_tall = profile["web"]["btn"]["labelLinesDouble"]
+        assert f"cfg.label_lines = {label_lines};" in sensors, (
+            f"{slug}: sensors.yaml must use the web preview's one-high label line limit"
+        )
+        assert f"cfg.label_lines_tall = {label_lines_tall};" in sensors, (
+            f"{slug}: sensors.yaml must use the web preview's tall-card label line limit"
+        )
         capacity = image_slot_capacity(profile)
         if capacity > 0:
             package_name = "image_cards.yaml" if capacity == 4 else f"image_cards_{capacity}.yaml"

@@ -943,6 +943,8 @@ def slot_device(profile: dict[str, Any]) -> dict[str, Any]:
         "climate_option_title_font": fonts.get("climateOptionTitle"),
         "climate_option_value_font": fonts.get("climateOptionValue"),
         "wrap_tall_labels": display["wrapTallLabels"],
+        "label_lines": profile["web"]["btn"]["labelLines"],
+        "label_lines_tall": profile["web"]["btn"]["labelLinesDouble"],
         "info_only": bool(display.get("infoOnly")),
         "display_mode": display.get("mode", "color"),
         "modal": copy.deepcopy(display["modal"]),
