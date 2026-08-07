@@ -176,12 +176,13 @@ inline bool timezone_is_homeassistant_auto(const std::string &tz_option) {
 
 // Morocco pauses UTC+1 during Ramadan. POSIX TZ strings cannot represent these
 // lunar-calendar transitions, or the country's switch to permanent UTC on 20
-// September 2026, so keep the known UTC transition windows explicit.
+// September 2026, so keep the known UTC transition windows explicit. The
+// permanent-UTC transition is 02:00 local time, or 01:00 UTC.
 static const TzUtcRange CASABLANCA_UTC_PAUSES[] = {
   {{2024, 3, 10, 2, 0}, {2024, 4, 14, 2, 0}},
   {{2025, 2, 23, 2, 0}, {2025, 4, 6, 2, 0}},
   {{2026, 2, 15, 2, 0}, {2026, 3, 22, 2, 0}},
-  {{2026, 9, 20, 2, 0}, {2051, 1, 1, 0, 0}},
+  {{2026, 9, 20, 1, 0}, {2051, 1, 1, 0, 0}},
 };
 
 static constexpr int CASABLANCA_UTC_PAUSE_COUNT =

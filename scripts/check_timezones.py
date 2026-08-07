@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 TIME_YAML = ROOT / "common" / "addon" / "time.yaml"
 SUN_CALC_H = ROOT / "components" / "espcontrol" / "sun_calc.h"
 AUTO_TIMEZONE_OPTION = "Auto (Home Assistant)"
-CASABLANCA_PERMANENT_UTC_FROM = datetime(2026, 9, 20, 2, tzinfo=timezone.utc)
+CASABLANCA_PERMANENT_UTC_FROM = datetime(2026, 9, 20, 1, tzinfo=timezone.utc)
 
 ZONEINFO_ALIASES = {
     "Asia/Rangoon": "Asia/Yangon",
