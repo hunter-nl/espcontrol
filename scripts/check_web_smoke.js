@@ -596,6 +596,7 @@ assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(""), 8123);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(0), 1);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(70000), 65535);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl(" https://ha.example.com/proxy/ "), "https://ha.example.com/proxy");
+assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("HTTPS://ha.example.com"), "https://ha.example.com");
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("http://[fd00::1]:8123"), "http://[fd00::1]:8123");
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("ftp://ha.example.com"), "");
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("https://ha.example.com/?token=secret"), "");

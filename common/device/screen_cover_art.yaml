@@ -420,6 +420,7 @@ script:
             return true;
           };
 
+          const std::string previous_base_url = id(cover_art_home_assistant_base_url);
           std::string configured = trim(id(cover_art_home_assistant_artwork_base_url_override).state);
           while (!configured.empty() && configured.back() == '/') configured.pop_back();
           if (!configured.empty() && valid_override(configured)) {
@@ -447,6 +448,32 @@ script:
                 id(cover_art_home_assistant_artwork_protocol).current_option() + "://" + host + ":" + std::to_string(port);
               ESP_LOGI("cover_art", "Using detected Home Assistant artwork base URL: %s",
                        id(cover_art_home_assistant_base_url).c_str());
+            }
+          }
+          if (previous_base_url != id(cover_art_home_assistant_base_url)) {
+            auto rebuild_relative_artwork_url = [&](std::string &url) {
+              if (previous_base_url.empty() || url.rfind(previous_base_url, 0) != 0) return false;
+              const std::string path = url.substr(previous_base_url.size());
+              if (path.empty() || path.front() != '/') return false;
+              url = id(cover_art_home_assistant_base_url).empty()
+                  ? std::string() : id(cover_art_home_assistant_base_url) + path;
+              return true;
+            };
+            bool rebuilt_full_screen_artwork = false;
+            rebuilt_full_screen_artwork |= rebuild_relative_artwork_url(id(cover_art_runtime).sources.remote_url);
+            rebuilt_full_screen_artwork |= rebuild_relative_artwork_url(id(cover_art_runtime).sources.local_url);
+            rebuilt_full_screen_artwork |= rebuild_relative_artwork_url(id(cover_art_runtime).source_url);
+            rebuilt_full_screen_artwork |= rebuild_relative_artwork_url(id(cover_art_runtime).last_good_url);
+            rebuilt_full_screen_artwork |= rebuild_relative_artwork_url(id(cover_art_runtime).fallback_url);
+            if (rebuilt_full_screen_artwork) {
+              id(cover_art_downloaded_image)->cancel_update();
+              id(cover_art_runtime).effective_download_url.clear();
+              id(cover_art_runtime).active_download_source_url.clear();
+              id(cover_art_runtime).refresh_needed = true;
+              id(cover_art_runtime).retry_url.clear();
+              id(cover_art_runtime).retry_count = 0;
+              ESP_LOGI("cover_art", "Rebuilding full-screen artwork URLs after Home Assistant base URL change");
+              id(cover_art_process_cached_artwork).execute();
             }
           }
           refresh_image_cards();

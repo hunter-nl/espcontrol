@@ -489,6 +489,7 @@ assert.strictEqual(model.normalizeHomeAssistantArtworkPort(""), 8123, "Home Assi
 assert.strictEqual(model.normalizeHomeAssistantArtworkPort(0), 1, "Home Assistant artwork port clamps low values");
 assert.strictEqual(model.normalizeHomeAssistantArtworkPort(70000), 65535, "Home Assistant artwork port clamps high values");
 assert.strictEqual(model.normalizeHomeAssistantArtworkBaseUrl(" https://ha.example.com/ha/ "), "https://ha.example.com/ha", "Home Assistant artwork base URL trims whitespace and trailing slashes");
+assert.strictEqual(model.normalizeHomeAssistantArtworkBaseUrl("HTTPS://ha.example.com"), "https://ha.example.com", "Home Assistant artwork base URL canonicalizes its scheme");
 assert.strictEqual(model.normalizeHomeAssistantArtworkBaseUrl("https://ha.example.com/?token=secret"), "", "Home Assistant artwork base URL rejects query strings");
 assert.strictEqual(model.normalizeHomeAssistantArtworkBaseUrl("ha.example.com"), "", "Home Assistant artwork base URL requires a protocol");
 assert.strictEqual(model.normalizeBrightnessMode("Manual"), "manual", "manual brightness mode normalizes");
