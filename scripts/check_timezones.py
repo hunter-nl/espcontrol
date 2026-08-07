@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timedelta, timezone
+from importlib import resources
 from pathlib import Path
 import os
 import re
@@ -19,6 +20,23 @@ AUTO_TIMEZONE_OPTION = "Auto (Home Assistant)"
 ZONEINFO_ALIASES = {
     "Asia/Rangoon": "Asia/Yangon",
 }
+
+
+def configure_timezone_data() -> None:
+    """Prefer the pinned tzdata package when CI provides it.
+
+    The runner image's zoneinfo database changes independently of this
+    repository. CI installs a specific IANA release so the Casablanca pause
+    table is checked against the same reference on every platform.
+    """
+    if os.environ.get("TZDIR"):
+        return
+    try:
+        timezone_dir = resources.files("tzdata").joinpath("zoneinfo")
+    except ModuleNotFoundError:
+        return
+    if timezone_dir.is_dir():
+        os.environ["TZDIR"] = str(timezone_dir)
 
 
 def load_timezone_select_options() -> list[tuple[int, str]]:
@@ -360,6 +378,7 @@ def run_self_test() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_timezone_data()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--self-test", action="store_true", help="run timezone validator self-tests")
     args = parser.parse_args(argv)
