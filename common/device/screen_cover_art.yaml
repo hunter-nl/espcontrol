@@ -1396,7 +1396,7 @@ script:
               return screen_schedule_blocks_cover_art(
                        id(screen_schedule_trigger).state,
                        id(schedule_enabled).state,
-                       id(presence_detected),
+                       id(schedule_presence_detected),
                        now.is_valid(),
                        now.is_valid() ? now.hour : 0,
                        (int) id(schedule_on_hour).state,
@@ -1584,7 +1584,7 @@ script:
               bool schedule_blocks = screen_schedule_blocks_cover_art(
                   id(screen_schedule_trigger).state,
                   id(schedule_enabled).state,
-                  id(presence_detected),
+                  id(schedule_presence_detected),
                   now.is_valid(),
                   now.is_valid() ? now.hour : 0,
                   (int) id(schedule_on_hour).state,
@@ -2522,7 +2522,7 @@ script:
               bool schedule_blocks = screen_schedule_blocks_cover_art(
                   id(screen_schedule_trigger).state,
                   id(schedule_enabled).state,
-                  id(presence_detected),
+                  id(schedule_presence_detected),
                   now.is_valid(),
                   now.is_valid() ? now.hour : 0,
                   (int) id(schedule_on_hour).state,

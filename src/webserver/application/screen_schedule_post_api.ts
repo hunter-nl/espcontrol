@@ -5,6 +5,7 @@ export function installScreenSchedulePostApiModule(): GlobalDescriptors {
     var SCREEN_SCHEDULE_UNAVAILABLE: any = "Screen schedule is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE: any = "The schedule trigger setting is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE: any = "The schedule sensor activation setting is not available on this firmware. Update the device firmware, then reload this page.";
+    var SCREEN_SCHEDULE_SENSOR_ENTITY_UNAVAILABLE: any = "The schedule sensor setting is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE: any = "The schedule wake timeout setting is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE: any = "The schedule wake brightness setting is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_MODE_UNAVAILABLE: any = "The schedule mode setting is not available on this firmware. Update the device firmware, then reload this page.";
@@ -39,6 +40,9 @@ export function installScreenSchedulePostApiModule(): GlobalDescriptors {
     function postScreenScheduleSensorActivation(this: any, value?: any) {
         postSelectWithObjectIds(entityName("screen_schedule_sensor_activation"), entityObjectIds("screen_schedule_sensor_activation"), scheduleSensorActivationOption(value), SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE);
     }
+    function postScreenScheduleSensorEntity(this: any, value?: any) {
+        return postTextWithObjectIds(entityName("screen_schedule_sensor_entity"), entityObjectIds("screen_schedule_sensor_entity"), value, SCREEN_SCHEDULE_SENSOR_ENTITY_UNAVAILABLE);
+    }
     function postScreenScheduleOnHour(this: any, value?: any) {
         postNumberWithObjectIds(entityName("screen_schedule_on_hour"), entityObjectIds("screen_schedule_on_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
     }
@@ -64,6 +68,7 @@ export function installScreenSchedulePostApiModule(): GlobalDescriptors {
         "SCREEN_SCHEDULE_UNAVAILABLE": liveGlobal(() => SCREEN_SCHEDULE_UNAVAILABLE, (value?: any) => { SCREEN_SCHEDULE_UNAVAILABLE = value; }),
         "SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE": liveGlobal(() => SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE, (value?: any) => { SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE = value; }),
         "SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE": liveGlobal(() => SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE, (value?: any) => { SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE = value; }),
+        "SCREEN_SCHEDULE_SENSOR_ENTITY_UNAVAILABLE": liveGlobal(() => SCREEN_SCHEDULE_SENSOR_ENTITY_UNAVAILABLE, (value?: any) => { SCREEN_SCHEDULE_SENSOR_ENTITY_UNAVAILABLE = value; }),
         "SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE": liveGlobal(() => SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE, (value?: any) => { SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE = value; }),
         "SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE": liveGlobal(() => SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE, (value?: any) => { SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE = value; }),
         "SCREEN_SCHEDULE_MODE_UNAVAILABLE": liveGlobal(() => SCREEN_SCHEDULE_MODE_UNAVAILABLE, (value?: any) => { SCREEN_SCHEDULE_MODE_UNAVAILABLE = value; }),
@@ -79,6 +84,7 @@ export function installScreenSchedulePostApiModule(): GlobalDescriptors {
         "postScreenScheduleEnabled": staticGlobal(postScreenScheduleEnabled),
         "postScreenScheduleTrigger": staticGlobal(postScreenScheduleTrigger),
         "postScreenScheduleSensorActivation": staticGlobal(postScreenScheduleSensorActivation),
+        "postScreenScheduleSensorEntity": staticGlobal(postScreenScheduleSensorEntity),
         "postScreenScheduleOnHour": staticGlobal(postScreenScheduleOnHour),
         "postScreenScheduleOffHour": staticGlobal(postScreenScheduleOffHour),
         "postScreenScheduleMode": staticGlobal(postScreenScheduleMode),

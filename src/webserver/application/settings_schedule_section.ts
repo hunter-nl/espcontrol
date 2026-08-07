@@ -42,11 +42,11 @@ export function installSettingsScheduleSectionModule(): GlobalDescriptors {
         var schedulePresenceField: any = document.createElement("div");
         schedulePresenceField.className = "sp-field";
         schedulePresenceField.appendChild(fieldLabel("Sensor Entity", "sp-set-schedule-presence"));
-        var schedulePresInp: any = entityInput("sp-set-schedule-presence", state.presenceEntity, "Sensor Entity", ["binary_sensor", "sensor"]);
+        var schedulePresInp: any = entityInput("sp-set-schedule-presence", state.scheduleSensorEntity, "Sensor Entity", ["binary_sensor", "sensor"]);
         schedulePresenceField.appendChild(schedulePresInp);
         scheduleSensor.appendChild(schedulePresenceField);
-        bindTextPost(schedulePresInp, entityName("presence_sensor_entity"), {
-            post: postPresenceSensorEntity,
+        bindTextPost(schedulePresInp, entityName("screen_schedule_sensor_entity"), {
+            post: postScreenScheduleSensorEntity,
         });
         var sensorActivationControl: any = selectField("Activate Night Schedule When", "sp-set-schedule-sensor-activation", [
             { value: "off", label: "Sensor Is Off" },

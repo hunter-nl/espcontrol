@@ -657,6 +657,9 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_screensaver
+    on_value:
+      then:
+        - script.execute: refresh_button_grid
 
   # Optional media player that keeps the screensaver awake while playing.
   - platform: template

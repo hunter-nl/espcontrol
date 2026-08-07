@@ -2096,13 +2096,17 @@ inline void grid_phase3(
     lv_obj_t *main_page_obj,
     const std::string &presence_entity,
     bool *presence_detected_ptr,
+    const std::string &schedule_presence_entity,
+    bool *schedule_presence_detected_ptr,
     const std::string &media_player_entity,
     bool *media_player_playing_ptr,
     std::function<bool()> clock_bar_visible_callback,
     std::function<void()> wake_callback,
     std::function<void()> sleep_callback,
+    std::function<void()> schedule_presence_changed_callback,
     std::function<bool()> clock_bar_temperature_visible_callback = nullptr) {
   ESP_LOGI("sensors", "Phase 3: temp/presence/media subscriptions start (%lu ms)", esphome::millis());
+  ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3);
   bool has_clock_bar_entities = configure_clock_bar_temperature_entities(
       temperature_entities, temperature_labels, temperature_label_count,
       main_page_obj, clock_bar_visible_callback,
@@ -2169,6 +2173,24 @@ inline void grid_phase3(
             *presence_detected_ptr = false;
             if (sleep_callback) sleep_callback();
           }
+        }),
+      HA_SUBSCRIPTION_SCOPE_PHASE3
+    );
+  }
+
+  if (!schedule_presence_entity.empty()) {
+    ha_subscribe_state(
+      schedule_presence_entity,
+      std::function<void(esphome::StringRef)>(
+        [schedule_presence_detected_ptr, schedule_presence_changed_callback](esphome::StringRef state) {
+          if (state == "on") {
+            *schedule_presence_detected_ptr = true;
+          } else if (state == "off") {
+            *schedule_presence_detected_ptr = false;
+          } else {
+            return;
+          }
+          if (schedule_presence_changed_callback) schedule_presence_changed_callback();
         }),
       HA_SUBSCRIPTION_SCOPE_PHASE3
     );

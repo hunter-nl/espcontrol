@@ -177,6 +177,7 @@ export interface AppState {
   _scheduleTriggerReceived: boolean;
   scheduleEnabled: boolean;
   scheduleSensorActivation: string;
+  scheduleSensorEntity: string;
   scheduleOnHour: number;
   scheduleOffHour: number;
   scheduleMode: string;
