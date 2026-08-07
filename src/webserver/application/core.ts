@@ -105,7 +105,7 @@ export function installCore(): GlobalDescriptors {
             onChanged(normalizedOrder);
         return normalizedOrder;
     }
-    function syncPreviewOrientation(this: any) {
+    function syncPreviewOrientation(this: any, preservePendingGrid?: any) {
         var layout: any = activeLayout();
         var screen: any = layout.screen || CFG.screen;
         var scale: any = previewLayoutScale(layout);
@@ -120,13 +120,13 @@ export function installCore(): GlobalDescriptors {
         var largeSensorUnitOffsetPercent: any = typeof CFG.largeSensorUnitOffsetPercent === "number"
             ? CFG.largeSensorUnitOffsetPercent : -10;
         r.setProperty("--large-sensor-unit-offset-y", "calc(var(--btn-icon) * 2.5 * " + (largeSensorUnitOffsetPercent / 100) + ")");
-        if (state.grid && state.grid.length) {
+        if (!preservePendingGrid && state.grid && state.grid.length) {
             normalizeGridSpansForLayout(state.grid, state.sizes, NUM_SLOTS, GRID_COLS, function (this: any, normalizedOrder?: any) {
                 if (orderReceived)
                     postText(entityName("button_order"), normalizedOrder);
             });
         }
-        if (orderReceived) {
+        if (!preservePendingGrid && orderReceived) {
             for (var homeSlot in state.subpages) {
                 var sp: any = state.subpages[homeSlot];
                 if (!sp || !sp.grid || !sp.grid.length)

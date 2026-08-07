@@ -5,9 +5,11 @@ export function installAppStateEventHandlersModule(): GlobalDescriptors {
     function createSseHandlers(this: any) {
         return {
             "text-button_order": function (this: any, val?: any) {
-                if (gridPreviewBlockedByRotationStartup()) {
+                if (gridPreviewBlockedByRotationStartup() || state.screenRotationInitialFallbackActive) {
                     orderReceived = !!(val && val.trim());
                     state.pendingButtonOrderRaw = val;
+                    if (state.screenRotationInitialFallbackActive)
+                        applyButtonOrderValue(val);
                     return;
                 }
                 applyButtonOrderValue(val);
@@ -385,7 +387,9 @@ export function installAppStateEventHandlersModule(): GlobalDescriptors {
                     state.screenRotationOptions = d.option;
                 }
                 syncScreenRotationSelect();
-                syncPreviewOrientation();
+                var preservePendingGrid: any = state.screenRotationInitialFallbackActive ||
+                    state.pendingButtonOrderRaw !== null;
+                syncPreviewOrientation(preservePendingGrid);
                 resolveInitialScreenRotationCheck();
                 renderPreview();
             },
