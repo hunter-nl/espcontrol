@@ -212,6 +212,7 @@ export interface BackupScreenSettingsState {
   scheduleTrigger: string;
   scheduleEnabled: boolean;
   scheduleSensorActivation: string;
+  scheduleSensorEntity: string;
   scheduleOnHour: number;
   scheduleOffHour: number;
   scheduleMode: string;
@@ -234,6 +235,7 @@ function objectValue(source: Record<string, unknown>, key: string): unknown {
 export function normalizeBackupScreenSettings(
   screenSettings: Record<string, unknown>,
   current: Partial<BackupScreenSettingsState>,
+  legacyPresenceSensorEntity = "",
 ): BackupScreenSettingsState {
   const legacyScheduleEnabled = !!screenSettings.schedule_enabled;
   const scheduleTrigger = normalizeScheduleTrigger(screenSettings.schedule_trigger, legacyScheduleEnabled);
@@ -259,6 +261,9 @@ export function normalizeBackupScreenSettings(
         ? screenSettings.schedule_sensor_activation
         : current.scheduleSensorActivation,
     ),
+    scheduleSensorEntity: objectValue(screenSettings, "schedule_sensor_entity") !== undefined
+      ? String(screenSettings.schedule_sensor_entity || "")
+      : legacyPresenceSensorEntity,
     scheduleOnHour: normalizeHour(screenSettings.schedule_on_hour, 6),
     scheduleOffHour: normalizeHour(screenSettings.schedule_off_hour, 23),
     scheduleMode: normalizeScheduleMode(screenSettings.schedule_mode),

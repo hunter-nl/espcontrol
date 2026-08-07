@@ -411,6 +411,8 @@ esphome:
               id(main_page)->obj,
               id(presence_sensor_entity).state,
               &id(presence_detected),
+              id(screen_schedule_sensor_entity).state,
+              &id(schedule_presence_detected),
               id(media_player_sleep_prevention_entity).state,
               &id(media_player_playing),
               []() {
@@ -425,6 +427,9 @@ esphome:
               },
               []() {
                 id(screensaver_presence_sleep).execute();
+              },
+              []() {
+                id(screen_schedule_check).execute();
               },
               []() {
                 return id(outdoor_temp_enable).state;

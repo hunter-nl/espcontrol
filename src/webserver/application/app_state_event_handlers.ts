@@ -177,11 +177,14 @@ export function installAppStateEventHandlersModule(): GlobalDescriptors {
             "text-presence_sensor_entity": function (this: any, val?: any) {
                 state.presenceEntity = val;
                 syncInput(els.setPresence, val);
-                syncInput(els.setSchedulePresence, val);
                 if (state.screensaverMode === "") {
                     if (els.setSsMode)
                         els.setSsMode(getActiveScreensaverMode());
                 }
+            },
+            "text-screen_schedule_sensor_entity": function (this: any, val?: any) {
+                state.scheduleSensorEntity = val;
+                syncInput(els.setSchedulePresence, val);
             },
             "text-media_player_sleep_prevention_entity": function (this: any, val?: any) {
                 state.mediaPlayerSleepPreventionEntity = val;

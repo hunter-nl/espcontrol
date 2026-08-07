@@ -236,6 +236,13 @@ export const ENTITY_CATALOG = {
         "presence_sensor_entity"
       ]
     },
+    "screen_schedule_sensor_entity": {
+      "domain": "text",
+      "name": "Screen Schedule Sensor Entity",
+      "objectIds": [
+        "screen_schedule_sensor_entity"
+      ]
+    },
     "screen_saver_media_player_sleep_prevention": {
       "domain": "switch",
       "name": "Screen Saver: Media Player Sleep Prevention",
@@ -708,6 +715,7 @@ export const ENTITY_CATALOG = {
       "screensaver_mode",
       "screen_saver_action",
       "presence_sensor_entity",
+      "screen_schedule_sensor_entity",
       "screen_saver_media_player_sleep_prevention",
       "media_player_sleep_prevention_entity",
       "screen_saver_cover_art",

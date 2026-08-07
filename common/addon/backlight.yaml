@@ -44,6 +44,9 @@ globals:
   - id: presence_detected
     type: bool
     initial_value: 'false'
+  - id: schedule_presence_detected
+    type: bool
+    initial_value: 'false'
   - id: media_player_playing
     type: bool
     initial_value: 'false'
@@ -364,7 +367,7 @@ script:
           const bool schedule_night = !connectivity_setup && screen_schedule_night_active(
               id(screen_schedule_trigger).state,
               id(schedule_enabled).state,
-              id(presence_detected),
+              id(schedule_presence_detected),
               now.is_valid(),
               now.is_valid() ? now.hour : 0,
               (int) id(schedule_on_hour).state,
@@ -541,7 +544,7 @@ script:
               if (screen_schedule_night_active(
                     id(screen_schedule_trigger).state,
                     id(schedule_enabled).state,
-                    id(presence_detected),
+                    id(schedule_presence_detected),
                     now.is_valid(),
                     now.is_valid() ? now.hour : 0,
                     (int) id(schedule_on_hour).state,
@@ -646,19 +649,13 @@ script:
           value: 'true'
       - script.execute: screensaver_sleep_timer
 
-  # Presence sensor mode is lower priority than the screen schedule. This keeps
-  # motion/presence from waking the panel during scheduled off or clock hours.
+  # Screensaver presence remains independent from the Night Schedule sensor.
   - id: screensaver_presence_wake
     mode: restart
     then:
-      - script.execute: screen_schedule_check
-      - script.wait: screen_schedule_check
       - if:
           condition:
-            lambda: |-
-              return id(screensaver_mode).state == "sensor" &&
-                     !screen_schedule_sensor_trigger(
-                         id(screen_schedule_trigger).state);
+            lambda: 'return id(screensaver_mode).state == "sensor";'
           then:
             - globals.set: { id: screensaver_sensor_sleep_pending, value: 'false' }
             - if:
@@ -676,14 +673,9 @@ script:
   - id: screensaver_presence_sleep
     mode: restart
     then:
-      - script.execute: screen_schedule_check
-      - script.wait: screen_schedule_check
       - if:
           condition:
-            lambda: |-
-              return id(screensaver_mode).state == "sensor" &&
-                     !screen_schedule_sensor_trigger(
-                         id(screen_schedule_trigger).state);
+            lambda: 'return id(screensaver_mode).state == "sensor";'
           then:
             - script.execute: screensaver_sleep_sensor
 
@@ -1041,7 +1033,7 @@ script:
             bool schedule_night = screen_schedule_night_active(
               id(screen_schedule_trigger).state,
               id(schedule_enabled).state,
-              id(presence_detected),
+              id(schedule_presence_detected),
               now.is_valid(),
               now.is_valid() ? now.hour : 0,
               (int) id(schedule_on_hour).state,
