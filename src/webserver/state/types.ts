@@ -200,6 +200,7 @@ export interface AppState {
   screenRotationOptions: string[];
   screenRotationDeviceOptions: readonly string[] | null;
   screenRotationInitialReady: boolean;
+  screenRotationInitialFallbackActive: boolean;
   screenRotationInitialTimer: number | null;
   pendingButtonOrderRaw: string | null;
   sunrise: string;

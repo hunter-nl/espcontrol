@@ -67,9 +67,12 @@ export function installScreenRotationStateModule(): GlobalDescriptors {
     function startInitialScreenRotationCheck(this: any) {
         clearInitialScreenRotationTimer();
         state.pendingButtonOrderRaw = null;
+        state.screenRotationInitialFallbackActive = false;
         state.screenRotationInitialReady = !screenRotationStartupRequired();
         if (!state.screenRotationInitialReady) {
-            state.screenRotationInitialTimer = setTimeout(resolveInitialScreenRotationCheck, SCREEN_ROTATION_STARTUP_FALLBACK_MS);
+            state.screenRotationInitialTimer = setTimeout(function (this: any) {
+                resolveInitialScreenRotationCheck(true);
+            }, SCREEN_ROTATION_STARTUP_FALLBACK_MS);
         }
     }
     function applyDeferredButtonOrderValue(this: any, rawOrder?: any, onNormalized?: any) {
@@ -80,18 +83,25 @@ export function installScreenRotationStateModule(): GlobalDescriptors {
             onNormalized(normalizedOrder);
         return normalizedOrder;
     }
-    function resolveInitialScreenRotationCheck(this: any) {
-        if (state.screenRotationInitialReady)
+    function resolveInitialScreenRotationCheck(this: any, preservePendingButtonOrder?: any) {
+        if (state.screenRotationInitialReady && state.pendingButtonOrderRaw === null &&
+            !state.screenRotationInitialFallbackActive)
             return;
         clearInitialScreenRotationTimer();
         state.screenRotationInitialReady = true;
         if (state.pendingButtonOrderRaw !== null) {
-            applyDeferredButtonOrderValue(state.pendingButtonOrderRaw, function (this: any, normalizedOrder?: any) {
-                if (orderReceived)
-                    postText(entityName("button_order"), normalizedOrder);
-            });
-            state.pendingButtonOrderRaw = null;
+            if (preservePendingButtonOrder) {
+                applyButtonOrderValue(state.pendingButtonOrderRaw, true);
+            }
+            else {
+                applyDeferredButtonOrderValue(state.pendingButtonOrderRaw, function (this: any, normalizedOrder?: any) {
+                    if (orderReceived)
+                        postText(entityName("button_order"), normalizedOrder);
+                });
+                state.pendingButtonOrderRaw = null;
+            }
         }
+        state.screenRotationInitialFallbackActive = !!preservePendingButtonOrder;
         if (els.previewMain)
             renderPreview();
     }
