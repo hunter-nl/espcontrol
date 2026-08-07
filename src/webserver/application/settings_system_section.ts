@@ -306,6 +306,23 @@ export function installSettingsSystemSectionModule(): GlobalDescriptors {
         haPortField.appendChild(haPortInput);
         homeAssistantSettingsBody.appendChild(haPortField);
         els.setCoverArtHomeAssistantPort = haPortInput;
+        var haBaseUrlField: any = document.createElement("div");
+        haBaseUrlField.className = "sp-field";
+        haBaseUrlField.appendChild(fieldLabel("Artwork Base URL (optional)", "sp-set-ha-artwork-base-url"));
+        var haBaseUrlInput: any = document.createElement("input");
+        haBaseUrlInput.className = "sp-input";
+        haBaseUrlInput.id = "sp-set-ha-artwork-base-url";
+        haBaseUrlInput.type = "url";
+        haBaseUrlInput.placeholder = "https://home.example.com";
+        haBaseUrlInput.value = state.coverArtHomeAssistantBaseUrl;
+        haBaseUrlInput.addEventListener("change", function (this: any) {
+            state.coverArtHomeAssistantBaseUrl = normalizeHomeAssistantArtworkBaseUrl(this.value);
+            this.value = state.coverArtHomeAssistantBaseUrl;
+            postHomeAssistantArtworkBaseUrl(state.coverArtHomeAssistantBaseUrl);
+        });
+        haBaseUrlField.appendChild(haBaseUrlInput);
+        homeAssistantSettingsBody.appendChild(haBaseUrlField);
+        els.setCoverArtHomeAssistantBaseUrl = haBaseUrlInput;
         var homeAssistantSettingsCard: any = makeCollapsibleCard("Home Assistant Settings", homeAssistantSettingsBody, true);
         return {
             backupCard: backupCard,

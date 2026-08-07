@@ -2186,7 +2186,10 @@ def firmware_image_card_startup_errors(
         core_text = core_infra_path.read_text(encoding="utf-8")
         if "is_home_assistant && ha_api_connected()" not in core_text:
             errors.append(f"{core_rel}: start image-card refresh when Home Assistant API connects")
-        if core_text.count("refresh_image_cards();") < 4:
+        if (
+            core_text.count("refresh_image_cards();") < 3
+            or "id(cover_art_resolve_home_assistant_base_url).execute();" not in core_text
+        ):
             errors.append(f"{core_rel}: refresh image cards through Home Assistant connect retries")
     return errors
 
@@ -6484,7 +6487,7 @@ def run_self_test() -> int:
         "  on_client_connected:\n"
         "    - lambda: |-\n"
         "        if (is_home_assistant && ha_api_connected()) {\n"
-        "        refresh_image_cards();\n"
+        "        id(cover_art_resolve_home_assistant_base_url).execute();\n"
         "        }\n"
         "    - delay: 2s\n"
         "    - lambda: |-\n"
