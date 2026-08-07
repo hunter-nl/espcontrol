@@ -36,6 +36,8 @@ inline bool climate_control_driver_refresh_layout(
     apply_large_sensor_number_style(
       slot, display_large_sensor_font(display),
       display_large_sensor_unit_offset_percent(display));
+  } else {
+    apply_standard_sensor_number_style(slot, display);
   }
   return true;
 }
