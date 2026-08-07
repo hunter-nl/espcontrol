@@ -153,7 +153,7 @@ jobs:
           "${TZDATA_VENV}/bin/python" -m pip install --disable-pip-version-check "tzdata==2026.3"
           TZDATA_SITE="$("${TZDATA_VENV}/bin/python" -c 'import site; print(site.getsitepackages()[0])')"
           echo "PYTHONPATH=${TZDATA_SITE}${PYTHONPATH:+:${PYTHONPATH}}" >> "${GITHUB_ENV}"
-          echo "TZDIR=${TZDATA_SITE}/tzdata/zoneinfo" >> "${GITHUB_ENV}"
+          echo "PYTHONTZPATH=${TZDATA_SITE}/tzdata/zoneinfo" >> "${GITHUB_ENV}"
 
       - name: Ensure CMake is available
         shell: bash
