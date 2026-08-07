@@ -165,6 +165,14 @@ def test_generated_yaml(profiles: dict[str, dict]) -> None:
         assert f'device_slug: "{slug}"' in package, f"{slug}: packages.yaml missing device slug"
         assert f'firmware_manifest_slug: "{slug}"' in package, f"{slug}: packages.yaml missing manifest slug"
         assert f"cfg.num_slots = {profile['slots']};" in sensors, f"{slug}: sensors.yaml missing slot count"
+        label_lines = profile["web"]["btn"]["labelLines"]
+        label_lines_tall = profile["web"]["btn"]["labelLinesDouble"]
+        assert f"cfg.label_lines = {label_lines};" in sensors, (
+            f"{slug}: sensors.yaml must use the web preview's one-high label line limit"
+        )
+        assert f"cfg.label_lines_tall = {label_lines_tall};" in sensors, (
+            f"{slug}: sensors.yaml must use the web preview's tall-card label line limit"
+        )
         capacity = image_slot_capacity(profile)
         if capacity > 0:
             package_name = "image_cards.yaml" if capacity == 4 else f"image_cards_{capacity}.yaml"
@@ -547,6 +555,22 @@ def test_grid_phase2_uses_cleaned_spanned_layout() -> None:
     )
 
 
+def test_card_label_line_clamp_matches_preview_on_subpages() -> None:
+    grid = (ROOT / "components" / "espcontrol" / "button_grid_grid.h").read_text(encoding="utf-8")
+    assert "lv_obj_set_height(label, LV_SIZE_CONTENT);" in grid, (
+        "short card labels must retain their natural height and bottom alignment"
+    )
+    assert "lv_obj_set_style_max_height(label, max_height, LV_PART_MAIN);" in grid, (
+        "card labels must clip only after reaching the configured line limit"
+    )
+    assert "apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);" in grid, (
+        "subpage back labels must follow the configured line limit"
+    )
+    assert "apply_card_label_line_clamp(sub_slot.text_lbl, cfg, rs);" in grid, (
+        "subpage card labels must follow the configured line limit"
+    )
+
+
 def test_spanned_cards_refresh_after_clock_bar_padding_changes() -> None:
     clock_bar = (ROOT / "components" / "espcontrol" / "clock_bar.h").read_text(encoding="utf-8")
     layout = (ROOT / "components" / "espcontrol" / "button_grid_layout.h").read_text(encoding="utf-8")
@@ -643,6 +667,7 @@ def main() -> int:
     test_weather_card_visual_matches_preview()
     test_weather_card_mode_visibility_reset()
     test_grid_phase2_uses_cleaned_spanned_layout()
+    test_card_label_line_clamp_matches_preview_on_subpages()
     test_spanned_cards_refresh_after_clock_bar_padding_changes()
     test_temperature_unit_changes_refresh_weather_cards()
     test_current_weather_state_keeps_normal_card_visuals()

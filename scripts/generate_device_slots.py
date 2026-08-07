@@ -371,6 +371,8 @@ def cfg_lines(device: dict) -> list[str]:
         )
     if device["wrap_tall_labels"]:
         lines.append("            cfg.wrap_tall_labels = true;")
+    lines.append(f"            cfg.label_lines = {device['label_lines']};")
+    lines.append(f"            cfg.label_lines_tall = {device['label_lines_tall']};")
     if device.get("width_compensation_percent", 100) != 100:
         lines.append(f"            cfg.width_compensation_percent = {device['width_compensation_percent']};")
     if device.get("volume_width_compensation_percent", 100) != 100:
