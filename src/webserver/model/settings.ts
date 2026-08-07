@@ -204,7 +204,8 @@ export function normalizeHomeAssistantArtworkBaseUrl(value: unknown): string {
   try {
     const url = new URL(normalized);
     if ((url.protocol !== "http:" && url.protocol !== "https:") || !url.hostname ||
-        url.username || url.password || url.search || url.hash) return "";
+        url.username || url.password || url.search || url.hash ||
+        (url.port && (Number(url.port) < 1 || Number(url.port) > 65535))) return "";
     return url.href.replace(/\/+$/, "");
   } catch (_) {
     return "";
