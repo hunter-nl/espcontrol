@@ -545,7 +545,8 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espcontrol::cards::climate_control_driver_setup_visual(
         s, p, context, display)) {
     espcontrol::cards::climate_control_driver_attach_interaction(s, p, context);
-    espcontrol::cards::climate_control_driver_refresh_layout(s, p, context);
+    espcontrol::cards::climate_control_driver_refresh_layout(
+      s, p, context, display, row_span, col_span);
     return;
   }
   if (espcontrol::cards::alarm_driver_setup_visual(s, p, context)) {
