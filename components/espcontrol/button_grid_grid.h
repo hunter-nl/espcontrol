@@ -268,7 +268,10 @@ inline void apply_card_label_line_clamp(lv_obj_t *label, const GridConfig &cfg,
   lv_obj_set_width(label, lv_pct(100));
   const lv_font_t *font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
   lv_coord_t line_height = font && font->line_height > 0 ? font->line_height : 16;
-  lv_obj_set_height(label, line_height * lines);
+  lv_coord_t line_space = lv_obj_get_style_text_line_space(label, LV_PART_MAIN);
+  lv_coord_t max_height = line_height * lines + line_space * (lines - 1);
+  lv_obj_set_height(label, LV_SIZE_CONTENT);
+  lv_obj_set_style_max_height(label, max_height, LV_PART_MAIN);
   lv_obj_align(label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
 }
 
@@ -1807,6 +1810,7 @@ inline void grid_phase2(
     display_apply_slot_text_width(back_slot, display);
     lv_label_set_text(back_slot.icon_lbl, "\U000F0141");
     lv_label_set_text(back_slot.text_lbl, sp_back_label.c_str());
+    apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
       lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
@@ -1865,6 +1869,7 @@ inline void grid_phase2(
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
       setup_card_visual(sub_slot, sb_cfg, context, cfg, palette, rs, cs);
+      apply_card_label_line_clamp(sub_slot.text_lbl, cfg, rs);
 
       if (espcontrol::cards::image_driver_bind_subpage(
             sub_slot, sb_cfg, context, cfg)) continue;
