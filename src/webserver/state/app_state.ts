@@ -62,6 +62,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     screenRotation: deviceConfig.features?.screenRotationDefault || "0",
     screenRotationOptions: deviceConfig.features?.screenRotationOptions?.slice() || ["0", "90", "180", "270"],
     screenRotationDeviceOptions: null, screenRotationInitialReady: !deviceConfig.features?.screenRotation,
+    screenRotationInitialFallbackActive: false,
     screenRotationInitialTimer: null,
     pendingButtonOrderRaw: null, sunrise: "", sunset: "", firmwareVersion: "", firmwareLatestVersion: "",
     firmwareUpdateState: "", firmwareReleaseUrl: "", firmwareChecking: false,

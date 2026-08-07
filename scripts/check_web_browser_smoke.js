@@ -700,6 +700,10 @@ async function assertRotationStartupOrdering(browser) {
   });
   await installRoutes(fallbackContext, slug);
   const fallbackPage = await fallbackContext.newPage();
+  const fallbackPosts = [];
+  fallbackPage.on("request", (request) => {
+    if (request.method() === "POST") fallbackPosts.push(request.url());
+  });
   await installFakeEventSource(fallbackPage);
   try {
     await fallbackPage.goto(`http://espcontrol.test/${slug}?events=1`, {
@@ -711,8 +715,8 @@ async function assertRotationStartupOrdering(browser) {
     );
     await fallbackPage.evaluate(
       (events) => window.__seedEspState(events),
-      [{ id: "text-button_order", state: "1,2,3w,4,5" }].concat(
-        rotationStartupBaseEvents(false, 5),
+      [{ id: "text-button_order", state: "1p,,,,,,,,,,,,2,3,4" }].concat(
+        rotationStartupBaseEvents(false, 4),
       ),
     );
     let layout = await measureRotationStartupLayout(fallbackPage);
@@ -743,8 +747,33 @@ async function assertRotationStartupOrdering(browser) {
       "rotation fallback: grid should be visible after fallback timeout",
     );
     assert(
-      layout.visibleCards >= 5,
+      layout.visibleCards >= 4,
       "rotation fallback: saved cards should render after fallback timeout",
+    );
+
+    await fallbackPage.evaluate(() =>
+      window.__seedEspState([
+        {
+          id: "select-screen__rotation",
+          state: "90",
+          value: "90",
+          option: ["0", "90", "180", "270"],
+        },
+      ]),
+    );
+    await fallbackPage.waitForFunction(() => {
+      var main = document.querySelector(".sp-main");
+      return main && getComputedStyle(main).gridTemplateColumns.split(" ").length === 3;
+    });
+    assertPortraitGridLayout(
+      await measureRotationStartupLayout(fallbackPage),
+      "rotation after fallback",
+      { minVisibleCards: 4 },
+    );
+    assert.deepStrictEqual(
+      fallbackPosts.filter((url) => /\/text\/button_order\//.test(url)),
+      [],
+      "rotation fallback: an unconfirmed startup orientation must not overwrite the saved layout",
     );
   } finally {
     await fallbackContext.close();

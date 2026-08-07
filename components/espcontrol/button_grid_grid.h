@@ -220,6 +220,13 @@ inline void apply_large_sensor_number_style(const BtnSlot &s, const lv_font_t *l
   }
 }
 
+inline void apply_standard_sensor_number_style(const BtnSlot &s, const DisplayProfile &display) {
+  if (s.sensor_lbl && display_sensor_font(display)) {
+    lv_obj_set_style_text_font(s.sensor_lbl, display_sensor_font(display), LV_PART_MAIN);
+  }
+  if (s.unit_lbl) lv_obj_set_style_translate_y(s.unit_lbl, 0, LV_PART_MAIN);
+}
+
 inline bool large_number_square_card_layout(int row_span, int col_span) {
   return card_span_is_large(row_span, col_span);
 }
@@ -501,10 +508,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   apply_button_colors(s.btn, palette.has_on, palette.on_val,
     palette.has_off, palette.off_val);
   apply_button_on_pattern(s.btn, p.options, palette.has_on, palette.on_val);
-  if (s.sensor_lbl && display_sensor_font(display)) {
-    lv_obj_set_style_text_font(s.sensor_lbl, display_sensor_font(display), LV_PART_MAIN);
-  }
-  if (s.unit_lbl) lv_obj_set_style_translate_y(s.unit_lbl, 0, LV_PART_MAIN);
+  apply_standard_sensor_number_style(s, display);
   if (s.unit_lbl) lv_obj_clear_flag(s.unit_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   if (s.icon_lbl) lv_obj_align(s.icon_lbl, LV_ALIGN_TOP_LEFT, 0, 0);
@@ -545,7 +549,8 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   if (espcontrol::cards::climate_control_driver_setup_visual(
         s, p, context, display)) {
     espcontrol::cards::climate_control_driver_attach_interaction(s, p, context);
-    espcontrol::cards::climate_control_driver_refresh_layout(s, p, context);
+    espcontrol::cards::climate_control_driver_refresh_layout(
+      s, p, context, display, row_span, col_span);
     return;
   }
   if (espcontrol::cards::alarm_driver_setup_visual(s, p, context)) {
@@ -853,6 +858,9 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
 
   if (espcontrol::cards::numeric_selectable_driver_refresh_layout(
         s, p, context)) return;
+
+  if (espcontrol::cards::climate_control_driver_refresh_layout(
+        s, p, context, display, row_span, col_span)) return;
 
   if (espcontrol::cards::image_driver_refresh_layout(
         s, p, context)) {
