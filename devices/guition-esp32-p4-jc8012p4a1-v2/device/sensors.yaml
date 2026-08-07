@@ -56,6 +56,8 @@ script:
           cfg.subpage_chevron_x = 4;
           cfg.subpage_chevron_y = -2;
           cfg.wrap_tall_labels = true;
+          cfg.label_lines = 2;
+          cfg.label_lines_tall = 3;
           cfg.modal_profile.layout_family = DisplayModalLayoutFamily::LARGE_LANDSCAPE;
           cfg.modal_profile.density = DisplayModalDensity::SPACIOUS;
           cfg.modal_profile.memory_tier = DisplayModalMemoryTier::STANDARD;
@@ -163,6 +165,8 @@ esphome:
             cfg.subpage_chevron_x = 4;
             cfg.subpage_chevron_y = -2;
             cfg.wrap_tall_labels = true;
+            cfg.label_lines = 2;
+            cfg.label_lines_tall = 3;
             cfg.modal_profile.layout_family = DisplayModalLayoutFamily::LARGE_LANDSCAPE;
             cfg.modal_profile.density = DisplayModalDensity::SPACIOUS;
             cfg.modal_profile.memory_tier = DisplayModalMemoryTier::STANDARD;
@@ -339,6 +343,8 @@ esphome:
             cfg.subpage_chevron_x = 4;
             cfg.subpage_chevron_y = -2;
             cfg.wrap_tall_labels = true;
+            cfg.label_lines = 2;
+            cfg.label_lines_tall = 3;
             cfg.modal_profile.layout_family = DisplayModalLayoutFamily::LARGE_LANDSCAPE;
             cfg.modal_profile.density = DisplayModalDensity::SPACIOUS;
             cfg.modal_profile.memory_tier = DisplayModalMemoryTier::STANDARD;
