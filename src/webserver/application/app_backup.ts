@@ -117,6 +117,7 @@ export function installAppBackupModule(): GlobalDescriptors {
                 schedule_trigger: normalizeScheduleTrigger(state.scheduleTrigger, state.scheduleEnabled),
                 schedule_enabled: !!state.scheduleEnabled,
                 schedule_sensor_activation: normalizeScheduleSensorActivation(state.scheduleSensorActivation),
+                schedule_sensor_entity: state.scheduleSensorEntity,
                 schedule_on_hour: normalizeHour(state.scheduleOnHour, 6),
                 schedule_off_hour: normalizeHour(state.scheduleOffHour, 23),
                 schedule_mode: normalizeScheduleMode(state.scheduleMode),
@@ -365,6 +366,7 @@ export function installAppBackupModule(): GlobalDescriptors {
                     if (els.setTemperatureUnit)
                         els.setTemperatureUnit.value = state.temperatureUnit;
                     syncInput(els.setPresence, state.presenceEntity);
+                    syncInput(els.setSchedulePresence, state.scheduleSensorEntity);
                     syncMediaPlayerSleepPreventionUi();
                     syncInput(els.setCoverArtMediaPlayer, state.coverArtMediaPlayerEntity);
                     syncInput(els.setCoverArtSecondaryMediaPlayer, state.coverArtSecondaryMediaPlayerEntity);
@@ -400,7 +402,7 @@ export function installAppBackupModule(): GlobalDescriptors {
                         scheduleClockTextColor: state.scheduleClockTextColor,
                         scheduleSensorActivation: state.scheduleSensorActivation,
                         manualBrightnessVal: state.manualBrightnessVal,
-                    });
+                    }, importedSettings ? importedSettings.presenceSensorEntity : state.presenceEntity);
                     state.brightnessDayVal = importedScreenSettings.brightnessDayVal;
                     state.brightnessNightVal = importedScreenSettings.brightnessNightVal;
                     state.brightnessMode = importedScreenSettings.brightnessMode;
@@ -410,6 +412,7 @@ export function installAppBackupModule(): GlobalDescriptors {
                     state.scheduleTrigger = importedScreenSettings.scheduleTrigger;
                     state.scheduleEnabled = importedScreenSettings.scheduleEnabled;
                     state.scheduleSensorActivation = importedScreenSettings.scheduleSensorActivation;
+                    state.scheduleSensorEntity = importedScreenSettings.scheduleSensorEntity;
                     state.scheduleOnHour = importedScreenSettings.scheduleOnHour;
                     state.scheduleOffHour = importedScreenSettings.scheduleOffHour;
                     state.scheduleMode = importedScreenSettings.scheduleMode;
@@ -427,6 +430,7 @@ export function installAppBackupModule(): GlobalDescriptors {
                     postBrightnessDuskTime(state.brightnessDuskTime);
                     postScreenScheduleTrigger(state.scheduleTrigger);
                     postScreenScheduleSensorActivation(state.scheduleSensorActivation);
+                    postScreenScheduleSensorEntity(state.scheduleSensorEntity);
                     postScreenScheduleOnHour(state.scheduleOnHour);
                     postScreenScheduleOffHour(state.scheduleOffHour);
                     postScreenScheduleMode(state.scheduleMode);

@@ -522,6 +522,7 @@ assert.deepStrictEqual(
     scheduleTrigger: "time",
     scheduleEnabled: true,
     scheduleSensorActivation: "on",
+    scheduleSensorEntity: "",
     scheduleOnHour: 7,
     scheduleOffHour: 22,
     scheduleMode: "clock",
@@ -532,6 +533,22 @@ assert.deepStrictEqual(
     scheduleClockTextColor: "ABCDEF",
   },
   "backup screen settings normalize with current-value fallbacks"
+);
+
+assert.strictEqual(
+  model.normalizeBackupScreenSettings({}, {}, "binary_sensor.legacy_presence").scheduleSensorEntity,
+  "binary_sensor.legacy_presence",
+  "older backups copy the legacy screensaver sensor into the schedule sensor"
+);
+assert.strictEqual(
+  model.normalizeBackupScreenSettings({ schedule_sensor_entity: "" }, {}, "binary_sensor.legacy_presence").scheduleSensorEntity,
+  "",
+  "new backups preserve an intentionally empty schedule sensor"
+);
+assert.strictEqual(
+  model.normalizeBackupScreenSettings({ schedule_sensor_entity: "binary_sensor.schedule" }, {}, "binary_sensor.legacy_presence").scheduleSensorEntity,
+  "binary_sensor.schedule",
+  "new backups keep a schedule sensor separate from the screensaver sensor"
 );
 
 const panelSettings = model.normalizeBackupPanelSettings({

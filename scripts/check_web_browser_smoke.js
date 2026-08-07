@@ -2912,6 +2912,7 @@ function backupFixture(device, slots) {
       manual_brightness: 62,
       schedule_enabled: true,
       schedule_sensor_activation: "on",
+      schedule_sensor_entity: "binary_sensor.night_schedule",
       schedule_on_hour: 7,
       schedule_off_hour: 22,
       schedule_mode: "clock",
@@ -3212,6 +3213,17 @@ async function assertBackupImportSmoke(page, posts, testCase) {
   for (const [expected, label] of screensaverImportPosts) {
     await waitForPost(posts, expected, label, before);
   }
+  await waitForPost(
+    posts,
+    {
+      domain: "text",
+      name: "screen_schedule_sensor_entity",
+      action: "set",
+      value: "binary_sensor.night_schedule",
+    },
+    "backup Night Schedule sensor import",
+    before,
+  );
   await waitForPost(
     posts,
     {
@@ -4285,11 +4297,11 @@ async function assertNightScheduleSensorControls(page, posts, label) {
     posts,
     {
       domain: "text",
-      name: "presence_sensor_entity",
+      name: "screen_schedule_sensor_entity",
       action: "set",
       value: "binary_sensor.all_lights_on",
     },
-    `${label}: Sensor mode posts the sensor entity`,
+    `${label}: Sensor mode posts the dedicated sensor entity`,
     before,
   );
   await waitForPost(

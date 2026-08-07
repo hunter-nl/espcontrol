@@ -891,6 +891,7 @@ declare global {
   var postScreenScheduleOffHour: any;
   var postScreenScheduleOnHour: any;
   var postScreenScheduleSensorActivation: any;
+  var postScreenScheduleSensorEntity: any;
   var postScreenScheduleTrigger: any;
   var postScreenScheduleWakeBrightness: any;
   var postScreenScheduleWakeTimeout: any;

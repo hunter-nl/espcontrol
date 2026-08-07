@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 6,
     "cardTypes": 40,
-    "entityNames": 96,
+    "entityNames": 97,
     "icons": 334,
     "structuralIcons": 16,
     "compatibilityFixtureGroups": 2
@@ -6097,6 +6097,17 @@
         "name": "Presence Sensor Entity",
         "objectIds": [
           "presence_sensor_entity"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_schedule_sensor_entity",
+        "domain": "text",
+        "name": "Screen Schedule Sensor Entity",
+        "objectIds": [
+          "screen_schedule_sensor_entity"
         ],
         "groups": [
           "settings"
