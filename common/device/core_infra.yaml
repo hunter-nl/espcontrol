@@ -176,6 +176,7 @@ select:
       sorting_group_id: sg_connectivity
     set_action:
       - lambda: |-
+          id(cover_art_home_assistant_artwork_protocol).publish_state(x);
           id(cover_art_resolve_home_assistant_base_url).execute();
 
 number:
