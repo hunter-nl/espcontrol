@@ -1529,6 +1529,7 @@ async function assertMobileTabLayout(page, label, restoreViewport) {
     var screen = document.querySelector(".sp-screen").getBoundingClientRect();
     return {
       tab: document.querySelector("#sp-app").getAttribute("data-active-tab"),
+      supportDismissControl: !!document.querySelector(".sp-support-dismiss"),
       viewportMeta:
         document.querySelector('meta[name="viewport"]') &&
         document.querySelector('meta[name="viewport"]').getAttribute("content"),
@@ -1551,6 +1552,11 @@ async function assertMobileTabLayout(page, label, restoreViewport) {
     mobile.viewportMeta,
     "width=device-width,initial-scale=1",
     `${label}: web app should provide mobile viewport metadata`,
+  );
+  assert.strictEqual(
+    mobile.supportDismissControl,
+    false,
+    `${label}: support button should not have a dismiss control`,
   );
   assert(
     mobile.supportVisible,
