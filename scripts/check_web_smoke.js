@@ -595,6 +595,17 @@ assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort("80"), 80);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(""), 8123);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(0), 1);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(70000), 65535);
+assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl(" https://ha.example.com/proxy/ "), "https://ha.example.com/proxy");
+assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("HTTPS://ha.example.com"), "https://ha.example.com");
+assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("https://ha.example.com:0"), "");
+assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("http://[fd00::1]:8123"), "http://[fd00::1]:8123");
+assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("ftp://ha.example.com"), "");
+assert.strictEqual(hooks.normalizeHomeAssistantArtworkBaseUrl("https://ha.example.com/?token=secret"), "");
+assert.deepStrictEqual(Array.from(hooks.homeAssistantArtworkBaseUrlPostUrls("https://ha.example.com/")), [
+  "/text/home_assistant_artwork_base_url/set?value=https%3A%2F%2Fha.example.com",
+  "/text/cover_art_home_assistant_artwork_base_url_override/set?value=https%3A%2F%2Fha.example.com",
+  "/text/Home%20Assistant%20Artwork%20Base%20URL/set?value=https%3A%2F%2Fha.example.com",
+]);
 const climatePreviewButton = {
   entity: "climate.home",
   label: "Home",

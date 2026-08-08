@@ -340,6 +340,14 @@ export const ENTITY_CATALOG = {
         "home_assistant_artwork_port"
       ]
     },
+    "home_assistant_artwork_base_url": {
+      "domain": "text",
+      "name": "Home Assistant Artwork Base URL",
+      "objectIds": [
+        "home_assistant_artwork_base_url",
+        "cover_art_home_assistant_artwork_base_url_override"
+      ]
+    },
     "screen_saver_daytime_clock_brightness": {
       "domain": "number",
       "name": "Screen Saver: Daytime Clock Brightness",
@@ -727,6 +735,7 @@ export const ENTITY_CATALOG = {
       "screen_saver_hide_cover_art_external_input",
       "home_assistant_artwork_protocol",
       "home_assistant_artwork_port",
+      "home_assistant_artwork_base_url",
       "screen_saver_daytime_clock_brightness",
       "screen_saver_nighttime_clock_brightness",
       "screen_saver_clock_brightness",

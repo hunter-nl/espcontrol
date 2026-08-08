@@ -242,6 +242,7 @@ export function installSettingsPageHelpersModule(): GlobalDescriptors {
         if (els.setCoverArtHomeAssistantPort) {
             els.setCoverArtHomeAssistantPort.value = String(normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort));
         }
+        syncInput(els.setCoverArtHomeAssistantBaseUrl, state.coverArtHomeAssistantBaseUrl);
         if (els.setCoverArtFilterToggle) {
             state.coverArtFilteringEnabled = !!state.coverArtFilteringEnabled || !!state.coverArtAttributeConditions;
             els.setCoverArtFilterToggle.checked = !!state.coverArtFilteringEnabled;

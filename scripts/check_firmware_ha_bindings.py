@@ -973,6 +973,15 @@ def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
     if resubscribe_body and "if (!url.empty() && url != id(cover_art_runtime).source_url)" not in resubscribe_body:
         errors.append(f"{rel}: mark changed Home Assistant artwork attributes as stale")
 
+    base_url_body = yaml_script_body(text, "cover_art_resolve_home_assistant_base_url") or ""
+    if (
+        "rebuild_relative_artwork_url" not in base_url_body
+        or "id(cover_art_runtime).sources.remote_url" not in base_url_body
+        or "id(cover_art_runtime).sources.local_url" not in base_url_body
+        or "id(cover_art_process_cached_artwork).execute();" not in base_url_body
+    ):
+        errors.append(f"{rel}: rebuild cached full-screen artwork URLs when the Home Assistant base URL changes")
+
     apply_body = yaml_script_body(text, "cover_art_apply_downloaded_image")
     if not apply_body:
         errors.append(f"{rel}: missing cover_art_apply_downloaded_image script")
@@ -2184,10 +2193,20 @@ def firmware_image_card_startup_errors(
     if core_infra_path.exists():
         core_rel = core_infra_path.relative_to(root)
         core_text = core_infra_path.read_text(encoding="utf-8")
+        port_action = re.search(
+            r'(?ms)^  - platform: template\n    name: "Home Assistant Artwork Port".*?'
+            r'^    set_action:\n      - lambda: \|-\n(?P<body>.*?)(?=^  - platform: |\Z)',
+            core_text,
+        )
         if "is_home_assistant && ha_api_connected()" not in core_text:
             errors.append(f"{core_rel}: start image-card refresh when Home Assistant API connects")
-        if core_text.count("refresh_image_cards();") < 4:
-            errors.append(f"{core_rel}: refresh image cards through Home Assistant connect retries")
+        if (
+            core_text.count("refresh_image_cards();") < 3
+            or "id(cover_art_resolve_home_assistant_base_url).execute();" not in core_text
+            or not port_action
+            or "id(cover_art_home_assistant_artwork_port).publish_state(x);" not in port_action.group("body")
+        ):
+            errors.append(f"{core_rel}: resolve artwork URLs with the newly selected port")
     return errors
 
 
@@ -5377,6 +5396,13 @@ def run_self_test() -> int:
         "# cover_art_runtime).effective_download_url\n"
         "  - id: cover_art_album\n"
         "script:\n"
+        "  - id: cover_art_resolve_home_assistant_base_url\n"
+        "    then:\n"
+        "      - lambda: |-\n"
+        "          auto rebuild_relative_artwork_url = [](std::string &url) { return !url.empty(); };\n"
+        "          id(cover_art_runtime).sources.remote_url.clear();\n"
+        "          id(cover_art_runtime).sources.local_url.clear();\n"
+        "          id(cover_art_process_cached_artwork).execute();\n"
         "  - id: cover_art_download\n"
         "    then:\n"
         "      - if:\n"
@@ -6399,7 +6425,7 @@ def run_self_test() -> int:
             "request bounded Home Assistant image card proxy downloads",
             "recognize Home Assistant camera and image proxy URLs",
             "start image-card refresh when Home Assistant API connects",
-            "refresh image cards through Home Assistant connect retries",
+            "resolve artwork URLs with the newly selected port",
         ),
     )
     expect_image_card_startup_errors(
@@ -6484,7 +6510,7 @@ def run_self_test() -> int:
         "  on_client_connected:\n"
         "    - lambda: |-\n"
         "        if (is_home_assistant && ha_api_connected()) {\n"
-        "        refresh_image_cards();\n"
+        "        id(cover_art_resolve_home_assistant_base_url).execute();\n"
         "        }\n"
         "    - delay: 2s\n"
         "    - lambda: |-\n"
@@ -6494,7 +6520,13 @@ def run_self_test() -> int:
         "        refresh_image_cards();\n"
         "    - delay: 20s\n"
         "    - lambda: |-\n"
-        "        refresh_image_cards();\n",
+        "        refresh_image_cards();\n"
+        "number:\n"
+        "  - platform: template\n"
+        "    name: \"Home Assistant Artwork Port\"\n"
+        "    set_action:\n"
+        "      - lambda: |-\n"
+        "          id(cover_art_home_assistant_artwork_port).publish_state(x);\n",
         (),
     )
     valid_shared_wake_guard_widget = (

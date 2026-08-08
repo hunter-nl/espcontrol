@@ -223,6 +223,10 @@ export function installAppStateEventHandlersModule(): GlobalDescriptors {
                 state.coverArtHomeAssistantPort = normalizeHomeAssistantArtworkPort(val);
                 syncCoverArtScreensaverUi();
             },
+            "text-home_assistant_artwork_base_url": function (this: any, val?: any) {
+                state.coverArtHomeAssistantBaseUrl = normalizeHomeAssistantArtworkBaseUrl(val);
+                syncCoverArtScreensaverUi();
+            },
             "text-screensaver_mode": function (this: any, val?: any) {
                 state._screensaverModeReceived = true;
                 state.screensaverMode = val === "sensor" || val === "timer" || val === "disabled" ? val : "disabled";

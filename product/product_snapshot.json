@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 6,
     "cardTypes": 40,
-    "entityNames": 97,
+    "entityNames": 98,
     "icons": 334,
     "structuralIcons": 16,
     "compatibilityFixtureGroups": 2
@@ -6249,6 +6249,18 @@
         "name": "Home Assistant Artwork Port",
         "objectIds": [
           "home_assistant_artwork_port"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "home_assistant_artwork_base_url",
+        "domain": "text",
+        "name": "Home Assistant Artwork Base URL",
+        "objectIds": [
+          "home_assistant_artwork_base_url",
+          "cover_art_home_assistant_artwork_base_url_override"
         ],
         "groups": [
           "settings"
