@@ -211,7 +211,7 @@ export function installControlsShellModule(): GlobalDescriptors {
     }
     function syncTabChrome(this: any) {
         var support: any = document.querySelector(".sp-support-btn");
-        if (support && support.getAttribute("data-dismissed") !== "true")
+        if (support)
             support.classList.remove("sp-support-hidden");
     }
     function isConfigLocked(this: any) {
